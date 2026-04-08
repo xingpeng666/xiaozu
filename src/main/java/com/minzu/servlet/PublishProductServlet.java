@@ -1,0 +1,267 @@
+package com.minzu.servlet;
+
+import com.minzu.entity.User;
+import com.minzu.util.DBUtil;
+import com.minzu.util.UploadUtil;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.MultipartConfig;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.*;
+import java.io.File;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+@WebServlet("/publish-product")
+@MultipartConfig(
+        fileSizeThreshold = 1024 * 1024,
+        maxFileSize = 10 * 1024 * 1024,
+        maxRequestSize = 50 * 1024 * 1024
+)
+public class PublishProductServlet extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        User loginUser = (User) request.getSession().getAttribute("loginUser");
+        if (loginUser == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        String sql = "SELECT category_id, category_name FROM categories ORDER BY category_id";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            List<java.util.Map<String, Object>> categories = new ArrayList<>();
+            while (rs.next()) {
+                java.util.Map<String, Object> map = new java.util.HashMap<>();
+                map.put("categoryId", rs.getInt("category_id"));
+                map.put("categoryName", rs.getString("category_name"));
+                categories.add(map);
+            }
+            request.setAttribute("categories", categories);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // 查询启用的自提点列表
+        String ppSql = "SELECT pickup_point_id, point_name, campus_area FROM pickup_points WHERE is_enabled = 1 ORDER BY pickup_point_id";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(ppSql);
+             ResultSet rs = ps.executeQuery()) {
+
+            List<java.util.Map<String, Object>> pickupPoints = new ArrayList<>();
+            while (rs.next()) {
+                java.util.Map<String, Object> map = new java.util.HashMap<>();
+                map.put("pickupPointId", rs.getLong("pickup_point_id"));
+                map.put("pointName", rs.getString("point_name"));
+                map.put("campusArea", rs.getString("campus_area"));
+                pickupPoints.add(map);
+            }
+            request.setAttribute("pickupPoints", pickupPoints);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        request.getRequestDispatcher("/publish-product.jsp").forward(request, response);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        request.setCharacterEncoding("UTF-8");
+
+        User loginUser = (User) request.getSession().getAttribute("loginUser");
+        if (loginUser == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        String title = request.getParameter("title");
+        String description = request.getParameter("description");
+        String priceStr = request.getParameter("price");
+        String originalPriceStr = request.getParameter("originalPrice");
+        String conditionLevel = request.getParameter("conditionLevel");
+        String categoryIdStr = request.getParameter("categoryId");
+        String pickupPointIdStr = request.getParameter("pickupPointId");
+
+        Part coverPart = request.getPart("coverImage");
+        List<Part> detailImageParts = new ArrayList<>();
+        for (Part part : request.getParts()) {
+            if ("detailImages".equals(part.getName()) && part.getSize() > 0) {
+                detailImageParts.add(part);
+            }
+        }
+
+        if (title == null || title.trim().isEmpty()
+                || priceStr == null || priceStr.trim().isEmpty()
+                || conditionLevel == null || conditionLevel.trim().isEmpty()
+                || categoryIdStr == null || categoryIdStr.trim().isEmpty()
+                || coverPart == null || coverPart.getSize() == 0) {
+            request.setAttribute("errorMsg", "请填写完整信息并上传封面图");
+            doGet(request, response);
+            return;
+        }
+
+        BigDecimal price;
+        BigDecimal originalPrice = null;
+        int categoryId;
+
+        try {
+            price = new BigDecimal(priceStr.trim());
+            if (originalPriceStr != null && !originalPriceStr.trim().isEmpty()) {
+                originalPrice = new BigDecimal(originalPriceStr.trim());
+            }
+            categoryId = Integer.parseInt(categoryIdStr.trim());
+        } catch (Exception e) {
+            request.setAttribute("errorMsg", "价格或分类格式有误");
+            doGet(request, response);
+            return;
+        }
+
+        String uploadDir = UploadUtil.getUploadDir();
+        File uploadDirFile = new File(uploadDir);
+        if (!uploadDirFile.exists()) {
+            uploadDirFile.mkdirs();
+        }
+
+        Connection conn = null;
+        PreparedStatement psProduct = null;
+        PreparedStatement psImage = null;
+        ResultSet generatedKeys = null;
+
+        try {
+            String coverImageUrl = UploadUtil.saveFile(coverPart, uploadDir, request);
+
+            conn = DBUtil.getConnection();
+            conn.setAutoCommit(false);
+
+            // 收集额外的图片URL（imageUrl1 - imageUrl4，逗号分隔）
+            StringBuilder imageUrlsBuilder = new StringBuilder();
+            for (int i = 1; i <= 4; i++) {
+                String url = request.getParameter("imageUrl" + i);
+                if (url != null && !url.trim().isEmpty()) {
+                    if (imageUrlsBuilder.length() > 0) imageUrlsBuilder.append(",");
+                    imageUrlsBuilder.append(url.trim());
+                }
+            }
+            String imageUrls = imageUrlsBuilder.length() > 0 ? imageUrlsBuilder.toString() : null;
+
+            // 标签处理：从表单 tags 参数获取，清洗后写入
+            String rawTags = request.getParameter("tags");
+            String tags = cleanTags(rawTags);
+            // 毕业季 checkbox 也追加 graduation 标签
+            String isGraduation = request.getParameter("isGraduation");
+            if ("1".equals(isGraduation)) {
+                tags = (tags == null || tags.isEmpty()) ? "graduation" : tags + ",graduation";
+            }
+
+            String insertProductSql =
+                    "INSERT INTO products " +
+                            "(seller_id, category_id, title, product_desc, price, original_price, " +
+                            "condition_level, cover_image_url, image_urls, tags, pickup_point_id, publish_status, " +
+                            "is_textbook_zone, is_graduation_zone, view_count, favorite_count, is_deleted, created_at, updated_at) " +
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ON_SALE', 0, 0, 0, 0, 0, NOW(), NOW())";
+
+            psProduct = conn.prepareStatement(insertProductSql, Statement.RETURN_GENERATED_KEYS);
+            psProduct.setInt(1, loginUser.getUserId());
+            psProduct.setInt(2, categoryId);
+            psProduct.setString(3, title.trim());
+            psProduct.setString(4, description != null ? description.trim() : "");
+            psProduct.setBigDecimal(5, price);
+
+            if (originalPrice != null) {
+                psProduct.setBigDecimal(6, originalPrice);
+            } else {
+                psProduct.setNull(6, Types.DECIMAL);
+            }
+
+            psProduct.setString(7, conditionLevel);
+            psProduct.setString(8, coverImageUrl);
+            psProduct.setString(9, imageUrls);
+            psProduct.setString(10, tags);
+
+            // 设置自提点ID
+            if (pickupPointIdStr != null && !pickupPointIdStr.trim().isEmpty()) {
+                try {
+                    psProduct.setLong(11, Long.parseLong(pickupPointIdStr.trim()));
+                } catch (NumberFormatException e) {
+                    psProduct.setNull(11, Types.BIGINT);
+                }
+            } else {
+                psProduct.setNull(11, Types.BIGINT);
+            }
+
+            psProduct.executeUpdate();
+
+            generatedKeys = psProduct.getGeneratedKeys();
+            long productId = 0;
+            if (generatedKeys.next()) {
+                productId = generatedKeys.getLong(1);
+            } else {
+                throw new RuntimeException("发布失败：未获取到商品ID");
+            }
+
+            String insertImageSql =
+                    "INSERT INTO product_images (product_id, image_url, sort_order, created_at) " +
+                            "VALUES (?, ?, ?, NOW())";
+
+            psImage = conn.prepareStatement(insertImageSql);
+
+            int sortOrder = 1;
+            for (Part part : detailImageParts) {
+                String imageUrl = UploadUtil.saveFile(part, uploadDir, request);
+                psImage.setLong(1, productId);
+                psImage.setString(2, imageUrl);
+                psImage.setInt(3, sortOrder++);
+                psImage.addBatch();
+            }
+
+            psImage.executeBatch();
+            conn.commit();
+            request.getSession().setAttribute("successMsg", "商品发布成功，已上架展示");
+            response.sendRedirect(request.getContextPath() + "/my-products");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            try {
+                if (conn != null) conn.rollback();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+            request.setAttribute("errorMsg", "发布失败：" + e.getMessage());
+            doGet(request, response);
+        } finally {
+            try { if (generatedKeys != null) generatedKeys.close(); } catch (Exception ignored) {}
+            try { if (psImage != null) psImage.close(); } catch (Exception ignored) {}
+            try { if (psProduct != null) psProduct.close(); } catch (Exception ignored) {}
+            try {
+                if (conn != null) {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                }
+            } catch (Exception ignored) {}
+        }
+    }
+
+    /**
+     * 清洗标签：trim、去空、去重、最多保留8个，逗号分隔
+     */
+    private String cleanTags(String raw) {
+        if (raw == null || raw.trim().isEmpty()) return null;
+        String[] parts = raw.split(",");
+        java.util.LinkedHashSet<String> set = new java.util.LinkedHashSet<>();
+        for (String part : parts) {
+            String t = part.trim();
+            if (!t.isEmpty() && set.size() < 8) set.add(t);
+        }
+        return set.isEmpty() ? null : String.join(",", set);
+    }
+}
