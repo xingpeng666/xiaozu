@@ -1,7 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.*" %>
 <%
-    // 权限校验
     com.minzu.entity.User loginUser = (com.minzu.entity.User) session.getAttribute("loginUser");
     if (loginUser == null) { response.sendRedirect(request.getContextPath() + "/login"); return; }
     if (!"ADMIN".equals(loginUser.getRoleCode())) { response.sendRedirect(request.getContextPath() + "/index.jsp"); return; }
@@ -37,14 +36,15 @@
         th { background: #fafafa; font-weight: bold; color: #555; white-space: nowrap; }
         tr:hover td { background: #fafcff; }
         .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; color: #fff; }
-        .badge-pending { background: #fa8c16; }
-        .badge-handled { background: #8c8c8c; }
+        .badge-pending   { background: #fa8c16; }
+        .badge-handled   { background: #8c8c8c; }
+        .badge-dismissed { background: #52c41a; }
         .btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; border: none; cursor: pointer; text-decoration: none; display: inline-block; }
         .btn-sm { padding: 6px 14px; font-size: 12px; }
         .btn-danger { background: #fff1f0; color: #cf1322; border: 1px solid #ffccc7; }
         .btn-danger:hover { background: #ffe7e6; }
         .btn-gray { background: #f5f5f5; color: #555; border: 1px solid #ddd; }
-        .btn-gray:hover { border-color: #1677ff; color: #1677ff; }
+        .btn-gray:hover { border-color: #52c41a; color: #52c41a; }
         .empty { background: #fff; border-radius: 14px; padding: 60px 20px; text-align: center; color: #999; box-shadow: 0 4px 18px rgba(0,0,0,0.05); }
         @media (max-width: 768px) { th, td { padding: 10px 12px; font-size: 12px; } }
     </style>
@@ -58,6 +58,7 @@
         <a href="${pageContext.request.contextPath}/admin/users">用户审核</a>
         <a href="${pageContext.request.contextPath}/admin/products">商品审核</a>
         <a href="${pageContext.request.contextPath}/report">举报管理</a>
+        <a href="${pageContext.request.contextPath}/dispute?action=admin">纠纷管理</a>
         <a href="${pageContext.request.contextPath}/index.jsp">前台首页</a>
         <a href="${pageContext.request.contextPath}/logout">退出</a>
     </div>
@@ -90,7 +91,10 @@
                 </tr>
             </thead>
             <tbody>
-                <% for (Map<String, Object> r : reportList) { %>
+                <% for (Map<String, Object> r : reportList) {
+                    String st = (String) r.get("status");
+                    String ps = (String) r.get("publishStatus");
+                %>
                 <tr>
                     <td>#<%= r.get("reportId") %></td>
                     <td><%= r.get("reporterName") != null ? r.get("reporterName") : "未知" %></td>
@@ -99,28 +103,37 @@
                             <%= r.get("productTitle") != null ? r.get("productTitle") : "商品已删除" %>
                         </a>
                     </td>
-                    <td><%= r.get("publishStatus") != null ? r.get("publishStatus") : "-" %></td>
+                    <td><%= ps != null ? ps : "-" %></td>
                     <td><%= r.get("reason") %></td>
                     <td>
-                        <% String st = (String) r.get("status"); %>
-                        <span class="badge <%= "PENDING".equals(st) ? "badge-pending" : "badge-handled" %>">
-                            <%= "PENDING".equals(st) ? "待处理" : "已处理" %>
-                        </span>
+                        <% if ("PENDING".equals(st)) { %>
+                            <span class="badge badge-pending">待处理</span>
+                        <% } else if ("DISMISSED".equals(st)) { %>
+                            <span class="badge badge-dismissed">已驳回</span>
+                        <% } else { %>
+                            <span class="badge badge-handled">已处理</span>
+                        <% } %>
                     </td>
-                    <td><%= r.get("createdAt") %></td>
+                    <td><%= r.get("createdAt") != null ? r.get("createdAt").toString().substring(0,16) : "-" %></td>
                     <td>
-                        <% if ("PENDING".equals(r.get("status")) && !"OFF_SHELF".equals(r.get("publishStatus")) && !"SOLD".equals(r.get("publishStatus"))) { %>
-                            <form action="${pageContext.request.contextPath}/report" method="post" style="margin:0;display:inline;"
-                                  onsubmit="return confirm('确定要下架该商品吗？该操作不可撤销。');">
+                        <% if ("PENDING".equals(st)) { %>
+                            <% if (!"OFF_SHELF".equals(ps) && !"SOLD".equals(ps)) { %>
+                            <form action="${pageContext.request.contextPath}/report" method="post" style="margin:0 0 6px 0;display:inline;"
+                                  onsubmit="return confirm('确定下架该商品？该操作不可撤销。');">
                                 <input type="hidden" name="action" value="takedown">
                                 <input type="hidden" name="productId" value="<%= r.get("productId") %>">
                                 <input type="hidden" name="reportId" value="<%= r.get("reportId") %>">
-                                <button type="submit" class="btn btn-danger btn-sm">下架商品</button>
+                                <button type="submit" class="btn btn-danger btn-sm">&#9660; 下架商品</button>
                             </form>
-                        <% } else if ("OFF_SHELF".equals(r.get("publishStatus"))) { %>
+                            <% } %>
+                            <form action="${pageContext.request.contextPath}/report" method="post" style="margin:0;display:inline;"
+                                  onsubmit="return confirm('确定驳回该举报？将标记为无效举报。');">
+                                <input type="hidden" name="action" value="dismiss">
+                                <input type="hidden" name="reportId" value="<%= r.get("reportId") %>">
+                                <button type="submit" class="btn btn-gray btn-sm">&#10006; 驳回</button>
+                            </form>
+                        <% } else if ("OFF_SHELF".equals(ps)) { %>
                             <span style="color:#999;font-size:12px;">已下架</span>
-                        <% } else if ("SOLD".equals(r.get("publishStatus"))) { %>
-                            <span style="color:#999;font-size:12px;">已售出</span>
                         <% } else { %>
                             <span style="color:#999;font-size:12px;">-</span>
                         <% } %>
