@@ -16,6 +16,10 @@ import java.util.*;
  *   GET  （管理员）      : 查看所有举报列表
  *   POST action=takedown: 管理员下架商品
  *   POST action=dismiss : 管理员驳回举报（商品正常）
+ *
+ * 注意：reports 表实际列名为 report_status / report_reason / report_detail
+ *       枚举值为 PENDING / APPROVED / REJECTED / CLOSED
+ *       驳回用 REJECTED，下架/通过用 APPROVED
  */
 @WebServlet("/report")
 public class ReportServlet extends HttpServlet {
@@ -32,14 +36,17 @@ public class ReportServlet extends HttpServlet {
             return;
         }
 
+        // 使用数据库真实列名：report_status / report_reason
         String sql =
-            "SELECT r.report_id, r.product_id, r.reason, r.status, r.created_at, " +
+            "SELECT r.report_id, r.product_id, r.report_reason AS reason, " +
+            "r.report_detail, r.report_status AS status, r.created_at, " +
+            "r.handler_admin_id, r.handle_result, r.handled_at, " +
             "p.title AS product_title, p.publish_status, p.cover_image_url, " +
             "u.nickname AS reporter_name " +
             "FROM reports r " +
             "LEFT JOIN products p ON r.product_id = p.product_id " +
             "LEFT JOIN users u ON r.reporter_id = u.user_id " +
-            "ORDER BY FIELD(r.status, 'PENDING', 'HANDLED', 'DISMISSED'), r.created_at DESC";
+            "ORDER BY FIELD(r.report_status, 'PENDING', 'APPROVED', 'REJECTED', 'CLOSED'), r.created_at DESC";
 
         List<Map<String, Object>> reportList = new ArrayList<>();
         try (Connection conn = DBUtil.getConnection();
@@ -49,9 +56,12 @@ public class ReportServlet extends HttpServlet {
                 Map<String, Object> row = new LinkedHashMap<>();
                 row.put("reportId",      rs.getInt("report_id"));
                 row.put("productId",     rs.getInt("product_id"));
-                row.put("reason",        rs.getString("reason"));
-                row.put("status",        rs.getString("status"));
+                row.put("reason",        rs.getString("reason"));       // alias: report_reason
+                row.put("reportDetail",  rs.getString("report_detail"));
+                row.put("status",        rs.getString("status"));       // alias: report_status
                 row.put("createdAt",     rs.getTimestamp("created_at"));
+                row.put("handledAt",     rs.getTimestamp("handled_at"));
+                row.put("handleResult",  rs.getString("handle_result"));
                 row.put("productTitle",  rs.getString("product_title"));
                 row.put("publishStatus", rs.getString("publish_status"));
                 row.put("coverImageUrl", rs.getString("cover_image_url"));
@@ -133,8 +143,9 @@ public class ReportServlet extends HttpServlet {
             }
 
             // 防止重复举报（同一用户对同一商品只能有一条 PENDING 举报）
+            // 使用真实列名 report_status
             String dupSql = "SELECT report_id FROM reports " +
-                    "WHERE reporter_id = ? AND product_id = ? AND status = 'PENDING'";
+                    "WHERE reporter_id = ? AND product_id = ? AND report_status = 'PENDING'";
             try (PreparedStatement ps = conn.prepareStatement(dupSql)) {
                 ps.setInt(1, loginUser.getUserId());
                 ps.setInt(2, productId);
@@ -147,7 +158,8 @@ public class ReportServlet extends HttpServlet {
                 }
             }
 
-            String insertSql = "INSERT INTO reports (reporter_id, product_id, reason) VALUES (?, ?, ?)";
+            // 插入时使用 report_reason 列
+            String insertSql = "INSERT INTO reports (reporter_id, product_id, report_reason) VALUES (?, ?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
                 ps.setInt(1, loginUser.getUserId());
                 ps.setInt(2, productId);
@@ -165,7 +177,7 @@ public class ReportServlet extends HttpServlet {
         }
     }
 
-    /** 管理员下架商品（举报属实） */
+    /** 管理员下架商品（举报属实），将 report_status 改为 APPROVED */
     private void takedownProduct(HttpServletRequest req, HttpServletResponse resp, User admin)
             throws IOException {
 
@@ -196,13 +208,16 @@ public class ReportServlet extends HttpServlet {
                     ps.executeUpdate();
                 }
 
-                // 标记举报为已处理
+                // 标记举报为已处理（使用真实列名 report_status，值改为 APPROVED）
                 if (reportIdStr != null && !reportIdStr.trim().isEmpty()) {
                     int reportId = Integer.parseInt(reportIdStr.trim());
-                    String updateReportSql = "UPDATE reports SET status = 'HANDLED' WHERE report_id = ? AND product_id = ?";
+                    String updateReportSql = "UPDATE reports SET report_status = 'APPROVED', " +
+                            "handler_admin_id = ?, handled_at = NOW() " +
+                            "WHERE report_id = ? AND product_id = ?";
                     try (PreparedStatement ps = conn.prepareStatement(updateReportSql)) {
-                        ps.setInt(1, reportId);
-                        ps.setInt(2, productId);
+                        ps.setInt(1, admin.getUserId());
+                        ps.setInt(2, reportId);
+                        ps.setInt(3, productId);
                         ps.executeUpdate();
                     }
                 }
@@ -230,7 +245,7 @@ public class ReportServlet extends HttpServlet {
         resp.sendRedirect(req.getContextPath() + "/report");
     }
 
-    /** 管理员驳回举报（商品正常，无需处理） */
+    /** 管理员驳回举报，将 report_status 改为 REJECTED */
     private void dismissReport(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
 
@@ -249,7 +264,9 @@ public class ReportServlet extends HttpServlet {
         }
 
         try (Connection conn = DBUtil.getConnection()) {
-            String sql = "UPDATE reports SET status = 'DISMISSED' WHERE report_id = ? AND status = 'PENDING'";
+            // 使用真实列名 report_status，驳回用 REJECTED
+            String sql = "UPDATE reports SET report_status = 'REJECTED', handled_at = NOW() " +
+                    "WHERE report_id = ? AND report_status = 'PENDING'";
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setInt(1, reportId);
                 int affected = ps.executeUpdate();

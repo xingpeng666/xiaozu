@@ -36,9 +36,10 @@
         th { background: #fafafa; font-weight: bold; color: #555; white-space: nowrap; }
         tr:hover td { background: #fafcff; }
         .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; color: #fff; }
-        .badge-pending   { background: #fa8c16; }
-        .badge-handled   { background: #8c8c8c; }
-        .badge-dismissed { background: #52c41a; }
+        .badge-pending  { background: #fa8c16; }
+        .badge-approved { background: #8c8c8c; }
+        .badge-rejected { background: #52c41a; }
+        .badge-closed   { background: #bfbfbf; }
         .btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; border: none; cursor: pointer; text-decoration: none; display: inline-block; }
         .btn-sm { padding: 6px 14px; font-size: 12px; }
         .btn-danger { background: #fff1f0; color: #cf1322; border: 1px solid #ffccc7; }
@@ -87,11 +88,15 @@
                     <th>举报原因</th>
                     <th>状态</th>
                     <th>举报时间</th>
+                    <th>处理时间</th>
                     <th>操作</th>
                 </tr>
             </thead>
             <tbody>
-                <% for (Map<String, Object> r : reportList) {
+                <%
+                // status 已在 Servlet 中通过 AS 别名映射为 report_status
+                // reason 已在 Servlet 中通过 AS 别名映射为 report_reason
+                for (Map<String, Object> r : reportList) {
                     String st = (String) r.get("status");
                     String ps = (String) r.get("publishStatus");
                 %>
@@ -104,17 +109,25 @@
                         </a>
                     </td>
                     <td><%= ps != null ? ps : "-" %></td>
-                    <td><%= r.get("reason") %></td>
+                    <td>
+                        <%= r.get("reason") != null ? r.get("reason") : "-" %>
+                        <% if (r.get("reportDetail") != null && !r.get("reportDetail").toString().isEmpty()) { %>
+                            <br><small style="color:#888;"><%= r.get("reportDetail") %></small>
+                        <% } %>
+                    </td>
                     <td>
                         <% if ("PENDING".equals(st)) { %>
                             <span class="badge badge-pending">待处理</span>
-                        <% } else if ("DISMISSED".equals(st)) { %>
-                            <span class="badge badge-dismissed">已驳回</span>
+                        <% } else if ("APPROVED".equals(st)) { %>
+                            <span class="badge badge-approved">已下架</span>
+                        <% } else if ("REJECTED".equals(st)) { %>
+                            <span class="badge badge-rejected">已驳回</span>
                         <% } else { %>
-                            <span class="badge badge-handled">已处理</span>
+                            <span class="badge badge-closed">已关闭</span>
                         <% } %>
                     </td>
                     <td><%= r.get("createdAt") != null ? r.get("createdAt").toString().substring(0,16) : "-" %></td>
+                    <td><%= r.get("handledAt") != null ? r.get("handledAt").toString().substring(0,16) : "-" %></td>
                     <td>
                         <% if ("PENDING".equals(st)) { %>
                             <% if (!"OFF_SHELF".equals(ps) && !"SOLD".equals(ps)) { %>
@@ -132,7 +145,7 @@
                                 <input type="hidden" name="reportId" value="<%= r.get("reportId") %>">
                                 <button type="submit" class="btn btn-gray btn-sm">&#10006; 驳回</button>
                             </form>
-                        <% } else if ("OFF_SHELF".equals(ps)) { %>
+                        <% } else if ("OFF_SHELF".equals(ps) || "APPROVED".equals(st)) { %>
                             <span style="color:#999;font-size:12px;">已下架</span>
                         <% } else { %>
                             <span style="color:#999;font-size:12px;">-</span>
