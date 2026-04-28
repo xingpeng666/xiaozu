@@ -122,7 +122,7 @@
             }
         %>
             <a class="conv-item"
-               href="${pageContext.request.contextPath}/messages?with=<%= otherId %>">
+               href="${pageContext.request.contextPath}/messages?conversationId=<%= conv.get("conversationId") %>">
                 <div class="avatar"><%= initial %></div>
                 <div class="conv-info">
                     <div class="conv-name"><%= otherNickname %></div>

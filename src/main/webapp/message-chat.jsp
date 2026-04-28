@@ -14,7 +14,11 @@
     String otherNickname = (String) request.getAttribute("otherNickname");
     Map<String, Object> product = (Map<String, Object>) request.getAttribute("product");
     List<Message> chatList = (List<Message>) request.getAttribute("chatList");
-    Integer productId = (Integer) request.getAttribute("productId");
+    Long conversationId = (Long) request.getAttribute("conversationId");
+    Object pidObj = request.getAttribute("productId");
+    Integer productId = null;
+    if (pidObj instanceof Long) productId = ((Long) pidObj).intValue();
+    else if (pidObj instanceof Integer) productId = (Integer) pidObj;
     String successMsg = (String) session.getAttribute("successMsg");
     String errorMsg = (String) session.getAttribute("errorMsg");
     // 也检查 request 中的 errorMsg（showChat 方法设置的）
@@ -201,6 +205,9 @@
 <div class="chat-input-area">
     <form method="post" action="${pageContext.request.contextPath}/messages" id="msgForm"
           onsubmit="var v=document.getElementById('msgInput').value.trim(); if(!v){alert('消息内容不能为空');return false;}">
+        <% if (conversationId != null) { %>
+            <input type="hidden" name="conversationId" value="<%= conversationId %>">
+        <% } %>
         <input type="hidden" name="receiverId" value="<%= otherId %>">
         <% if (productId != null) { %>
             <input type="hidden" name="productId" value="<%= productId %>">
