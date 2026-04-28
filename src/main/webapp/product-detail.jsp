@@ -7,6 +7,19 @@
     List<String> detailImages = (List<String>) request.getAttribute("detailImages");
     User loginUser = (User) session.getAttribute("loginUser");
 
+    // 查询未读通知数
+    int unreadNotifyCount = 0;
+    if (loginUser != null) {
+        try {
+            java.sql.Connection nConn = com.minzu.util.DBUtil.getConnection();
+            java.sql.PreparedStatement nPs = nConn.prepareStatement("SELECT COUNT(*) FROM notifications WHERE user_id=? AND is_read=0");
+            nPs.setInt(1, loginUser.getUserId());
+            java.sql.ResultSet nRs = nPs.executeQuery();
+            if (nRs.next()) unreadNotifyCount = nRs.getInt(1);
+            nRs.close(); nPs.close(); nConn.close();
+        } catch (Exception ignore) {}
+    }
+
     boolean canDelete = false;
     boolean isOwner = false;
     boolean isFavorited = false;
@@ -140,12 +153,19 @@
     <div class="logo">🏫 民大二手交易平台</div>
     <div class="nav">
         <a href="${pageContext.request.contextPath}/index.jsp">首页</a>
+        <a href="${pageContext.request.contextPath}/pickup-locations.jsp">&#128205; 自提点</a>
         <a href="${pageContext.request.contextPath}/product-list">商品列表</a>
         <% if (loginUser != null) { %>
             <a href="${pageContext.request.contextPath}/my-favorites">我的收藏</a>
             <a href="${pageContext.request.contextPath}/messages">私信</a>
             <a href="${pageContext.request.contextPath}/my-products">我的商品</a>
             <a href="${pageContext.request.contextPath}/orders">我的订单</a>
+            <a href="${pageContext.request.contextPath}/notifications" style="position:relative;">
+                &#128276; 通知
+                <% if (unreadNotifyCount > 0) { %>
+                <span style="position:absolute;top:-6px;right:-10px;background:#ff4d4f;color:#fff;border-radius:10px;padding:1px 6px;font-size:11px;line-height:16px;min-width:18px;text-align:center;"><%= unreadNotifyCount %></span>
+                <% } %>
+            </a>
         <% } else { %>
             <a href="${pageContext.request.contextPath}/login">登录</a>
         <% } %>
@@ -275,6 +295,91 @@
             </div>
         </div>
     </div>
+
+    <%-- 举报此商品（登录用户可见，卖家本人不可见） --%>
+    <% if (loginUser != null && !isOwner && !isSold) { %>
+    <div class="desc-section" style="margin-top:22px;">
+        <h2 class="section-title" style="color:#ff4d4f;">举报此商品</h2>
+        <div class="section-body">
+            <form action="${pageContext.request.contextPath}/report" method="post" style="margin:0;"
+                  onsubmit="return confirm('确定要举报该商品吗？请确认举报内容属实。');">
+                <input type="hidden" name="action" value="submit">
+                <input type="hidden" name="productId" value="<%= product.getProductId() %>">
+                <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;">
+                    <textarea name="reason" rows="3" style="flex:1;min-width:220px;padding:10px 12px;border:1px solid #d9d9d9;border-radius:8px;font-size:14px;resize:vertical;"
+                              placeholder="请描述举报原因，如：虚假信息、违禁品、欺诈行为等" required></textarea>
+                    <button type="submit" style="padding:10px 24px;background:#ff4d4f;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;white-space:nowrap;">
+                        &#128276; 提交举报
+                    </button>
+                </div>
+            </form>
+            <div style="margin-top:10px;font-size:12px;color:#999;">
+                &#9432; 举报后管理员将尽快审核处理。请确保举报内容真实有效，恶意举报可能导致账号受限。
+            </div>
+        </div>
+    </div>
+    <% } %>
+
+    <%-- 多图轮播（image_urls 非空时展示） --%>
+    <%
+        String imageUrls = product.getImageUrls();
+        if (imageUrls != null && !imageUrls.trim().isEmpty()) {
+            String[] urls = imageUrls.split(",");
+            // 构建轮播图片列表：封面图 + image_urls
+            java.util.List<String> carouselImages = new java.util.ArrayList<>();
+            if (product.getCoverImageUrl() != null && !product.getCoverImageUrl().isEmpty()) {
+                carouselImages.add(product.getCoverImageUrl());
+            }
+            for (String url : urls) {
+                String trimmed = url.trim();
+                if (!trimmed.isEmpty()) {
+                    carouselImages.add(trimmed);
+                }
+            }
+            if (!carouselImages.isEmpty()) {
+    %>
+    <div class="images-section">
+        <h2 class="section-title">商品图片轮播</h2>
+        <div class="section-body">
+            <div id="productCarousel" style="position:relative;max-width:720px;margin:0 auto;overflow:hidden;border-radius:12px;background:#f0f2f5;">
+                <div style="display:flex;transition:transform 0.45s ease-in-out;" id="carouselTrack">
+                    <% for (String img : carouselImages) { %>
+                        <div style="min-width:100%;display:flex;align-items:center;justify-content:center;">
+                            <img src="<%= img %>" alt="商品图片" style="max-width:100%;max-height:480px;object-fit:contain;cursor:zoom-in;" onclick="openImagePreview('<%= img %>')">
+                        </div>
+                    <% } %>
+                </div>
+                <% if (carouselImages.size() > 1) { %>
+                <button onclick="slideCarousel(-1)" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.45);color:#fff;border:none;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;line-height:40px;">&#8249;</button>
+                <button onclick="slideCarousel(1)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.45);color:#fff;border:none;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;line-height:40px;">&#8250;</button>
+                <div style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:8px;">
+                    <% for (int idx = 0; idx < carouselImages.size(); idx++) { %>
+                        <span class="carousel-dot" data-index="<%= idx %>" style="width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.5);cursor:pointer;<%= idx==0?"background:#fff;":"" %>" onclick="goToSlide(<%= idx %>)"></span>
+                    <% } %>
+                </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+    <script>
+    var currentSlide = 0;
+    var totalSlides = <%= carouselImages.size() %>;
+    function slideCarousel(dir) {
+        currentSlide = (currentSlide + dir + totalSlides) % totalSlides;
+        updateSlide();
+    }
+    function goToSlide(idx) {
+        currentSlide = idx;
+        updateSlide();
+    }
+    function updateSlide() {
+        document.getElementById('carouselTrack').style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
+        var dots = document.querySelectorAll('.carousel-dot');
+        dots.forEach(function(d, i) { d.style.background = i === currentSlide ? '#fff' : 'rgba(255,255,255,0.5)'; });
+    }
+    </script>
+    <%  }
+    } %>
 
     <div class="desc-section">
         <h2 class="section-title">商品描述</h2>

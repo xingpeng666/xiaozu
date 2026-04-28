@@ -204,6 +204,29 @@
                         <% } %>
                     </div>
 
+                    <div class="form-item full">
+                        <label>额外展示图片（图片URL）</label>
+                        <%
+                            String existingUrls = product.getImageUrls();
+                            String[] urlArr = (existingUrls != null && !existingUrls.isEmpty()) ? existingUrls.split(",", -1) : new String[]{"","","",""};
+                        %>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                            <input type="text" name="imageUrl1" placeholder="图片URL 1（选填）" value="<%= urlArr.length > 0 ? urlArr[0] : "" %>">
+                            <input type="text" name="imageUrl2" placeholder="图片URL 2（选填）" value="<%= urlArr.length > 1 ? urlArr[1] : "" %>">
+                            <input type="text" name="imageUrl3" placeholder="图片URL 3（选填）" value="<%= urlArr.length > 2 ? urlArr[2] : "" %>">
+                            <input type="text" name="imageUrl4" placeholder="图片URL 4（选填）" value="<%= urlArr.length > 3 ? urlArr[3] : "" %>">
+                        </div>
+                        <div class="hint">可填入外部图片链接地址，与封面图搭配轮播展示。</div>
+                    </div>
+
+                </div>
+
+                <div class="form-item full" style="margin-bottom:0;">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                        <input type="checkbox" name="isGraduation" value="1" style="width:auto;"
+                            <%= product.getTags() != null && product.getTags().contains("graduation") ? "checked" : "" %>>
+                        这是毕业季商品（将在「毕业季专区」展示）
+                    </label>
                 </div>
 
                 <div class="action-bar">

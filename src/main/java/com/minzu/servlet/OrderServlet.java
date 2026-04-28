@@ -109,6 +109,35 @@ public class OrderServlet extends HttpServlet {
                 }
             }
 
+        // 批量查询当前用户对已完成订单的评价状态
+        Map<Integer, Boolean> reviewedMap = new HashMap<>();
+        if (!orderList.isEmpty()) {
+            StringBuilder orderIds = new StringBuilder();
+            for (Map<String, Object> o : orderList) {
+                if ("COMPLETED".equals(o.get("orderStatus"))) {
+                    if (orderIds.length() > 0) orderIds.append(",");
+                    orderIds.append(o.get("orderId"));
+                }
+            }
+            if (orderIds.length() > 0) {
+                String reviewSql = "SELECT order_id FROM reviews WHERE reviewer_id = ? AND order_id IN (" + orderIds + ")";
+                try (PreparedStatement rps = conn.prepareStatement(reviewSql)) {
+                    rps.setInt(1, loginUser.getUserId());
+                    try (ResultSet rrs = rps.executeQuery()) {
+                        while (rrs.next()) {
+                            reviewedMap.put(rrs.getInt("order_id"), true);
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        // 将评价状态注入到每笔订单数据中
+        for (Map<String, Object> o : orderList) {
+            o.put("hasReviewed", reviewedMap.getOrDefault(o.get("orderId"), false));
+        }
+
         } catch (Exception e) {
             e.printStackTrace();
             request.setAttribute("errorMsg", "加载订单失败：" + e.getMessage());
@@ -173,7 +202,7 @@ public class OrderServlet extends HttpServlet {
         }
 
         String productSql =
-                "SELECT product_id, seller_id, price, publish_status " +
+                "SELECT product_id, seller_id, price, publish_status, title " +
                 "FROM products WHERE product_id = ? AND IFNULL(is_deleted, 0) = 0 FOR UPDATE";
 
         String checkSql =
@@ -202,6 +231,7 @@ public class OrderServlet extends HttpServlet {
                         int sellerId = rs.getInt("seller_id");
                         BigDecimal price = rs.getBigDecimal("price");
                         String publishStatus = rs.getString("publish_status");
+                        String productTitle = rs.getString("title");
 
                         if (sellerId == loginUser.getUserId()) {
                             conn.rollback();
@@ -243,6 +273,8 @@ public class OrderServlet extends HttpServlet {
                             int rows = insertPs.executeUpdate();
                             if (rows > 0) {
                                 conn.commit();
+                                // 通知卖家：收到新订单
+                                sendNotification(sellerId, "您收到了一个关于「" + productTitle + "」的新订单，请前往「我的订单」查看处理");
                                 request.getSession().setAttribute("successMsg", "订单已创建，请等待卖家确认");
                                 response.sendRedirect(request.getContextPath() + "/orders?type=buy");
                             } else {
@@ -356,7 +388,37 @@ public class OrderServlet extends HttpServlet {
                             updPs.executeUpdate();
                         }
                     }
+
                     conn.commit();
+
+                    // 发送订单状态变更通知
+                    Map<String, Object> parties = getOrderParties(orderId);
+                    if (parties != null) {
+                        int buyerId = ((Number) parties.get("buyerId")).intValue();
+                        int sellerId = ((Number) parties.get("sellerId")).intValue();
+                        String pTitle = (String) parties.get("productTitle");
+                        if (pTitle == null) pTitle = "未知商品";
+                        int notifyTarget;
+
+                        if ("PAID_OFFLINE".equals(targetStatus)) {
+                            // 卖家确认成交时通知买家
+                            notifyTarget = buyerId;
+                            sendNotification(notifyTarget, "卖家已确认「" + pTitle + "」线下成交！请前往「我的订单」查看取货码");
+                        } else if ("COMPLETED".equals(targetStatus)) {
+                            // 买家确认完成时通知卖家
+                            notifyTarget = sellerId;
+                            sendNotification(notifyTarget, "买家已确认「" + pTitle + "」交易完成，商品已自动标记为已售出");
+                        } else if ("CANCELLED".equals(targetStatus)) {
+                            // 买家取消订单时通知卖家
+                            notifyTarget = sellerId;
+                            sendNotification(notifyTarget, "买家取消了「" + pTitle + "」的订单");
+                        } else if ("DISPUTED".equals(targetStatus)) {
+                            // 发起纠纷时通知对方
+                            notifyTarget = (loginUser.getUserId() == buyerId) ? sellerId : buyerId;
+                            sendNotification(notifyTarget, "订单「" + pTitle + "」已被发起纠纷，请联系对方协商处理");
+                        }
+                    }
+
                     String msg = "COMPLETED".equals(targetStatus) ? "订单已完成，商品已标记为已售"
                                : "PAID_OFFLINE".equals(targetStatus) ? "已确认线下成交，取货码已生成"
                                : "订单状态已更新";
@@ -364,7 +426,6 @@ public class OrderServlet extends HttpServlet {
                 } else {
                     conn.rollback();
                     request.getSession().setAttribute("errorMsg", "操作失败，可能订单状态已变更或无权操作");
-                }
             }
         } catch (Exception e) {
             // Bug Fix: finally确保rollback，防止连接泄漏
@@ -413,5 +474,43 @@ public class OrderServlet extends HttpServlet {
                 return rs.next();
             }
         }
+    }
+
+    /**
+     * 发送通知：直接 INSERT INTO notifications 表
+     */
+    private void sendNotification(int userId, String content) {
+        String sql = "INSERT INTO notifications (user_id, content) VALUES (?, ?)";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ps.setString(2, content);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 查询订单关联的买卖双方信息（用于通知内容拼装）
+     */
+    private Map<String, Object> getOrderParties(int orderId) {
+        String sql = "SELECT o.product_id, o.buyer_id, o.seller_id, p.title " +
+                     "FROM orders o LEFT JOIN products p ON o.product_id = p.product_id " +
+                     "WHERE o.order_id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("buyerId", rs.getInt("buyer_id"));
+                    map.put("sellerId", rs.getInt("seller_id"));
+                    map.put("productTitle", rs.getString("title"));
+                    return map;
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return null;
     }
 }

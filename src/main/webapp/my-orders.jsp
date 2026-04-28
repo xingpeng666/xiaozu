@@ -13,6 +13,19 @@
     String errorMsg = (String) session.getAttribute("errorMsg");
     if (errorMsg != null) session.removeAttribute("errorMsg");
     com.minzu.entity.User loginUser = (com.minzu.entity.User) session.getAttribute("loginUser");
+
+    // 查询未读通知数
+    int unreadNotifyCount = 0;
+    if (loginUser != null) {
+        try {
+            java.sql.Connection nConn = com.minzu.util.DBUtil.getConnection();
+            java.sql.PreparedStatement nPs = nConn.prepareStatement("SELECT COUNT(*) FROM notifications WHERE user_id=? AND is_read=0");
+            nPs.setInt(1, loginUser.getUserId());
+            java.sql.ResultSet nRs = nPs.executeQuery();
+            if (nRs.next()) unreadNotifyCount = nRs.getInt(1);
+            nRs.close(); nPs.close(); nConn.close();
+        } catch (Exception ignore) {}
+    }
 %>
 <!DOCTYPE html>
 <html>
@@ -71,12 +84,19 @@
     <div class="logo">&#127979; 民大二手交易平台</div>
     <div class="nav">
         <a href="${pageContext.request.contextPath}/index.jsp">首页</a>
+        <a href="${pageContext.request.contextPath}/pickup-locations.jsp">&#128205; 自提点</a>
         <a href="${pageContext.request.contextPath}/product-list">商品列表</a>
         <% if (loginUser != null) { %>
             <a href="${pageContext.request.contextPath}/my-products">我的商品</a>
             <a href="${pageContext.request.contextPath}/orders">我的订单</a>
             <a href="${pageContext.request.contextPath}/messages">私信</a>
             <a href="${pageContext.request.contextPath}/my-favorites">我的收藏</a>
+            <a href="${pageContext.request.contextPath}/notifications" style="position:relative;">
+                &#128276; 通知
+                <% if (unreadNotifyCount > 0) { %>
+                <span style="position:absolute;top:-6px;right:-10px;background:#ff4d4f;color:#fff;border-radius:10px;padding:1px 6px;font-size:11px;line-height:16px;min-width:18px;text-align:center;"><%= unreadNotifyCount %></span>
+                <% } %>
+            </a>
             <a href="${pageContext.request.contextPath}/logout">退出</a>
         <% } else { %>
             <a href="${pageContext.request.contextPath}/login">登录</a>
@@ -194,6 +214,15 @@
                                 <button class="btn btn-danger" type="submit">发起纠纷</button>
                             </form>
                         <% } %>
+                        <%-- 评价按钮：已完成订单可评价 --%>
+                        <% if ("COMPLETED".equals(status)) {
+                            Boolean hasReviewed = (Boolean) o.get("hasReviewed");
+                            if (hasReviewed != null && hasReviewed) { %>
+                                <span class="btn btn-gray" style="cursor:not-allowed;opacity:0.6;">已评价</span>
+                            <% } else { %>
+                                <a class="btn btn-primary" href="${pageContext.request.contextPath}/review?orderId=<%= o.get("orderId") %>">去评价</a>
+                            <% }
+                        } %>
                     </div>
                 </div>
             </div>

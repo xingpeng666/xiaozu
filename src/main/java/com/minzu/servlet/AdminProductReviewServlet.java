@@ -100,18 +100,41 @@ public class AdminProductReviewServlet extends HttpServlet {
         }
 
         String newStatus = "approve".equals(action) ? "ON_SALE" : "REJECTED";
-        String sql = "UPDATE products SET publish_status=? WHERE product_id=? AND publish_status='PENDING_REVIEW'";
 
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, newStatus);
-            ps.setInt(2, productId);
-            int rows = ps.executeUpdate();
-            if (rows > 0) {
-                req.getSession().setAttribute("successMsg",
-                    "approve".equals(action) ? "商品已审核通过" : "商品已驳回");
-            } else {
-                req.getSession().setAttribute("errorMsg", "操作失败，商品状态可能已变更");
+        // 先查询商品信息（卖家ID和标题），用于发送通知
+        String infoSql = "SELECT seller_id, title FROM products WHERE product_id = ?";
+        String updateSql = "UPDATE products SET publish_status=? WHERE product_id=? AND publish_status='PENDING_REVIEW'";
+
+        try (Connection conn = DBUtil.getConnection()) {
+
+            int sellerId = 0;
+            String productTitle = "未知商品";
+            try (PreparedStatement infoPs = conn.prepareStatement(infoSql)) {
+                infoPs.setInt(1, productId);
+                try (ResultSet rs = infoPs.executeQuery()) {
+                    if (rs.next()) {
+                        sellerId = rs.getInt("seller_id");
+                        productTitle = rs.getString("title");
+                    }
+                }
+            }
+
+            try (PreparedStatement ps = conn.prepareStatement(updateSql)) {
+                ps.setString(1, newStatus);
+                ps.setInt(2, productId);
+                int rows = ps.executeUpdate();
+                if (rows > 0) {
+                    // 发送通知给卖家
+                    String notifyContent = "approve".equals(action)
+                        ? "您的商品「" + productTitle + "」已通过审核，已上架展示"
+                        : "您的商品「" + productTitle + "」未通过审核，请修改后重新发布";
+                    sendNotification(sellerId, notifyContent);
+
+                    req.getSession().setAttribute("successMsg",
+                        "approve".equals(action) ? "商品已审核通过" : "商品已驳回");
+                } else {
+                    req.getSession().setAttribute("errorMsg", "操作失败，商品状态可能已变更");
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -132,5 +155,20 @@ public class AdminProductReviewServlet extends HttpServlet {
             return null;
         }
         return u;
+    }
+
+    /**
+     * 发送通知给指定用户
+     */
+    private void sendNotification(int userId, String content) {
+        String sql = "INSERT INTO notifications (user_id, content) VALUES (?, ?)";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ps.setString(2, content);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

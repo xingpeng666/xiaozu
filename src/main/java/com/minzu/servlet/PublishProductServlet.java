@@ -134,12 +134,27 @@ public class PublishProductServlet extends HttpServlet {
             conn = DBUtil.getConnection();
             conn.setAutoCommit(false);
 
+            // 收集额外的图片URL（imageUrl1 - imageUrl4，逗号分隔）
+            StringBuilder imageUrlsBuilder = new StringBuilder();
+            for (int i = 1; i <= 4; i++) {
+                String url = request.getParameter("imageUrl" + i);
+                if (url != null && !url.trim().isEmpty()) {
+                    if (imageUrlsBuilder.length() > 0) imageUrlsBuilder.append(",");
+                    imageUrlsBuilder.append(url.trim());
+                }
+            }
+            String imageUrls = imageUrlsBuilder.length() > 0 ? imageUrlsBuilder.toString() : null;
+
+            // 毕业季标签
+            String isGraduation = request.getParameter("isGraduation");
+            String tags = "1".equals(isGraduation) ? "graduation" : null;
+
             String insertProductSql =
                     "INSERT INTO products " +
                             "(seller_id, category_id, title, product_desc, price, original_price, " +
-                            "condition_level, cover_image_url, publish_status, " +
+                            "condition_level, cover_image_url, image_urls, tags, publish_status, " +
                             "is_textbook_zone, is_graduation_zone, view_count, favorite_count, is_deleted, created_at, updated_at) " +
-                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDING_REVIEW', 0, 0, 0, 0, 0, NOW(), NOW())";
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING_REVIEW', 0, 0, 0, 0, 0, NOW(), NOW())";
 
             psProduct = conn.prepareStatement(insertProductSql, Statement.RETURN_GENERATED_KEYS);
             psProduct.setInt(1, loginUser.getUserId());
@@ -156,6 +171,8 @@ public class PublishProductServlet extends HttpServlet {
 
             psProduct.setString(7, conditionLevel);
             psProduct.setString(8, coverImageUrl);
+            psProduct.setString(9, imageUrls);
+            psProduct.setString(10, tags);
 
             psProduct.executeUpdate();
 

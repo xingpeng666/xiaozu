@@ -46,7 +46,7 @@ public class ProductDetailServlet extends HttpServlet {
                 "SELECT p.product_id, p.seller_id, u.real_name AS seller_name, " +
                 "p.category_id, c.category_name, p.title, p.product_desc, " +
                 "p.price, p.original_price, p.condition_level, p.cover_image_url, " +
-                "p.publish_status, p.view_count, p.favorite_count, p.created_at " +
+                "p.image_urls, p.publish_status, p.view_count, p.favorite_count, p.created_at " +
                 "FROM products p " +
                 "LEFT JOIN users u ON p.seller_id = u.user_id " +
                 "LEFT JOIN categories c ON p.category_id = c.category_id " +
@@ -72,6 +72,7 @@ public class ProductDetailServlet extends HttpServlet {
                     p.setOriginalPrice(rs.getBigDecimal("original_price"));
                     p.setConditionLevel(rs.getString("condition_level"));
                     p.setCoverImageUrl(rs.getString("cover_image_url"));
+                    p.setImageUrls(rs.getString("image_urls"));
                     p.setProductStatus(rs.getString("publish_status"));
                     p.setViewCount(rs.getInt("view_count"));
                     p.setFavoriteCount(rs.getInt("favorite_count"));

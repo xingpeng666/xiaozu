@@ -64,7 +64,8 @@ public class EditProductServlet extends HttpServlet {
         try (Connection conn = DBUtil.getConnection()) {
 
             String sql = "SELECT p.product_id, p.seller_id, p.category_id, p.title, p.product_desc, " +
-                    "p.price, p.original_price, p.condition_level, p.cover_image_url, p.publish_status " +
+                    "p.price, p.original_price, p.condition_level, p.cover_image_url, " +
+                    "p.image_urls, p.tags, p.publish_status " +
                     "FROM products p " +
                     "WHERE p.product_id = ? AND p.seller_id = ? AND IFNULL(p.is_deleted,0) = 0";
 
@@ -89,6 +90,8 @@ public class EditProductServlet extends HttpServlet {
                     product.setOriginalPrice(rs.getBigDecimal("original_price"));
                     product.setConditionLevel(rs.getString("condition_level"));
                     product.setCoverImageUrl(rs.getString("cover_image_url"));
+                    product.setImageUrls(rs.getString("image_urls"));
+                    product.setTags(rs.getString("tags"));
                     product.setProductStatus(rs.getString("publish_status"));
 
                     request.setAttribute("product", product);
@@ -202,9 +205,24 @@ public class EditProductServlet extends HttpServlet {
 
             String finalCover = (newCoverImageUrl != null) ? newCoverImageUrl : currentCover;
 
+            // 收集额外的图片URL
+            StringBuilder imageUrlsBuilder = new StringBuilder();
+            for (int i = 1; i <= 4; i++) {
+                String url = request.getParameter("imageUrl" + i);
+                if (url != null && !url.trim().isEmpty()) {
+                    if (imageUrlsBuilder.length() > 0) imageUrlsBuilder.append(",");
+                    imageUrlsBuilder.append(url.trim());
+                }
+            }
+            String imageUrls = imageUrlsBuilder.length() > 0 ? imageUrlsBuilder.toString() : null;
+
+            // 毕业季标签
+            String isGraduation = request.getParameter("isGraduation");
+            String tags = "1".equals(isGraduation) ? "graduation" : null;
+
             String updateSql = "UPDATE products SET " +
                     "category_id=?, title=?, product_desc=?, price=?, original_price=?, " +
-                    "condition_level=?, cover_image_url=?, updated_at=NOW() " +
+                    "condition_level=?, cover_image_url=?, image_urls=?, tags=?, updated_at=NOW() " +
                     "WHERE product_id=? AND seller_id=? AND IFNULL(is_deleted,0)=0";
 
             try (PreparedStatement ps = conn.prepareStatement(updateSql)) {
@@ -219,8 +237,10 @@ public class EditProductServlet extends HttpServlet {
                 }
                 ps.setString(6, conditionLevel);
                 ps.setString(7, finalCover);
-                ps.setInt(8, productId);
-                ps.setInt(9, loginUser.getUserId());
+                ps.setString(8, imageUrls);
+                ps.setString(9, tags);
+                ps.setInt(10, productId);
+                ps.setInt(11, loginUser.getUserId());
 
                 int rows = ps.executeUpdate();
                 if (rows > 0) {

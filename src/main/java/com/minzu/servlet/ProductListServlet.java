@@ -29,6 +29,7 @@ public class ProductListServlet extends HttpServlet {
 
         String keyword     = request.getParameter("keyword");
         String categoryIdStr = request.getParameter("categoryId");
+        String tag          = request.getParameter("tag");
 
         // 分页
         int page = 1;
@@ -48,6 +49,10 @@ public class ProductListServlet extends HttpServlet {
         if (categoryIdStr != null && !categoryIdStr.trim().isEmpty()) {
             where.append(" AND p.category_id = ?");
             params.add(Integer.parseInt(categoryIdStr));
+        }
+        if (tag != null && !tag.trim().isEmpty()) {
+            where.append(" AND p.tags LIKE ?");
+            params.add("%" + tag.trim() + "%");
         }
 
         // 总数查询

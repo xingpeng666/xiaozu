@@ -15,6 +15,19 @@
     if (successMsg != null) session.removeAttribute("successMsg");
     String errorMsg = (String) session.getAttribute("errorMsg");
     if (errorMsg != null) session.removeAttribute("errorMsg");
+
+    // 查询未读通知数
+    int unreadNotifyCount = 0;
+    if (loginUser != null) {
+        try {
+            java.sql.Connection nConn = com.minzu.util.DBUtil.getConnection();
+            java.sql.PreparedStatement nPs = nConn.prepareStatement("SELECT COUNT(*) FROM notifications WHERE user_id=? AND is_read=0");
+            nPs.setInt(1, loginUser.getUserId());
+            java.sql.ResultSet nRs = nPs.executeQuery();
+            if (nRs.next()) unreadNotifyCount = nRs.getInt(1);
+            nRs.close(); nPs.close(); nConn.close();
+        } catch (Exception ignore) {}
+    }
 %>
 <!DOCTYPE html>
 <html>
@@ -143,11 +156,18 @@
     <div class="logo">🏫 民大二手交易平台</div>
     <div class="nav">
         <a href="${pageContext.request.contextPath}/index.jsp">首页</a>
+        <a href="${pageContext.request.contextPath}/pickup-locations.jsp">&#128205; 自提点</a>
         <% if (loginUser != null) { %>
             <a href="${pageContext.request.contextPath}/my-products">我的商品</a>
             <a href="${pageContext.request.contextPath}/orders">我的订单</a>
             <a href="${pageContext.request.contextPath}/messages">私信</a>
             <a href="${pageContext.request.contextPath}/my-favorites">我的收藏</a>
+            <a href="${pageContext.request.contextPath}/notifications" style="position:relative;">
+                &#128276; 通知
+                <% if (unreadNotifyCount > 0) { %>
+                <span style="position:absolute;top:-6px;right:-10px;background:#ff4d4f;color:#fff;border-radius:10px;padding:1px 6px;font-size:11px;line-height:16px;min-width:18px;text-align:center;"><%= unreadNotifyCount %></span>
+                <% } %>
+            </a>
             <a href="${pageContext.request.contextPath}/logout">退出</a>
         <% } else { %>
             <a href="${pageContext.request.contextPath}/login">登录</a>
@@ -174,10 +194,37 @@
         <% } %>
     </form>
 
+    <%-- 特色专区入口 --%>
+    <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+        <%
+            // 查询教材分类ID
+            int textbookCatId = 0;
+            try {
+                java.sql.Connection catConn = com.minzu.util.DBUtil.getConnection();
+                java.sql.PreparedStatement catPs = catConn.prepareStatement("SELECT category_id FROM categories WHERE category_name LIKE '%教材%' LIMIT 1");
+                java.sql.ResultSet catRs = catPs.executeQuery();
+                if (catRs.next()) textbookCatId = catRs.getInt("category_id");
+                catRs.close(); catPs.close(); catConn.close();
+            } catch (Exception ignore) {}
+        %>
+        <% if (textbookCatId > 0) { %>
+            <a href="${pageContext.request.contextPath}/product-list?categoryId=<%= textbookCatId %>"
+               style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:20px;text-decoration:none;font-size:14px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;font-weight:bold;">
+                &#128218; 教材专区
+            </a>
+        <% } %>
+        <a href="${pageContext.request.contextPath}/product-list?tag=graduation"
+           style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:20px;text-decoration:none;font-size:14px;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;font-weight:bold;">
+            &#127891; 毕业季专区
+        </a>
+    </div>
+
     <div class="toolbar">
         <span class="result-info">
             <% if (keyword != null && !keyword.isEmpty()) { %>
-                “<strong><%= keyword %></strong>” 的搜索结果，共 <%= totalCount %> 件商品
+                "<strong><%= keyword %></strong>" 的搜索结果，共 <%= totalCount %> 件商品
+            <% } else if ("graduation".equals(request.getParameter("tag"))) { %>
+                毕业季专区商品，共 <%= totalCount %> 件
             <% } else { %>
                 全部商品，共 <%= totalCount %> 件
             <% } %>

@@ -352,6 +352,25 @@
                         <input type="file" name="detailImages" accept="image/*" multiple />
                         <div class="hint">可一次选择多张，用于详情页展示；单张不超过 10MB，总上传大小不超过 50MB。</div>
                     </div>
+
+                    <div class="form-item full">
+                        <label>额外展示图片（图片URL）</label>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                            <input type="text" name="imageUrl1" placeholder="图片URL 1（选填）" value="${param.imageUrl1}">
+                            <input type="text" name="imageUrl2" placeholder="图片URL 2（选填）" value="${param.imageUrl2}">
+                            <input type="text" name="imageUrl3" placeholder="图片URL 3（选填）" value="${param.imageUrl3}">
+                            <input type="text" name="imageUrl4" placeholder="图片URL 4（选填）" value="${param.imageUrl4}">
+                        </div>
+                        <div class="hint">可填入外部图片链接地址，最多4张，将在详情页以轮播图形式展示。</div>
+                    </div>
+                </div>
+
+                <div class="form-item full" style="margin-bottom:0;">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                        <input type="checkbox" name="isGraduation" value="1" style="width:auto;"
+                            <c:if test="${param.isGraduation eq '1'}">checked</c:if>>
+                        这是毕业季商品（将在「毕业季专区」展示）
+                    </label>
                 </div>
 
                 <div class="action-bar">

@@ -69,6 +69,7 @@
     <div class="logo">🏫 民大二手交易平台</div>
     <div class="nav">
         <a href="${pageContext.request.contextPath}/index.jsp">首页</a>
+        <a href="${pageContext.request.contextPath}/pickup-locations.jsp">&#128205; 自提点</a>
         <a href="${pageContext.request.contextPath}/product-list">浏览商品</a>
         <a href="${pageContext.request.contextPath}/my-products">我的商品</a>
         <% if ("ADMIN".equals(loginUser.getRoleCode())) { %>

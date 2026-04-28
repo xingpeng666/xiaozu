@@ -19,6 +19,8 @@ public class Product {
     private String productStatus;
     private int viewCount;
     private int favoriteCount;
+    private String imageUrls;   // 逗号分隔的多图URL
+    private String tags;        // 商品标签，逗号分隔
     private Timestamp createdAt;
 
     public Product() {
@@ -134,6 +136,22 @@ public class Product {
 
     public void setFavoriteCount(int favoriteCount) {
         this.favoriteCount = favoriteCount;
+    }
+
+    public String getImageUrls() {
+        return imageUrls;
+    }
+
+    public void setImageUrls(String imageUrls) {
+        this.imageUrls = imageUrls;
+    }
+
+    public String getTags() {
+        return tags;
+    }
+
+    public void setTags(String tags) {
+        this.tags = tags;
     }
 
     public Timestamp getCreatedAt() {
