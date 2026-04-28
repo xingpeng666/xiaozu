@@ -1,5 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="java.util.*, java.sql.*" %>
+<%@ page import="java.util.*" %>
 <%
     com.minzu.entity.User loginUser = (com.minzu.entity.User) session.getAttribute("loginUser");
 
@@ -16,24 +16,12 @@
         } catch (Exception ignore) {}
     }
 
-    // 查询所有自提点位
-    List<Map<String, Object>> locations = new ArrayList<>();
-    try {
-        java.sql.Connection conn = com.minzu.util.DBUtil.getConnection();
-        java.sql.PreparedStatement ps = conn.prepareStatement("SELECT * FROM pickup_locations ORDER BY location_id");
-        java.sql.ResultSet rs = ps.executeQuery();
-        while (rs.next()) {
-            Map<String, Object> loc = new LinkedHashMap<>();
-            loc.put("id", rs.getInt("location_id"));
-            loc.put("name", rs.getString("name"));
-            loc.put("address", rs.getString("address"));
-            loc.put("description", rs.getString("description"));
-            locations.add(loc);
-        }
-        rs.close(); ps.close(); conn.close();
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
+    // 从 Servlet 获取取货点列表
+    List<Map<String, Object>> locations = (List<Map<String, Object>>) request.getAttribute("locationList");
+    if (locations == null) locations = new ArrayList<>();
+
+    // 读取错误消息
+    String errorMsg = (String) request.getAttribute("errorMsg");
 %>
 <!DOCTYPE html>
 <html>
@@ -98,6 +86,12 @@
 <div class="container">
     <div class="page-title">&#128205; 校园自提点位</div>
     <div class="page-subtitle">以下是中央民族大学校内推荐的自提交易地点，方便买卖双方线下安全交易</div>
+
+    <% if (errorMsg != null) { %>
+        <div style="background:#fff2f0;color:#cf1322;border:1px solid #ffccc7;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:14px;">
+            &#10060; <%= errorMsg %>
+        </div>
+    <% } %>
 
     <% if (locations.isEmpty()) { %>
         <div style="background:#fff;border-radius:14px;padding:60px 20px;text-align:center;color:#999;box-shadow:0 4px 18px rgba(0,0,0,0.05);">

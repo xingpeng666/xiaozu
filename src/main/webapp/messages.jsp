@@ -9,6 +9,12 @@
     }
     List<Map<String, Object>> conversations = (List<Map<String, Object>>) request.getAttribute("conversations");
     if (conversations == null) conversations = new ArrayList<>();
+    String successMsg = (String) request.getAttribute("successMsg");
+    if (successMsg == null) successMsg = (String) session.getAttribute("successMsg");
+    String errorMsg = (String) request.getAttribute("errorMsg");
+    if (errorMsg == null) errorMsg = (String) session.getAttribute("errorMsg");
+    session.removeAttribute("successMsg");
+    session.removeAttribute("errorMsg");
 %>
 <!DOCTYPE html>
 <html>
@@ -80,6 +86,17 @@
 
 <div class="container">
     <div class="page-title">&#128172; 我的私信</div>
+
+    <% if (successMsg != null) { %>
+        <div style="background:#f6ffed;color:#389e0d;border:1px solid #b7eb8f;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:14px;">
+            &#9989; <%= successMsg %>
+        </div>
+    <% } %>
+    <% if (errorMsg != null) { %>
+        <div style="background:#fff2f0;color:#cf1322;border:1px solid #ffccc7;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:14px;">
+            &#10060; <%= errorMsg %>
+        </div>
+    <% } %>
 
     <% if (conversations.isEmpty()) { %>
         <div class="empty-box">

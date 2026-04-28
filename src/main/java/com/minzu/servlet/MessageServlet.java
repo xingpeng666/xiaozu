@@ -105,8 +105,11 @@ public class MessageServlet extends HttpServlet {
             ps.setString(4, content.trim());
             ps.executeUpdate();
 
+            request.getSession().setAttribute("successMsg", "消息已发送");
+
         } catch (Exception e) {
             e.printStackTrace();
+            request.getSession().setAttribute("errorMsg", "发送失败：" + e.getMessage());
         }
 
         String redirect = request.getContextPath() + "/messages?with=" + receiverId;
@@ -119,17 +122,18 @@ public class MessageServlet extends HttpServlet {
                                       User loginUser) throws ServletException, IOException {
         int me = loginUser.getUserId();
 
-        // Bug Fix: 使用子查询取每个会话最新一条消息，避免GROUP_CONCAT截断（默认1024字节）
+        // Bug Fix: 修复 t.last_content 列不存在的 SQL 错误，改由 message_id 精确关联最新消息
         String sql =
             "SELECT " +
             "  t.other_id, " +
             "  u.nickname AS other_nickname, " +
-            "  t.last_content, " +
+            "  lm.content AS last_content, " +
             "  t.last_time, " +
             "  t.unread_count " +
             "FROM ( " +
             "  SELECT " +
             "    IF(sender_id = ?, receiver_id, sender_id) AS other_id, " +
+            "    MAX(message_id) AS last_msg_id, " +
             "    MAX(created_at) AS last_time, " +
             "    SUM(IF(receiver_id = ? AND is_read = 0, 1, 0)) AS unread_count " +
             "  FROM messages " +
@@ -137,9 +141,7 @@ public class MessageServlet extends HttpServlet {
             "  GROUP BY other_id " +
             ") t " +
             "JOIN users u ON u.user_id = t.other_id " +
-            "JOIN messages lm ON lm.created_at = t.last_time " +
-            "  AND ((lm.sender_id = ? AND lm.receiver_id = t.other_id) " +
-            "    OR (lm.sender_id = t.other_id AND lm.receiver_id = ?)) " +
+            "JOIN messages lm ON lm.message_id = t.last_msg_id " +
             "ORDER BY t.last_time DESC";
 
         List<Map<String, Object>> conversations = new ArrayList<>();
@@ -150,8 +152,6 @@ public class MessageServlet extends HttpServlet {
             ps.setInt(2, me);
             ps.setInt(3, me);
             ps.setInt(4, me);
-            ps.setInt(5, me);
-            ps.setInt(6, me);
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -166,6 +166,7 @@ public class MessageServlet extends HttpServlet {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            request.setAttribute("errorMsg", "加载私信列表失败：" + e.getMessage());
         }
 
         request.setAttribute("conversations", conversations);

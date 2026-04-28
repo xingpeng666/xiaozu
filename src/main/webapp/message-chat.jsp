@@ -15,6 +15,12 @@
     Map<String, Object> product = (Map<String, Object>) request.getAttribute("product");
     List<Message> chatList = (List<Message>) request.getAttribute("chatList");
     Integer productId = (Integer) request.getAttribute("productId");
+    String successMsg = (String) session.getAttribute("successMsg");
+    String errorMsg = (String) session.getAttribute("errorMsg");
+    // 也检查 request 中的 errorMsg（showChat 方法设置的）
+    if (errorMsg == null) errorMsg = (String) request.getAttribute("errorMsg");
+    if (successMsg != null) session.removeAttribute("successMsg");
+    if (errorMsg != null) session.removeAttribute("errorMsg");
 %>
 <!DOCTYPE html>
 <html>
@@ -140,8 +146,19 @@
     <a class="logo-link" href="${pageContext.request.contextPath}/index.jsp">🏫 民大二手</a>
 </div>
 
+<% if (successMsg != null) { %>
+    <div style="background:#f6ffed;color:#389e0d;border-bottom:1px solid #b7eb8f;padding:10px 16px;font-size:14px;text-align:center;">
+        ✅ <%= successMsg %>
+    </div>
+<% } %>
+<% if (errorMsg != null) { %>
+    <div style="background:#fff2f0;color:#cf1322;border-bottom:1px solid #ffccc7;padding:10px 16px;font-size:14px;text-align:center;">
+        ❌ <%= errorMsg %>
+    </div>
+<% } %>
+
 <% if (product != null) { %>
-<div class="product-bar">
+    <div class="product-bar">
     <% String coverUrl = (String) product.get("coverUrl"); %>
     <% if (coverUrl != null && !coverUrl.isEmpty()) { %>
         <img src="<%= coverUrl %>" alt="商品图">

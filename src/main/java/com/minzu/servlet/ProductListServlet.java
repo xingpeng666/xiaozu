@@ -43,7 +43,8 @@ public class ProductListServlet extends HttpServlet {
         List<Object> params = new ArrayList<>();
 
         if (keyword != null && !keyword.trim().isEmpty()) {
-            where.append(" AND p.title LIKE ?");
+            where.append(" AND (p.title LIKE ? OR p.product_desc LIKE ?)");
+            params.add("%" + keyword.trim() + "%");
             params.add("%" + keyword.trim() + "%");
         }
         if (categoryIdStr != null && !categoryIdStr.trim().isEmpty()) {

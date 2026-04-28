@@ -61,11 +61,11 @@ public class DisputeServlet extends HttpServlet {
             }
             resolveDispute(req, resp, loginUser);
         } else {
-            resp.sendRedirect(req.getContextPath() + "/order?action=list");
+            resp.sendRedirect(req.getContextPath() + "/orders");
         }
     }
 
-    /** 买家发起纠纷 */
+    /** 买家/卖家发起纠纷 */
     private void submitDispute(HttpServletRequest req, HttpServletResponse resp, User loginUser)
             throws IOException {
         String orderIdStr = req.getParameter("orderId");
@@ -74,7 +74,7 @@ public class DisputeServlet extends HttpServlet {
         if (orderIdStr == null || orderIdStr.trim().isEmpty()
                 || reason == null || reason.trim().isEmpty()) {
             req.getSession().setAttribute("errorMsg", "请填写纠纷原因");
-            resp.sendRedirect(req.getContextPath() + "/order?action=list");
+            resp.sendRedirect(req.getContextPath() + "/orders");
             return;
         }
 
@@ -82,21 +82,23 @@ public class DisputeServlet extends HttpServlet {
         try {
             orderId = Integer.parseInt(orderIdStr.trim());
         } catch (NumberFormatException e) {
-            resp.sendRedirect(req.getContextPath() + "/order?action=list");
+            resp.sendRedirect(req.getContextPath() + "/orders");
             return;
         }
 
         try (Connection conn = DBUtil.getConnection()) {
-            // 校验订单归属买家，且状态为 PAID 或 CONFIRMED
-            String checkSql = "SELECT order_id, seller_id, status FROM orders " +
-                    "WHERE order_id = ? AND buyer_id = ? AND status IN ('PAID','CONFIRMED')";
+            // 校验订单归属（买家或卖家均可发起），且状态为 CREATED 或 PAID_OFFLINE
+            String checkSql = "SELECT order_id, seller_id, order_status FROM orders " +
+                    "WHERE order_id = ? AND (buyer_id = ? OR seller_id = ?) " +
+                    "AND order_status IN ('CREATED','PAID_OFFLINE')";
             try (PreparedStatement ps = conn.prepareStatement(checkSql)) {
                 ps.setInt(1, orderId);
                 ps.setInt(2, loginUser.getUserId());
+                ps.setInt(3, loginUser.getUserId());
                 try (ResultSet rs = ps.executeQuery()) {
                     if (!rs.next()) {
                         req.getSession().setAttribute("errorMsg", "无法对该订单发起纠纷（订单不存在或状态不符）");
-                        resp.sendRedirect(req.getContextPath() + "/order?action=list");
+                        resp.sendRedirect(req.getContextPath() + "/orders");
                         return;
                     }
                 }
@@ -109,7 +111,7 @@ public class DisputeServlet extends HttpServlet {
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         req.getSession().setAttribute("errorMsg", "该订单已有待处理的纠纷，请勿重复提交");
-                        resp.sendRedirect(req.getContextPath() + "/order?action=list");
+                        resp.sendRedirect(req.getContextPath() + "/orders");
                         return;
                     }
                 }
@@ -127,7 +129,7 @@ public class DisputeServlet extends HttpServlet {
                 }
 
                 // 更新订单状态为 DISPUTED
-                String updateOrderSql = "UPDATE orders SET status = 'DISPUTED' WHERE order_id = ?";
+                String updateOrderSql = "UPDATE orders SET order_status = 'DISPUTED' WHERE order_id = ?";
                 try (PreparedStatement ps = conn.prepareStatement(updateOrderSql)) {
                     ps.setInt(1, orderId);
                     ps.executeUpdate();
@@ -153,7 +155,7 @@ public class DisputeServlet extends HttpServlet {
             req.getSession().setAttribute("errorMsg", "提交失败：" + e.getMessage());
         }
 
-        resp.sendRedirect(req.getContextPath() + "/order?action=list");
+        resp.sendRedirect(req.getContextPath() + "/orders");
     }
 
     /** 管理员裁决纠纷 */
@@ -209,8 +211,8 @@ public class DisputeServlet extends HttpServlet {
                 }
 
                 // 根据裁决更新订单状态
-                String newOrderStatus = "REFUND".equals(result) ? "REFUNDED" : "CONFIRMED";
-                String updateOrder = "UPDATE orders SET status = ? WHERE order_id = ?";
+                String newOrderStatus = "REFUND".equals(result) ? "REFUNDED" : "COMPLETED";
+                String updateOrder = "UPDATE orders SET order_status = ? WHERE order_id = ?";
                 try (PreparedStatement ps = conn.prepareStatement(updateOrder)) {
                     ps.setString(1, newOrderStatus);
                     ps.setInt(2, orderId);
