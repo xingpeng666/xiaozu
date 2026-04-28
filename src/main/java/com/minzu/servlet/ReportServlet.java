@@ -12,9 +12,10 @@ import java.util.*;
 
 /**
  * /report - 违规举报与下架
- *   POST action=submit: 用户举报商品（product_id + reason），写入 reports 表
- *   GET （管理员）: 查看所有举报列表
- *   POST action=takedown: 管理员下架商品（products.publish_status -> OFF_SHELF）
+ *   POST action=submit  : 用户举报商品（product_id + reason），防重复举报
+ *   GET  （管理员）      : 查看所有举报列表
+ *   POST action=takedown: 管理员下架商品
+ *   POST action=dismiss : 管理员驳回举报（商品正常）
  */
 @WebServlet("/report")
 public class ReportServlet extends HttpServlet {
@@ -24,8 +25,6 @@ public class ReportServlet extends HttpServlet {
             throws ServletException, IOException {
 
         req.setCharacterEncoding("UTF-8");
-
-        // 管理员登录校验
         User loginUser = getLoginUser(req, resp);
         if (loginUser == null) return;
         if (!"ADMIN".equals(loginUser.getRoleCode())) {
@@ -33,7 +32,6 @@ public class ReportServlet extends HttpServlet {
             return;
         }
 
-        // 查询所有举报列表
         String sql =
             "SELECT r.report_id, r.product_id, r.reason, r.status, r.created_at, " +
             "p.title AS product_title, p.publish_status, p.cover_image_url, " +
@@ -41,7 +39,7 @@ public class ReportServlet extends HttpServlet {
             "FROM reports r " +
             "LEFT JOIN products p ON r.product_id = p.product_id " +
             "LEFT JOIN users u ON r.reporter_id = u.user_id " +
-            "ORDER BY FIELD(r.status, 'PENDING', 'HANDLED'), r.created_at DESC";
+            "ORDER BY FIELD(r.status, 'PENDING', 'HANDLED', 'DISMISSED'), r.created_at DESC";
 
         List<Map<String, Object>> reportList = new ArrayList<>();
         try (Connection conn = DBUtil.getConnection();
@@ -49,15 +47,15 @@ public class ReportServlet extends HttpServlet {
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 Map<String, Object> row = new LinkedHashMap<>();
-                row.put("reportId",     rs.getInt("report_id"));
-                row.put("productId",    rs.getInt("product_id"));
-                row.put("reason",       rs.getString("reason"));
-                row.put("status",       rs.getString("status"));
-                row.put("createdAt",    rs.getTimestamp("created_at"));
-                row.put("productTitle", rs.getString("product_title"));
-                row.put("publishStatus",rs.getString("publish_status"));
-                row.put("coverImageUrl",rs.getString("cover_image_url"));
-                row.put("reporterName", rs.getString("reporter_name"));
+                row.put("reportId",      rs.getInt("report_id"));
+                row.put("productId",     rs.getInt("product_id"));
+                row.put("reason",        rs.getString("reason"));
+                row.put("status",        rs.getString("status"));
+                row.put("createdAt",     rs.getTimestamp("created_at"));
+                row.put("productTitle",  rs.getString("product_title"));
+                row.put("publishStatus", rs.getString("publish_status"));
+                row.put("coverImageUrl", rs.getString("cover_image_url"));
+                row.put("reporterName",  rs.getString("reporter_name"));
                 reportList.add(row);
             }
         } catch (Exception e) {
@@ -80,23 +78,19 @@ public class ReportServlet extends HttpServlet {
         String action = req.getParameter("action");
 
         if ("submit".equals(action)) {
-            // 普通用户提交举报
             submitReport(req, resp, loginUser);
         } else if ("takedown".equals(action)) {
-            // 管理员下架商品
-            if (!"ADMIN".equals(loginUser.getRoleCode())) {
-                resp.sendRedirect(req.getContextPath() + "/index.jsp");
-                return;
-            }
+            requireAdmin(loginUser, req, resp);
             takedownProduct(req, resp, loginUser);
+        } else if ("dismiss".equals(action)) {
+            requireAdmin(loginUser, req, resp);
+            dismissReport(req, resp);
         } else {
             resp.sendRedirect(req.getContextPath() + "/product-list");
         }
     }
 
-    /**
-     * 普通用户举报商品
-     */
+    /** 普通用户举报商品（防止重复举报） */
     private void submitReport(HttpServletRequest req, HttpServletResponse resp, User loginUser)
             throws IOException {
 
@@ -119,14 +113,12 @@ public class ReportServlet extends HttpServlet {
             return;
         }
 
-        // 校验商品存在且不能被卖家本人举报
-        String checkSql = "SELECT seller_id, publish_status FROM products WHERE product_id = ? AND IFNULL(is_deleted, 0) = 0";
-        String insertSql = "INSERT INTO reports (reporter_id, product_id, reason) VALUES (?, ?, ?)";
-
         try (Connection conn = DBUtil.getConnection()) {
-            try (PreparedStatement checkPs = conn.prepareStatement(checkSql)) {
-                checkPs.setInt(1, productId);
-                try (ResultSet rs = checkPs.executeQuery()) {
+            // 校验商品存在且不能被卖家本人举报
+            String checkSql = "SELECT seller_id FROM products WHERE product_id = ? AND IFNULL(is_deleted, 0) = 0";
+            try (PreparedStatement ps = conn.prepareStatement(checkSql)) {
+                ps.setInt(1, productId);
+                try (ResultSet rs = ps.executeQuery()) {
                     if (!rs.next()) {
                         req.getSession().setAttribute("errorMsg", "举报失败：商品不存在");
                         resp.sendRedirect(req.getContextPath() + "/product-list");
@@ -140,11 +132,27 @@ public class ReportServlet extends HttpServlet {
                 }
             }
 
-            try (PreparedStatement insertPs = conn.prepareStatement(insertSql)) {
-                insertPs.setInt(1, loginUser.getUserId());
-                insertPs.setInt(2, productId);
-                insertPs.setString(3, reason.trim());
-                insertPs.executeUpdate();
+            // 防止重复举报（同一用户对同一商品只能有一条 PENDING 举报）
+            String dupSql = "SELECT report_id FROM reports " +
+                    "WHERE reporter_id = ? AND product_id = ? AND status = 'PENDING'";
+            try (PreparedStatement ps = conn.prepareStatement(dupSql)) {
+                ps.setInt(1, loginUser.getUserId());
+                ps.setInt(2, productId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        req.getSession().setAttribute("errorMsg", "您已举报过该商品，请等待管理员处理");
+                        resp.sendRedirect(req.getContextPath() + "/product-detail?id=" + productId);
+                        return;
+                    }
+                }
+            }
+
+            String insertSql = "INSERT INTO reports (reporter_id, product_id, reason) VALUES (?, ?, ?)";
+            try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
+                ps.setInt(1, loginUser.getUserId());
+                ps.setInt(2, productId);
+                ps.setString(3, reason.trim());
+                ps.executeUpdate();
             }
 
             req.getSession().setAttribute("successMsg", "举报已提交，管理员将尽快处理");
@@ -157,10 +165,8 @@ public class ReportServlet extends HttpServlet {
         }
     }
 
-    /**
-     * 管理员下架商品
-     */
-    private void takedownProduct(HttpServletRequest req, HttpServletResponse resp, User loginUser)
+    /** 管理员下架商品（举报属实） */
+    private void takedownProduct(HttpServletRequest req, HttpServletResponse resp, User admin)
             throws IOException {
 
         String productIdStr = req.getParameter("productId");
@@ -201,8 +207,17 @@ public class ReportServlet extends HttpServlet {
                     }
                 }
 
+                // 通知卖家商品被下架
+                String notifySql = "INSERT INTO notifications (user_id, content) " +
+                        "SELECT seller_id, CONCAT('您的商品《', title, '》因违规被管理员下架') " +
+                        "FROM products WHERE product_id = ?";
+                try (PreparedStatement ps = conn.prepareStatement(notifySql)) {
+                    ps.setInt(1, productId);
+                    ps.executeUpdate();
+                }
+
                 conn.commit();
-                req.getSession().setAttribute("successMsg", "商品已下架");
+                req.getSession().setAttribute("successMsg", "商品已下架，卖家已收到通知");
             } catch (Exception e) {
                 conn.rollback();
                 throw e;
@@ -215,12 +230,54 @@ public class ReportServlet extends HttpServlet {
         resp.sendRedirect(req.getContextPath() + "/report");
     }
 
+    /** 管理员驳回举报（商品正常，无需处理） */
+    private void dismissReport(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+
+        String reportIdStr = req.getParameter("reportId");
+        if (reportIdStr == null || reportIdStr.trim().isEmpty()) {
+            resp.sendRedirect(req.getContextPath() + "/report");
+            return;
+        }
+
+        int reportId;
+        try {
+            reportId = Integer.parseInt(reportIdStr.trim());
+        } catch (NumberFormatException e) {
+            resp.sendRedirect(req.getContextPath() + "/report");
+            return;
+        }
+
+        try (Connection conn = DBUtil.getConnection()) {
+            String sql = "UPDATE reports SET status = 'DISMISSED' WHERE report_id = ? AND status = 'PENDING'";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, reportId);
+                int affected = ps.executeUpdate();
+                if (affected > 0) {
+                    req.getSession().setAttribute("successMsg", "举报已驳回");
+                } else {
+                    req.getSession().setAttribute("errorMsg", "举报不存在或已处理");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            req.getSession().setAttribute("errorMsg", "操作失败：" + e.getMessage());
+        }
+
+        resp.sendRedirect(req.getContextPath() + "/report");
+    }
+
+    private void requireAdmin(User user, HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+        if (!"ADMIN".equals(user.getRoleCode())) {
+            resp.sendRedirect(req.getContextPath() + "/index.jsp");
+        }
+    }
+
     private User getLoginUser(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         HttpSession session = req.getSession(false);
         User u = session == null ? null : (User) session.getAttribute("loginUser");
-        if (u == null) {
-            resp.sendRedirect(req.getContextPath() + "/login");
-        }
+        if (u == null) resp.sendRedirect(req.getContextPath() + "/login");
         return u;
     }
 }
