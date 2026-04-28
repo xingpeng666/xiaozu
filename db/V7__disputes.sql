@@ -17,13 +17,13 @@ CREATE TABLE IF NOT EXISTS disputes (
     KEY idx_disputes_applicant (applicant_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单纠纷表';
 
--- 2. orders 表新增 DISPUTED / REFUNDED 状态
--- （如果 orders.status 是 ENUM 类型，执行此语句扩展枚举值）
+-- 2. orders 表的状态列是 order_status（ENUM 类型），新增 DISPUTED / REFUNDED
+--    注意：列名为 order_status，不是 status
 ALTER TABLE orders
-    MODIFY COLUMN status ENUM(
-        'PENDING','PAID','CONFIRMED','CANCELLED',
+    MODIFY COLUMN order_status ENUM(
+        'CREATED','PAID_OFFLINE','COMPLETED','CANCELLED',
         'DISPUTED','REFUNDED'
-    ) NOT NULL DEFAULT 'PENDING';
+    ) NOT NULL DEFAULT 'CREATED';
 
 -- 3. reports 表新增 DISMISSED 状态（驳回举报）
 ALTER TABLE reports
