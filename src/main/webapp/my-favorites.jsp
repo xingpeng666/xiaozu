@@ -9,174 +9,216 @@
         return;
     }
     List<Product> favoriteList = (List<Product>) request.getAttribute("favoriteList");
-
     String successMsg = (String) session.getAttribute("successMsg");
     if (successMsg != null) session.removeAttribute("successMsg");
 %>
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的收藏 - 民大二手交易平台</title>
+    <title>我的收藏 — 民大二手交易平台</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; }
-        body { margin: 0; font-family: Arial, sans-serif; background: #f5f7fa; color: #333; }
+        :root {
+            --bg:         #f4f3ef;
+            --surface:    #ffffff;
+            --border:     rgba(0,0,0,0.09);
+            --text:       #1a1a1a;
+            --text-muted: #737373;
+            --primary:    #0b6e63;
+            --primary-h:  #085c52;
+            --primary-hl: #d0eae7;
+            --danger:     #dc2626;
+            --danger-hl:  #fee2e2;
+            --success-bg: #f0fdf4;
+            --success-bd: #bbf7d0;
+            --success-tx: #15803d;
+            --radius:     12px;
+            --font:       'Plus Jakarta Sans','PingFang SC','Microsoft YaHei',sans-serif;
+            --shadow:     0 2px 12px rgba(0,0,0,0.06);
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { -webkit-font-smoothing: antialiased; }
+        body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100dvh; }
 
-        .header {
-            height: 56px; background: #1677ff; color: white;
+        .nav {
+            height: 56px; background: var(--surface);
+            border-bottom: 1px solid var(--border);
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 24px; box-shadow: 0 2px 8px rgba(22,119,255,0.18);
+            padding: 0 28px; position: sticky; top: 0; z-index: 100;
         }
-        .logo { font-size: 18px; font-weight: bold; }
-        .nav a {
-            color: white; text-decoration: none; margin-left: 14px;
-            font-size: 14px; padding: 6px 12px; border-radius: 6px;
+        .nav-brand {
+            display: flex; align-items: center; gap: 9px;
+            font-size: 16px; font-weight: 700; color: var(--primary); text-decoration: none;
         }
-        .nav a:hover { background: rgba(255,255,255,0.16); }
+        .nav-links { display: flex; align-items: center; gap: 4px; }
+        .nav-links a {
+            font-size: 13.5px; font-weight: 500; color: var(--text-muted);
+            text-decoration: none; padding: 6px 11px; border-radius: 7px;
+            transition: background 0.15s, color 0.15s;
+        }
+        .nav-links a:hover { background: var(--primary-hl); color: var(--primary); }
+        .nav-links a.active { background: var(--primary-hl); color: var(--primary); }
+        .nav-links .btn-logout { margin-left: 6px; padding: 6px 14px; background: var(--primary); color: #fff; border-radius: 7px; }
+        .nav-links .btn-logout:hover { background: var(--primary-h); color: #fff; }
 
-        .container { max-width: 1100px; margin: 32px auto; padding: 0 16px; }
-        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .page-header h2 { margin: 0; font-size: 24px; }
+        .container { max-width: 1080px; margin: 36px auto; padding: 0 16px 48px; }
+        .page-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 24px; }
+        .page-header h1 { font-size: 22px; font-weight: 700; }
+        .page-header .count { font-size: 13.5px; color: var(--text-muted); }
+
+        .alert-success { background: var(--success-bg); border: 1px solid var(--success-bd); color: var(--success-tx); padding: 11px 14px; border-radius: 8px; font-size: 13.5px; margin-bottom: 18px; }
 
         .product-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 18px;
         }
-
         .product-card {
-            background: #fff; border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); box-shadow: var(--shadow);
             overflow: hidden; display: flex; flex-direction: column;
-            transition: box-shadow 0.2s, transform 0.15s;
+            transition: box-shadow 0.18s, transform 0.15s;
         }
-        .product-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.1); transform: translateY(-2px); }
+        .product-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.1); transform: translateY(-2px); }
 
         .card-cover { position: relative; }
-        .card-cover img { width: 100%; height: 180px; object-fit: cover; background: #f0f0f0; display: block; }
-        .no-cover { width: 100%; height: 180px; background: #f0f2f5; display: flex; align-items: center; justify-content: center; font-size: 36px; color: #ccc; }
-
+        .card-cover img { width: 100%; height: 170px; object-fit: cover; display: block; background: #f0f0ee; }
+        .no-cover { width: 100%; height: 170px; background: #f0f0ee; display: flex; align-items: center; justify-content: center; font-size: 36px; color: #ccc; }
         .sold-mask {
             position: absolute; inset: 0;
-            background: rgba(0,0,0,0.45);
+            background: rgba(0,0,0,0.42);
             display: flex; align-items: center; justify-content: center;
-            color: white; font-size: 20px; font-weight: bold; letter-spacing: 2px;
+            color: #fff; font-size: 18px; font-weight: 700; letter-spacing: 2px;
             pointer-events: none;
         }
 
-        .card-body { padding: 14px; flex: 1; display: flex; flex-direction: column; gap: 5px; }
-        .card-title { font-size: 15px; font-weight: bold; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .card-meta { font-size: 12px; color: #999; }
-        .card-price { font-size: 17px; font-weight: bold; color: #ff4d4f; }
-        .card-price span { font-size: 12px; font-weight: normal; color: #bbb; text-decoration: line-through; margin-left: 6px; }
+        .card-body { padding: 12px 14px; flex: 1; display: flex; flex-direction: column; gap: 4px; }
+        .card-title {
+            font-size: 14.5px; font-weight: 600;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .card-price { font-size: 17px; font-weight: 700; color: var(--danger); }
+        .card-price .orig {
+            font-size: 12px; font-weight: 400; color: #b0b0b0;
+            text-decoration: line-through; margin-left: 6px;
+        }
+        .card-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 
         .card-actions {
-            padding: 10px 14px; border-top: 1px solid #f0f0f0;
+            padding: 10px 14px; border-top: 1px solid var(--border);
             display: flex; gap: 8px;
         }
         .btn {
-            display: inline-block; padding: 7px 14px; border-radius: 6px;
-            text-decoration: none; font-size: 13px; border: none; cursor: pointer;
-            transition: all 0.15s;
+            display: inline-block; padding: 7px 14px; border-radius: 7px;
+            text-decoration: none; font-size: 13px; font-weight: 600;
+            font-family: var(--font); border: 1.5px solid var(--border);
+            background: var(--surface); color: var(--text-muted);
+            cursor: pointer; transition: all 0.15s;
         }
-        .btn-ghost { background: #f5f5f5; color: #333; border: 1px solid #d9d9d9; }
-        .btn-ghost:hover { background: #e8f4ff; color: #1677ff; border-color: #91caff; }
-        .btn-unfav { background: #fff1f0; color: #cf1322; border: 1px solid #ffccc7; }
-        .btn-unfav:hover { background: #ffe7e6; }
+        .btn:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-unfav { background: var(--danger-hl); color: var(--danger); border-color: #fca5a5; }
+        .btn-unfav:hover { background: #fecaca; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        .empty-box { text-align: center; padding: 60px 20px; color: #aaa; }
-        .empty-box .icon { font-size: 52px; margin-bottom: 12px; }
-        .empty-box p { font-size: 15px; margin: 0 0 20px; }
-        .btn-primary { background: #1677ff; color: white; padding: 10px 24px; border-radius: 8px; text-decoration: none; font-size: 14px; }
-        .btn-primary:hover { background: #0958d9; }
+        .empty {
+            text-align: center; padding: 72px 20px;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); box-shadow: var(--shadow);
+        }
+        .empty-icon { font-size: 48px; margin-bottom: 14px; }
+        .empty p { font-size: 14.5px; color: var(--text-muted); margin-bottom: 20px; }
+        .btn-primary {
+            display: inline-block; padding: 10px 24px;
+            background: var(--primary); color: #fff;
+            border-radius: 8px; font-size: 14px; font-weight: 600;
+            text-decoration: none; transition: background 0.15s;
+        }
+        .btn-primary:hover { background: var(--primary-h); }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <div class="logo">&#127979; 民大二手交易平台</div>
-    <div class="nav">
+<nav class="nav">
+    <a class="nav-brand" href="${pageContext.request.contextPath}/index.jsp">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+        民大二手交易平台
+    </a>
+    <div class="nav-links">
         <a href="${pageContext.request.contextPath}/index.jsp">首页</a>
         <a href="${pageContext.request.contextPath}/product-list">浏览商品</a>
-        <a href="${pageContext.request.contextPath}/my-favorites" style="background:rgba(255,255,255,0.2);">我的收藏</a>
+        <a href="${pageContext.request.contextPath}/my-favorites" class="active">我的收藏</a>
         <a href="${pageContext.request.contextPath}/my-products">我的商品</a>
         <a href="${pageContext.request.contextPath}/messages">私信</a>
-        <a href="${pageContext.request.contextPath}/logout">退出</a>
+        <a href="${pageContext.request.contextPath}/logout" class="btn-logout">退出</a>
     </div>
-</div>
+</nav>
 
 <div class="container">
     <div class="page-header">
-        <h2>&#10084;&#65039; 我的收藏</h2>
-        <span style="font-size:14px;color:#999;">共 <%= favoriteList != null ? favoriteList.size() : 0 %> 件商品</span>
+        <h1>我的收藏</h1>
+        <span class="count">共 <%= favoriteList != null ? favoriteList.size() : 0 %> 件商品</span>
     </div>
 
     <% if (successMsg != null) { %>
-        <div style="background:#f6ffed;border:1px solid #b7eb8f;color:#389e0d;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:14px;">
-            <%= successMsg %>
-        </div>
+    <div class="alert-success"><%= successMsg %></div>
     <% } %>
 
     <% if (favoriteList == null || favoriteList.isEmpty()) { %>
-        <div class="empty-box">
-            <div class="icon">&#10084;&#65039;</div>
-            <p>还没有收藏任何商品</p>
-            <a href="${pageContext.request.contextPath}/product-list" class="btn-primary">去浏览商品</a>
-        </div>
+    <div class="empty">
+        <div class="empty-icon">❤️</div>
+        <p>还没有收藏任何商品</p>
+        <a href="${pageContext.request.contextPath}/product-list" class="btn-primary">去浏览商品</a>
+    </div>
     <% } else { %>
-        <div class="product-grid">
+    <div class="product-grid">
         <% for (Product p : favoriteList) {
             boolean isSold    = "SOLD".equals(p.getProductStatus());
             boolean isOffline = "OFF_SHELF".equals(p.getProductStatus());
         %>
-            <div class="product-card" id="card-<%= p.getProductId() %>">
-                <div class="card-cover">
-                    <% if (p.getCoverImageUrl() != null && !p.getCoverImageUrl().isEmpty()) { %>
-                        <img src="<%= p.getCoverImageUrl() %>" alt="<%= p.getTitle() %>" loading="lazy">
-                    <% } else { %>
-                        <div class="no-cover">&#128230;</div>
-                    <% } %>
-                    <% if (isSold) { %><div class="sold-mask">已售出</div><% } %>
-                    <% if (isOffline) { %><div class="sold-mask" style="background:rgba(0,0,0,0.3);">已下架</div><% } %>
+        <div class="product-card" id="card-<%= p.getProductId() %>">
+            <div class="card-cover">
+                <% if (p.getCoverImageUrl() != null && !p.getCoverImageUrl().isEmpty()) { %>
+                    <img src="<%= p.getCoverImageUrl() %>" alt="<%= p.getTitle() %>" loading="lazy">
+                <% } else { %>
+                    <div class="no-cover">📦</div>
+                <% } %>
+                <% if (isSold) { %><div class="sold-mask">已售出</div><% } %>
+                <% if (isOffline) { %><div class="sold-mask" style="background:rgba(0,0,0,0.3);">已下架</div><% } %>
+            </div>
+            <div class="card-body">
+                <div class="card-title" title="<%= p.getTitle() %>"><%= p.getTitle() %></div>
+                <div class="card-price">
+                    &yen;<%= p.getPrice() %>
+                    <% if (p.getOriginalPrice() != null) { %><span class="orig">&yen;<%= p.getOriginalPrice() %></span><% } %>
                 </div>
-
-                <div class="card-body">
-                    <p class="card-title" title="<%= p.getTitle() %>"><%= p.getTitle() %></p>
-                    <div class="card-price">
-                        &yen;<%= p.getPrice() %>
-                        <% if (p.getOriginalPrice() != null) { %>
-                            <span>&yen;<%= p.getOriginalPrice() %></span>
-                        <% } %>
-                    </div>
-                    <div class="card-meta">
-                        <%= p.getCategoryName() != null ? p.getCategoryName() : "未分类" %>
-                        &nbsp;&middot;&nbsp; <%= p.getSellerName() != null ? p.getSellerName() : "未知" %>
-                    </div>
-                </div>
-
-                <div class="card-actions">
-                    <a href="${pageContext.request.contextPath}/product-detail?id=<%= p.getProductId() %>"
-                       class="btn btn-ghost">查看详情</a>
-                    <button class="btn btn-unfav" onclick="unfavorite(<%= p.getProductId() %>, this)">
-                        取消收藏
-                    </button>
+                <div class="card-meta">
+                    <%= p.getCategoryName() != null ? p.getCategoryName() : "未分类" %>
+                    &nbsp;&middot;&nbsp;<%= p.getSellerName() != null ? p.getSellerName() : "未知" %>
                 </div>
             </div>
-        <% } %>
+            <div class="card-actions">
+                <a href="${pageContext.request.contextPath}/product-detail?id=<%= p.getProductId() %>" class="btn">查看详情</a>
+                <button class="btn btn-unfav" onclick="unfavorite(<%= p.getProductId() %>, this)">取消收藏</button>
+            </div>
         </div>
+        <% } %>
+    </div>
     <% } %>
 </div>
 
 <script>
-/* Bug A 修复：改用 URLSearchParams + 显式 Content-Type
-   原生 FormData 导致 Content-Type=multipart/form-data，
-   Servlet 的 request.getParameter() 读不到 productId */
 function unfavorite(productId, btn) {
     if (!confirm('确定取消收藏吗？')) return;
     btn.disabled = true;
     btn.textContent = '处理中…';
-
     fetch('${pageContext.request.contextPath}/favorite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
