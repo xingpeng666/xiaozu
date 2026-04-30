@@ -2,252 +2,119 @@
 <%@ page import="java.util.List" %>
 <%@ page import="com.minzu.entity.User" %>
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>用户审核</title>
+    <title>用户审核 — 民大二手交易平台</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f5f7fa;
-            color: #333;
-        }
-
-        .header {
-            height: 56px;
-            background: #1677ff;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 24px;
-            box-shadow: 0 2px 8px rgba(22,119,255,0.18);
-        }
-
-        .header .logo {
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        .header .nav a {
-            color: #fff;
-            text-decoration: none;
-            margin-left: 14px;
-            font-size: 14px;
-            padding: 6px 12px;
-            border-radius: 6px;
-        }
-
-        .header .nav a:hover {
-            background: rgba(255,255,255,0.16);
-        }
-
-        .container {
-            max-width: 1100px;
-            margin: 32px auto;
-            padding: 0 16px;
-        }
-
-        .page-title {
-            margin-bottom: 18px;
-        }
-
-        .page-title h2 {
-            margin: 0 0 8px;
-            font-size: 28px;
-            color: #1f1f1f;
-        }
-
-        .page-title p {
-            margin: 0;
-            color: #8c8c8c;
-            font-size: 14px;
-        }
-
-        .success-box {
-            margin-bottom: 18px;
-            padding: 12px 14px;
-            background: #f6ffed;
-            border: 1px solid #b7eb8f;
-            color: #389e0d;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
-        .error-box {
-            margin-bottom: 18px;
-            padding: 12px 14px;
-            background: #fff2f0;
-            border: 1px solid #ffccc7;
-            color: #cf1322;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
-        .table-card {
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 10px 28px rgba(0,0,0,0.06);
-            overflow: hidden;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead {
-            background: #fafafa;
-        }
-
-        th, td {
-            padding: 14px 16px;
-            border-bottom: 1px solid #f0f0f0;
-            text-align: left;
-            font-size: 14px;
-        }
-
-        th {
-            color: #555;
-        }
-
-        tr:hover td {
-            background: #fcfcfc;
-        }
-
-        .empty-box {
-            padding: 28px;
-            text-align: center;
-            color: #999;
-            font-size: 14px;
-        }
-
-        .btn {
-            display: inline-block;
-            text-decoration: none;
-            padding: 8px 14px;
-            border-radius: 6px;
-            font-size: 13px;
-            margin-right: 8px;
-        }
-
-        .btn-approve {
-            background: #1677ff;
-            color: #fff;
-        }
-
-        .btn-approve:hover {
-            background: #0958d9;
-        }
-
-        .btn-reject {
-            background: #fff2f0;
-            color: #cf1322;
-            border: 1px solid #ffccc7;
-        }
-
-        .btn-reject:hover {
-            background: #fff1f0;
-        }
-
-        .tag {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 999px;
-            font-size: 12px;
-            background: #fff7e6;
-            color: #d48806;
-            border: 1px solid #ffd591;
-        }
+    :root{
+        --bg:#f4f3ef;--surface:#fff;--border:rgba(0,0,0,0.09);--text:#1a1a1a;--muted:#737373;
+        --primary:#0b6e63;--primary-h:#085c52;--primary-hl:#d0eae7;
+        --warn:#d97706;--warn-hl:#fef9c3;--warn-bd:#fde68a;
+        --success-bg:#f0fdf4;--success-bd:#bbf7d0;--success-tx:#15803d;
+        --error-bg:#fff1f0;--error-bd:#ffc5c5;--error-tx:#b91c1c;
+        --radius:12px;--font:'Plus Jakarta Sans','PingFang SC','Microsoft YaHei',sans-serif;
+        --shadow:0 2px 12px rgba(0,0,0,0.06);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{-webkit-font-smoothing:antialiased}
+    body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100dvh}
+    .nav{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:100}
+    .nav-brand{display:flex;align-items:center;gap:9px;font-size:16px;font-weight:700;color:var(--primary);text-decoration:none}
+    .nav-links{display:flex;align-items:center;gap:4px}
+    .nav-links a{font-size:13.5px;font-weight:500;color:var(--muted);text-decoration:none;padding:6px 11px;border-radius:7px;transition:background .15s,color .15s}
+    .nav-links a:hover,.nav-links a.active{background:var(--primary-hl);color:var(--primary)}
+    .nav-links .btn-logout{margin-left:6px;padding:6px 14px;background:var(--primary);color:#fff;border-radius:7px}
+    .nav-links .btn-logout:hover{background:var(--primary-h);color:#fff}
+    .container{max-width:1100px;margin:36px auto;padding:0 16px 48px}
+    .page-header{margin-bottom:6px}
+    .page-header h1{font-size:22px;font-weight:700}
+    .page-header p{font-size:13.5px;color:var(--muted);margin-top:4px;margin-bottom:20px}
+    .alert{padding:11px 14px;border-radius:8px;font-size:13.5px;margin-bottom:18px}
+    .alert-success{background:var(--success-bg);border:1px solid var(--success-bd);color:var(--success-tx)}
+    .alert-error{background:var(--error-bg);border:1px solid var(--error-bd);color:var(--error-tx)}
+    .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:13px 14px;text-align:left;border-bottom:1px solid var(--border);font-size:13.5px}
+    th{background:#fafaf9;font-weight:600;color:var(--muted)}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:#f9f9f7}
+    .status-badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:12px;font-weight:600;background:var(--warn-hl);color:var(--warn);border:1px solid var(--warn-bd)}
+    .btn{padding:6px 14px;border-radius:7px;font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;text-decoration:none;display:inline-block;border:none;transition:background .15s}
+    .btn-approve{background:var(--primary);color:#fff;margin-right:6px}
+    .btn-approve:hover{background:var(--primary-h)}
+    .btn-reject{background:var(--error-bg);color:var(--error-tx);border:1px solid var(--error-bd)}
+    .btn-reject:hover{background:#ffe0de}
+    .empty{text-align:center;padding:60px 20px}
+    .empty p{font-size:14.5px;color:var(--muted);margin-top:10px}
     </style>
 </head>
 <body>
-
-<div class="header">
-    <div class="logo">🏫 民大二手交易平台 - 管理后台</div>
-    <div class="nav">
+<nav class="nav">
+    <a class="nav-brand" href="${pageContext.request.contextPath}/index.jsp">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        民大二手 · 管理后台
+    </a>
+    <div class="nav-links">
+        <a href="${pageContext.request.contextPath}/admin/dashboard">统计面板</a>
+        <a href="${pageContext.request.contextPath}/admin/users" class="active">用户审核</a>
+        <a href="${pageContext.request.contextPath}/admin/products">商品审核</a>
         <a href="${pageContext.request.contextPath}/index.jsp">首页</a>
-        <a href="${pageContext.request.contextPath}/logout">退出登录</a>
+        <a href="${pageContext.request.contextPath}/logout" class="btn-logout">退出登录</a>
     </div>
-</div>
-
+</nav>
 <div class="container">
-    <div class="page-title">
-        <h2>用户审核</h2>
+    <div class="page-header">
+        <h1>👤 用户审核</h1>
         <p>管理员可对新注册用户进行审核，通过后用户即可正常登录系统。</p>
     </div>
-
     <%
         String successMsg = (String) session.getAttribute("successMsg");
-        if (successMsg != null) {
-            session.removeAttribute("successMsg");
-        }
-
+        if (successMsg != null) session.removeAttribute("successMsg");
         String sessionErrorMsg = (String) session.getAttribute("errorMsg");
-        if (sessionErrorMsg != null) {
-            session.removeAttribute("errorMsg");
-        }
-
+        if (sessionErrorMsg != null) session.removeAttribute("errorMsg");
         List<User> userList = (List<User>) request.getAttribute("userList");
     %>
+    <% if (successMsg != null) { %><div class="alert alert-success"><%= successMsg %></div><% } %>
+    <% if (sessionErrorMsg != null) { %><div class="alert alert-error"><%= sessionErrorMsg %></div>
+    <% } else if (request.getAttribute("errorMsg") != null) { %><div class="alert alert-error"><%= request.getAttribute("errorMsg") %></div><% } %>
 
-    <% if (successMsg != null) { %>
-        <div class="success-box"><%= successMsg %></div>
-    <% } %>
-
-    <% if (sessionErrorMsg != null) { %>
-        <div class="error-box"><%= sessionErrorMsg %></div>
-    <% } else if (request.getAttribute("errorMsg") != null) { %>
-        <div class="error-box"><%= request.getAttribute("errorMsg") %></div>
-    <% } %>
-
-    <div class="table-card">
-        <% if (userList == null || userList.isEmpty()) { %>
-            <div class="empty-box">当前没有待审核用户。</div>
-        <% } else { %>
-            <table>
-                <thead>
-                <tr>
-                    <th>用户ID</th>
-                    <th>学号/工号</th>
-                    <th>真实姓名</th>
-                    <th>昵称</th>
-                    <th>角色</th>
-                    <th>状态</th>
-                    <th>操作</th>
-                </tr>
-                </thead>
-                <tbody>
-                <% for (User u : userList) { %>
-                    <tr>
-                        <td><%= u.getUserId() %></td>
-                        <td><%= u.getStudentOrStaffNo() %></td>
-                        <td><%= u.getRealName() %></td>
-                        <td><%= u.getNickname() == null ? "-" : u.getNickname() %></td>
-                        <td><%= u.getRoleCode() %></td>
-                        <td><span class="tag"><%= u.getAccountStatus() %></span></td>
-                        <td>
-                            <a class="btn btn-approve"
-                               href="${pageContext.request.contextPath}/admin/approve-user?userId=<%= u.getUserId() %>"
-                               onclick="return confirm('确定审核通过该用户吗？');">通过</a>
-
-                            <a class="btn btn-reject"
-                               href="${pageContext.request.contextPath}/admin/reject-user?userId=<%= u.getUserId() %>"
-                               onclick="return confirm('确定将该用户设为禁用吗？');">禁用</a>
-                        </td>
-                    </tr>
-                <% } %>
-                </tbody>
-            </table>
+    <% if (userList == null || userList.isEmpty()) { %>
+    <div class="table-wrap"><div class="empty"><div style="font-size:40px">🎉</div><p>当前没有待审核用户。</p></div></div>
+    <% } else { %>
+    <div class="table-wrap">
+    <table>
+        <thead><tr>
+            <th>用户ID</th><th>学号/工号</th><th>真实姓名</th>
+            <th>昵称</th><th>角色</th><th>状态</th><th>操作</th>
+        </tr></thead>
+        <tbody>
+        <% for (User u : userList) { %>
+        <tr>
+            <td><%= u.getUserId() %></td>
+            <td><%= u.getStudentOrStaffNo() %></td>
+            <td><%= u.getRealName() %></td>
+            <td><%= u.getNickname() == null ? "-" : u.getNickname() %></td>
+            <td><%= u.getRoleCode() %></td>
+            <td><span class="status-badge"><%= u.getAccountStatus() %></span></td>
+            <td>
+                <a class="btn btn-approve"
+                   href="${pageContext.request.contextPath}/admin/approve-user?userId=<%= u.getUserId() %>"
+                   onclick="return confirm('确定审核通过该用户吗？')">通过</a>
+                <a class="btn btn-reject"
+                   href="${pageContext.request.contextPath}/admin/reject-user?userId=<%= u.getUserId() %>"
+                   onclick="return confirm('确定将该用户设为禁用吗？')">禁用</a>
+            </td>
+        </tr>
         <% } %>
+        </tbody>
+    </table>
     </div>
+    <% } %>
 </div>
-
 </body>
 </html>

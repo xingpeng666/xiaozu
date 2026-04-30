@@ -11,92 +11,139 @@
     if (tab == null) tab = "pending";
     String errMsg = (String) session.getAttribute("errorMsg");
     String sucMsg = (String) session.getAttribute("successMsg");
-    session.removeAttribute("errorMsg");
-    session.removeAttribute("successMsg");
-    // Bug B 修复：提前计算 tab 激活类，避免 class 属性中嵌入 \" 导致 Jasper 编译失败
+    session.removeAttribute("errorMsg"); session.removeAttribute("successMsg");
     String tabPending = "pending".equals(tab) ? " active" : "";
     String tabOnSale  = "on_sale".equals(tab) ? " active" : "";
     String tabReject  = "rejected".equals(tab) ? " active" : "";
     boolean isPending = "pending".equals(tab);
 %>
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>商品审核 - 管理后台</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<title>商品审核 — 民大二手交易平台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+    --bg:#f4f3ef;--surface:#fff;--border:rgba(0,0,0,0.09);--text:#1a1a1a;--muted:#737373;
+    --primary:#0b6e63;--primary-h:#085c52;--primary-hl:#d0eae7;
+    --success-bg:#f0fdf4;--success-bd:#bbf7d0;--success-tx:#15803d;
+    --error-bg:#fff1f0;--error-bd:#ffc5c5;--error-tx:#b91c1c;
+    --warn:#d97706;--warn-hl:#fef9c3;--warn-bd:#fde68a;
+    --radius:12px;--font:'Plus Jakarta Sans','PingFang SC','Microsoft YaHei',sans-serif;
+    --shadow:0 2px 12px rgba(0,0,0,0.06);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100dvh}
+.nav{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:100}
+.nav-brand{display:flex;align-items:center;gap:9px;font-size:16px;font-weight:700;color:var(--primary);text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:4px}
+.nav-links a{font-size:13.5px;font-weight:500;color:var(--muted);text-decoration:none;padding:6px 11px;border-radius:7px;transition:background .15s,color .15s}
+.nav-links a:hover,.nav-links a.active{background:var(--primary-hl);color:var(--primary)}
+.nav-links .btn-logout{margin-left:6px;padding:6px 14px;background:var(--primary);color:#fff;border-radius:7px}
+.nav-links .btn-logout:hover{background:var(--primary-h);color:#fff}
+.container{max-width:1200px;margin:36px auto;padding:0 16px 48px}
+.page-header h1{font-size:22px;font-weight:700;margin-bottom:20px}
+.alert{padding:11px 14px;border-radius:8px;font-size:13.5px;margin-bottom:18px}
+.alert-success{background:var(--success-bg);border:1px solid var(--success-bd);color:var(--success-tx)}
+.alert-error{background:var(--error-bg);border:1px solid var(--error-bd);color:var(--error-tx)}
+.tab-bar{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:22px}
+.tab-bar a{padding:10px 20px;font-size:13.5px;font-weight:600;color:var(--muted);text-decoration:none;border-bottom:2px solid transparent;margin-bottom:-2px;transition:color .15s,border-color .15s}
+.tab-bar a:hover{color:var(--primary)}
+.tab-bar a.active{color:var(--primary);border-bottom-color:var(--primary)}
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--border);font-size:13.5px;vertical-align:middle}
+th{background:#fafaf9;font-weight:600;color:var(--muted);white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f9f9f7}
+.prod-thumb{width:52px;height:52px;object-fit:cover;border-radius:7px;border:1px solid var(--border)}
+.btn{padding:6px 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:var(--font);border:none;cursor:pointer;transition:background .15s;text-decoration:none;display:inline-block}
+.btn-approve{background:var(--primary);color:#fff}
+.btn-approve:hover{background:var(--primary-h)}
+.btn-reject{background:var(--error-bg);color:var(--error-tx);border:1px solid var(--error-bd)}
+.btn-reject:hover{background:#ffe0de}
+.empty{text-align:center;padding:60px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.empty p{color:var(--muted);font-size:14.5px;margin-top:12px}
+</style>
 </head>
-<body class="bg-light">
-<nav class="navbar navbar-dark bg-dark px-4">
-  <a class="navbar-brand" href="<%=request.getContextPath()%>/index.jsp">民大二手 &middot; 管理后台</a>
-  <div class="d-flex gap-3">
-    <a class="nav-link text-white" href="<%=request.getContextPath()%>/admin/users">用户管理</a>
-    <a class="nav-link text-white fw-bold" href="<%=request.getContextPath()%>/admin/products">商品审核</a>
-    <a class="nav-link text-white" href="<%=request.getContextPath()%>/logout">退出</a>
-  </div>
+<body>
+<nav class="nav">
+    <a class="nav-brand" href="${pageContext.request.contextPath}/index.jsp">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        民大二手 · 管理后台
+    </a>
+    <div class="nav-links">
+        <a href="${pageContext.request.contextPath}/admin/dashboard">统计面板</a>
+        <a href="${pageContext.request.contextPath}/admin/users">用户审核</a>
+        <a href="${pageContext.request.contextPath}/admin/products" class="active">商品审核</a>
+        <a href="${pageContext.request.contextPath}/index.jsp">前台首页</a>
+        <a href="${pageContext.request.contextPath}/logout" class="btn-logout">退出</a>
+    </div>
 </nav>
-<div class="container-fluid py-4 px-4">
-  <h4 class="mb-3">&#128230; 商品审核</h4>
-  <% if (errMsg != null) { %><div class="alert alert-danger"><%=errMsg%></div><% } %>
-  <% if (sucMsg != null) { %><div class="alert alert-success"><%=sucMsg%></div><% } %>
-  <ul class="nav nav-tabs mb-4">
-    <li class="nav-item"><a class='nav-link<%= tabPending %>' href="?tab=pending">待审核</a></li>
-    <li class="nav-item"><a class='nav-link<%= tabOnSale %>'  href="?tab=on_sale">已通过</a></li>
-    <li class="nav-item"><a class='nav-link<%= tabReject %>'  href="?tab=rejected">已驳回</a></li>
-  </ul>
-  <% if (productList.isEmpty()) { %>
-    <p class="text-muted">暂无商品</p>
-  <% } else { %>
-  <div class="table-responsive">
-    <table class="table table-hover bg-white shadow-sm align-middle">
-      <thead class="table-dark">
+<div class="container">
+    <div class="page-header"><h1>📦 商品审核</h1></div>
+    <% if (errMsg != null) { %><div class="alert alert-error">✕ <%=errMsg%></div><% } %>
+    <% if (sucMsg != null) { %><div class="alert alert-success">✓ <%=sucMsg%></div><% } %>
+
+    <div class="tab-bar">
+        <a href="?tab=pending" class="<%=tabPending%>">待审核</a>
+        <a href="?tab=on_sale" class="<%=tabOnSale%>">已通过</a>
+        <a href="?tab=rejected" class="<%=tabReject%>">已驳回</a>
+    </div>
+
+    <% if (productList.isEmpty()) { %>
+    <div class="empty"><div style="font-size:48px">📦</div><p>暂无商品</p></div>
+    <% } else { %>
+    <div class="table-wrap">
+    <table>
+        <thead><tr>
+            <th>ID</th><th>封面</th><th>标题</th><th>分类</th><th>价格</th>
+            <th>新旧</th><th>发布人</th><th>学号</th><th>时间</th>
+            <% if (isPending) { %><th>操作</th><% } %>
+        </tr></thead>
+        <tbody>
+        <% for (Map<String,Object> p : productList) { %>
         <tr>
-          <th>ID</th><th>封面</th><th>标题</th><th>分类</th><th>价格</th>
-          <th>新旧</th><th>发布人</th><th>学号</th><th>时间</th>
-          <% if (isPending) { %><th>操作</th><% } %>
+            <td><%=p.get("productId")%></td>
+            <td>
+                <% String img = (String) p.get("coverImageUrl"); if (img != null && !img.isEmpty()) { %>
+                <img src="<%=img%>" class="prod-thumb" alt="">
+                <% } else { %><span style="color:var(--muted)">无图</span><% } %>
+            </td>
+            <td><%=p.get("title")%></td>
+            <td><%=p.get("categoryName") != null ? p.get("categoryName") : "—"%></td>
+            <td>&yen;<%=p.get("price")%></td>
+            <td><%=p.get("conditionLevel") != null ? p.get("conditionLevel") : "—"%></td>
+            <td><%=p.get("sellerName")%></td>
+            <td><%=p.get("sellerNo")%></td>
+            <td style="white-space:nowrap;"><small><%=p.get("createdAt") != null ? p.get("createdAt").toString().substring(0,10) : "-"%></small></td>
+            <% if (isPending) { %>
+            <td style="white-space:nowrap">
+                <form method="post" action="${pageContext.request.contextPath}/admin/products" style="display:inline">
+                    <input type="hidden" name="productId" value="<%=p.get("productId")%>">
+                    <input type="hidden" name="tab" value="pending">
+                    <input type="hidden" name="action" value="approve">
+                    <button class="btn btn-approve">通过</button>
+                </form>
+                <form method="post" action="${pageContext.request.contextPath}/admin/products" style="display:inline;margin-left:6px">
+                    <input type="hidden" name="productId" value="<%=p.get("productId")%>">
+                    <input type="hidden" name="tab" value="pending">
+                    <input type="hidden" name="action" value="reject">
+                    <button class="btn btn-reject">驳回</button>
+                </form>
+            </td>
+            <% } %>
         </tr>
-      </thead>
-      <tbody>
-      <% for (Map<String,Object> p : productList) { %>
-        <tr>
-          <td><%=p.get("productId")%></td>
-          <td>
-            <% String img = (String) p.get("coverImageUrl");
-               if (img != null && !img.isEmpty()) { %>
-              <img src="<%=img%>" width="56" height="56" style="object-fit:cover;border-radius:6px" alt="">
-            <% } else { %><span class="text-muted">无图</span><% } %>
-          </td>
-          <td><%=p.get("title")%></td>
-          <td><%=p.get("categoryName") != null ? p.get("categoryName") : "—"%></td>
-          <td>&yen;<%=p.get("price")%></td>
-          <td><%=p.get("conditionLevel") != null ? p.get("conditionLevel") : "—"%></td>
-          <td><%=p.get("sellerName")%></td>
-          <td><%=p.get("sellerNo")%></td>
-          <td><small><%=p.get("createdAt")%></small></td>
-          <% if (isPending) { %>
-          <td>
-            <form method="post" action="<%=request.getContextPath()%>/admin/products" class="d-inline">
-              <input type="hidden" name="productId" value="<%=p.get("productId")%>">
-              <input type="hidden" name="tab" value="pending">
-              <input type="hidden" name="action" value="approve">
-              <button class="btn btn-sm btn-success">通过</button>
-            </form>
-            <form method="post" action="<%=request.getContextPath()%>/admin/products" class="d-inline ms-1">
-              <input type="hidden" name="productId" value="<%=p.get("productId")%>">
-              <input type="hidden" name="tab" value="pending">
-              <input type="hidden" name="action" value="reject">
-              <button class="btn btn-sm btn-danger">驳回</button>
-            </form>
-          </td>
-          <% } %>
-        </tr>
-      <% } %>
-      </tbody>
+        <% } %>
+        </tbody>
     </table>
-  </div>
-  <% } %>
+    </div>
+    <% } %>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
