@@ -72,7 +72,7 @@
         button { cursor: pointer; font-family: var(--font); }
         img { display: block; max-width: 100%; }
 
-        /* ── NAV ── */
+        /* NAV */
         .nav {
             height: var(--nav-h);
             background: var(--surface);
@@ -125,10 +125,10 @@
         }
         .btn-publish-nav:hover { background: var(--primary-h); }
 
-        /* ── CONTAINER ── */
+        /* CONTAINER */
         .container { max-width: 1200px; margin: 0 auto; padding: 28px 20px 64px; }
 
-        /* ── ALERTS ── */
+        /* ALERTS */
         .alert {
             padding: 12px 16px; border-radius: 9px;
             font-size: 14px; margin-bottom: 18px;
@@ -137,30 +137,40 @@
         .alert-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; }
         .alert-error   { background: #fff1f0; border: 1px solid #ffc5c5; color: #b91c1c; }
 
-        /* ── SEARCH BAR ── */
+        /* SEARCH BAR */
         .search-bar {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            padding: 14px 18px;
+            padding: 12px 16px;
             display: flex;
             gap: 10px;
             align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             box-shadow: var(--shadow-sm);
             flex-wrap: wrap;
         }
-        .search-bar input[type=text] {
+        .search-input-wrap {
             flex: 1; min-width: 200px;
-            padding: 9px 14px;
+            position: relative;
+            display: flex; align-items: center;
+        }
+        .search-input-icon {
+            position: absolute; left: 11px;
+            color: var(--text-faint);
+            pointer-events: none;
+        }
+        .search-bar input[type=text] {
+            width: 100%;
+            padding: 9px 14px 9px 36px;
             border: 1.5px solid var(--border);
             border-radius: var(--radius-sm);
             font-size: 14px;
             font-family: var(--font);
-            background: #fafafa;
+            background: var(--bg);
             color: var(--text);
             outline: none;
-            transition: border-color 0.18s, box-shadow 0.18s;
+            transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
         }
         .search-bar input[type=text]:focus {
             border-color: var(--primary);
@@ -176,6 +186,7 @@
             font-family: var(--font);
             transition: background 0.15s;
             display: flex; align-items: center; gap: 6px;
+            white-space: nowrap;
         }
         .btn-search:hover { background: var(--primary-h); }
         .btn-reset {
@@ -186,40 +197,39 @@
             font-size: 14px;
             font-family: var(--font);
             transition: border-color 0.15s, color 0.15s;
+            white-space: nowrap;
         }
         .btn-reset:hover { border-color: var(--primary); color: var(--primary); }
 
-        /* ── CATEGORY TAGS ── */
-        .cat-tags {
-            display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap;
+        /* FILTER ROW */
+        .filter-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            gap: 10px;
+            flex-wrap: wrap;
         }
+        .cat-tags { display: flex; gap: 8px; flex-wrap: wrap; }
         .cat-tag {
             display: inline-flex; align-items: center; gap: 5px;
-            padding: 6px 16px;
+            padding: 5px 14px;
             border-radius: 99px;
-            font-size: 13px; font-weight: 600;
+            font-size: 12.5px; font-weight: 600;
             border: 1.5px solid;
             transition: opacity 0.15s;
         }
         .cat-tag:hover { opacity: 0.75; }
         .cat-tag-textbook { background: #fffbeb; color: #b45309; border-color: #fcd34d; }
         .cat-tag-graduation { background: #f0fdf4; color: #15803d; border-color: #86efac; }
-
-        /* ── TOOLBAR ── */
-        .toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .result-info { font-size: 13.5px; color: var(--text-muted); }
+        .result-info { font-size: 13px; color: var(--text-muted); white-space: nowrap; }
         .result-info strong { color: var(--text); }
 
-        /* ── PRODUCT GRID ── */
+        /* PRODUCT GRID */
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 18px;
+            gap: 16px;
         }
         .product-card {
             background: var(--surface);
@@ -245,44 +255,33 @@
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
             color: var(--text-faint);
-            font-size: 13px; gap: 8px;
+            font-size: 13px; gap: 10px;
         }
-        .no-img-icon { font-size: 28px; opacity: 0.5; }
-        .card-body {
-            padding: 16px;
-            flex: 1; display: flex; flex-direction: column;
-        }
+        .no-img-icon { color: #d1d5db; }
+        .card-body { padding: 15px; flex: 1; display: flex; flex-direction: column; }
         .product-title {
-            font-size: 14.5px;
-            font-weight: 600;
-            color: var(--text);
-            line-height: 1.45;
-            margin-bottom: 10px;
+            font-size: 14px; font-weight: 600; color: var(--text);
+            line-height: 1.45; margin-bottom: 10px;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
-        .price-row {
-            display: flex; align-items: baseline; gap: 4px;
-            margin-bottom: 10px;
-        }
+        .price-row { display: flex; align-items: baseline; gap: 3px; margin-bottom: 10px; }
         .price-symbol { font-size: 13px; color: var(--price-color); font-weight: 700; }
-        .price-num { font-size: 22px; font-weight: 700; color: var(--price-color); line-height: 1; }
+        .price-num { font-size: 21px; font-weight: 700; color: var(--price-color); line-height: 1; }
         .meta-grid {
             display: grid; grid-template-columns: 1fr 1fr;
-            gap: 4px 8px;
-            margin-bottom: 14px;
+            gap: 4px 8px; margin-bottom: 14px;
         }
         .meta-item {
             font-size: 12px; color: var(--text-muted);
-            display: flex; align-items: center; gap: 3px;
+            display: flex; align-items: center; gap: 4px;
         }
         .meta-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--text-faint); flex-shrink: 0; }
         .card-footer {
             margin-top: auto;
-            display: flex;
-            align-items: center;
+            display: flex; align-items: center;
             justify-content: space-between;
             padding-top: 12px;
             border-top: 1px solid var(--border);
@@ -297,8 +296,7 @@
         }
         .btn-detail:hover { background: #b5dad6; }
         .btn-delete {
-            font-size: 12px;
-            color: #dc2626;
+            font-size: 12px; color: #dc2626;
             background: #fff1f1;
             border: 1px solid #fecaca;
             padding: 6px 11px;
@@ -308,7 +306,7 @@
         }
         .btn-delete:hover { background: #fee2e2; }
 
-        /* ── EMPTY STATE ── */
+        /* EMPTY STATE */
         .empty-state {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -317,11 +315,11 @@
             text-align: center;
             color: var(--text-muted);
         }
-        .empty-icon { font-size: 48px; margin-bottom: 14px; opacity: 0.5; }
+        .empty-icon { margin: 0 auto 16px; color: #d1d5db; }
         .empty-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
         .empty-desc { font-size: 14px; }
 
-        /* ── PAGINATION ── */
+        /* PAGINATION */
         .pagination {
             display: flex;
             justify-content: center;
@@ -356,6 +354,7 @@
         }
         @media (max-width: 480px) {
             .grid { grid-template-columns: 1fr; }
+            .filter-row { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
@@ -409,42 +408,54 @@
 <div class="container">
 
     <% if (successMsg != null) { %>
-    <div class="alert alert-success">✓ <%= successMsg %></div>
+    <div class="alert alert-success">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        <%= successMsg %>
+    </div>
     <% } %>
     <% if (errorMsg != null) { %>
-    <div class="alert alert-error">✕ <%= errorMsg %></div>
+    <div class="alert alert-error">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        <%= errorMsg %>
+    </div>
     <% } %>
 
     <!-- Search Bar -->
     <form class="search-bar" method="get" action="${pageContext.request.contextPath}/product-list">
-        <input type="text" name="keyword" placeholder="搜索商品名称、分类…"
-               value="<%= keyword != null ? keyword : "" %>" aria-label="搜索商品">
-        <button type="submit" class="btn-search">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            搜索
-        </button>
+        <div class="search-input-wrap">
+            <span class="search-input-icon" aria-hidden="true">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </span>
+            <input type="text" name="keyword" placeholder="搜索商品名称、分类…"
+                   value="<%= keyword != null ? keyword : "" %>" aria-label="搜索商品">
+        </div>
+        <button type="submit" class="btn-search">搜索</button>
         <% if (keyword != null && !keyword.isEmpty()) { %>
-        <a href="${pageContext.request.contextPath}/product-list"><button type="button" class="btn-reset">清除</button></a>
+        <a href="${pageContext.request.contextPath}/product-list"><button type="button" class="btn-reset">清除筛选</button></a>
         <% } %>
     </form>
 
-    <!-- Category Tags -->
-    <div class="cat-tags">
-        <% if (textbookCatId > 0) { %>
-        <a href="${pageContext.request.contextPath}/product-list?categoryId=<%= textbookCatId %>" class="cat-tag cat-tag-textbook">📚 教材专区</a>
-        <% } %>
-        <a href="${pageContext.request.contextPath}/product-list?tag=graduation" class="cat-tag cat-tag-graduation">🎓 毕业季专区</a>
-    </div>
-
-    <!-- Toolbar -->
-    <div class="toolbar">
+    <!-- Filter Row: category tags + result count -->
+    <div class="filter-row">
+        <div class="cat-tags">
+            <% if (textbookCatId > 0) { %>
+            <a href="${pageContext.request.contextPath}/product-list?categoryId=<%= textbookCatId %>" class="cat-tag cat-tag-textbook">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                教材专区
+            </a>
+            <% } %>
+            <a href="${pageContext.request.contextPath}/product-list?tag=graduation" class="cat-tag cat-tag-graduation">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                毕业季专区
+            </a>
+        </div>
         <span class="result-info">
             <% if (keyword != null && !keyword.isEmpty()) { %>
-                "<strong><%= keyword %></strong>" 的搜索结果，共 <strong><%= totalCount %></strong> 件商品
+                "<strong><%= keyword %></strong>" 的结果 · 共 <strong><%= totalCount %></strong> 件
             <% } else if ("graduation".equals(request.getParameter("tag"))) { %>
-                毕业季专区，共 <strong><%= totalCount %></strong> 件商品
+                毕业季专区 · 共 <strong><%= totalCount %></strong> 件
             <% } else { %>
-                全部商品，共 <strong><%= totalCount %></strong> 件
+                全部商品 · 共 <strong><%= totalCount %></strong> 件
             <% } %>
         </span>
     </div>
@@ -464,7 +475,12 @@
             <% if (p.getCoverImageUrl() != null && !"".equals(p.getCoverImageUrl())) { %>
                 <img src="<%= p.getCoverImageUrl() %>" alt="<%= p.getTitle() %>" class="product-img" loading="lazy" width="320" height="240">
             <% } else { %>
-                <div class="no-img"><span class="no-img-icon">📦</span><span>暂无图片</span></div>
+                <div class="no-img" aria-label="暂无图片">
+                    <div class="no-img-icon">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    </div>
+                    <span>暂无图片</span>
+                </div>
             <% } %>
             <div class="card-body">
                 <div class="product-title"><%= p.getTitle() %></div>
@@ -529,7 +545,9 @@
     <% } else { %>
     <!-- Empty State -->
     <div class="empty-state">
-        <div class="empty-icon">🛒</div>
+        <div class="empty-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        </div>
         <div class="empty-title">
             <% if (keyword != null && !keyword.isEmpty()) { %>
                 没有找到 "<%= keyword %>" 相关商品

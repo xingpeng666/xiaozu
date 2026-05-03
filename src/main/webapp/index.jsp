@@ -29,7 +29,7 @@
             --primary-h:  #085c52;
             --primary-hl: #d0eae7;
             --orange:     #d97706;
-            --orange-bg:  #fffbeb;
+            --orange-bg:  #fef3c7;
             --purple:     #7c3aed;
             --purple-bg:  #f5f3ff;
             --radius-sm:  8px;
@@ -52,7 +52,7 @@
         a { text-decoration: none; color: inherit; }
         button { cursor: pointer; font-family: var(--font); }
 
-        /* ── NAV ── */
+        /* NAV */
         .nav {
             height: var(--nav-h);
             background: var(--surface);
@@ -65,96 +65,51 @@
             top: 0;
             z-index: 100;
         }
-        .nav-brand {
-            display: flex;
-            align-items: center;
-            gap: 9px;
-        }
+        .nav-brand { display: flex; align-items: center; gap: 9px; }
         .nav-logo {
             width: 34px; height: 34px;
             background: var(--primary);
             border-radius: 8px;
             display: flex; align-items: center; justify-content: center;
-            color: #fff;
-            flex-shrink: 0;
+            color: #fff; flex-shrink: 0;
         }
-        .nav-brand-name {
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--text);
-            letter-spacing: 0.01em;
-        }
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 2px;
-            list-style: none;
-        }
+        .nav-brand-name { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: 0.01em; }
+        .nav-links { display: flex; align-items: center; gap: 2px; list-style: none; }
         .nav-links a {
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-muted);
-            padding: 7px 12px;
-            border-radius: 7px;
+            font-size: 14px; font-weight: 500; color: var(--text-muted);
+            padding: 7px 12px; border-radius: 7px;
             transition: color 0.15s, background 0.15s;
             display: flex; align-items: center; gap: 5px;
         }
         .nav-links a:hover { color: var(--text); background: var(--bg); }
         .nav-links a.active { color: var(--primary); background: var(--primary-hl); }
-        .nav-links .badge {
-            background: #ef4444;
-            color: #fff;
-            border-radius: 10px;
-            font-size: 10px;
-            line-height: 1;
-            padding: 2px 5px;
-            font-weight: 700;
-        }
-        .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        .nav-right { display: flex; align-items: center; gap: 10px; }
         .user-chip {
-            display: flex;
-            align-items: center;
-            gap: 7px;
+            display: flex; align-items: center; gap: 7px;
             padding: 5px 12px 5px 6px;
             border-radius: 99px;
             background: var(--bg);
             border: 1px solid var(--border);
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--text-muted);
+            font-size: 13px; font-weight: 500; color: var(--text-muted);
             cursor: default;
         }
         .user-avatar {
             width: 26px; height: 26px;
-            background: var(--primary);
-            border-radius: 50%;
+            background: var(--primary); border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            color: #fff;
-            font-size: 12px;
-            font-weight: 700;
-            flex-shrink: 0;
+            color: #fff; font-size: 12px; font-weight: 700; flex-shrink: 0;
         }
         .logout-link {
-            font-size: 13px;
-            color: var(--text-muted);
-            padding: 7px 10px;
-            border-radius: 7px;
+            font-size: 13px; color: var(--text-muted);
+            padding: 7px 10px; border-radius: 7px;
             transition: color 0.15s, background 0.15s;
         }
         .logout-link:hover { color: #ef4444; background: #fff1f1; }
 
-        /* ── MAIN ── */
-        .main {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 36px 24px 64px;
-        }
+        /* MAIN */
+        .main { max-width: 1100px; margin: 0 auto; padding: 36px 24px 64px; }
 
-        /* ── HERO WELCOME ── */
+        /* WELCOME CARD */
         .welcome-card {
             background: var(--primary);
             border-radius: var(--radius);
@@ -169,98 +124,67 @@
         .welcome-card::before {
             content: '';
             position: absolute;
-            width: 300px; height: 300px;
-            background: rgba(255,255,255,0.04);
+            width: 280px; height: 280px;
+            background: rgba(255,255,255,0.05);
             border-radius: 50%;
-            right: -80px; top: -100px;
+            right: -70px; top: -100px;
+            pointer-events: none;
         }
         .welcome-card::after {
             content: '';
             position: absolute;
-            width: 180px; height: 180px;
+            width: 160px; height: 160px;
             background: rgba(255,255,255,0.04);
             border-radius: 50%;
-            left: 60%; bottom: -60px;
+            left: 62%; bottom: -55px;
+            pointer-events: none;
         }
-        .welcome-left {}
-        .welcome-greeting {
-            font-size: 13px;
-            color: rgba(255,255,255,0.65);
-            font-weight: 500;
-            margin-bottom: 6px;
-            letter-spacing: 0.02em;
-        }
-        .welcome-name {
-            font-size: clamp(22px, 3vw, 30px);
-            font-weight: 700;
-            color: #fff;
-            margin-bottom: 8px;
-        }
-        .welcome-meta {
-            font-size: 13px;
-            color: rgba(255,255,255,0.6);
-            display: flex;
-            gap: 16px;
-        }
-        .welcome-meta span { display: flex; align-items: center; gap: 5px; }
-        .welcome-actions {
-            display: flex;
-            gap: 10px;
-            flex-shrink: 0;
-        }
+        .welcome-greeting { font-size: 13px; color: rgba(255,255,255,0.6); font-weight: 500; margin-bottom: 6px; letter-spacing: 0.02em; }
+        .welcome-name { font-size: clamp(22px, 3vw, 30px); font-weight: 700; color: #fff; margin-bottom: 8px; }
+        .welcome-meta { font-size: 13px; color: rgba(255,255,255,0.58); display: flex; gap: 20px; }
+        .welcome-meta span { display: flex; align-items: center; gap: 4px; }
+        .welcome-actions { display: flex; gap: 10px; flex-shrink: 0; }
         .btn-white {
             padding: 10px 22px;
-            background: #fff;
-            color: var(--primary);
-            border: none;
-            border-radius: 9px;
-            font-size: 14px;
-            font-weight: 600;
-            font-family: var(--font);
-            cursor: pointer;
-            transition: opacity 0.15s;
+            background: #fff; color: var(--primary);
+            border: none; border-radius: 9px;
+            font-size: 14px; font-weight: 600; font-family: var(--font);
+            cursor: pointer; transition: opacity 0.15s;
             display: inline-flex; align-items: center; gap: 6px;
         }
         .btn-white:hover { opacity: 0.88; }
         .btn-ghost-white {
             padding: 10px 18px;
-            background: rgba(255,255,255,0.12);
-            color: #fff;
+            background: rgba(255,255,255,0.12); color: #fff;
             border: 1.5px solid rgba(255,255,255,0.25);
             border-radius: 9px;
-            font-size: 14px;
-            font-weight: 600;
-            font-family: var(--font);
-            cursor: pointer;
-            transition: background 0.15s;
+            font-size: 14px; font-weight: 600; font-family: var(--font);
+            cursor: pointer; transition: background 0.15s;
             display: inline-flex; align-items: center; gap: 6px;
         }
         .btn-ghost-white:hover { background: rgba(255,255,255,0.2); }
 
-        /* ── SECTION TITLE ── */
+        /* SECTION TITLE */
         .section-title {
-            font-size: 17px;
-            font-weight: 700;
-            color: var(--text);
-            margin-bottom: 16px;
-            letter-spacing: 0.01em;
+            font-size: 16px; font-weight: 700; color: var(--text);
+            margin-bottom: 14px; letter-spacing: 0.01em;
         }
 
-        /* ── QUICK ACTIONS ── */
+        /* ACTIONS GRID */
         .actions-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 14px;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
             margin-bottom: 36px;
         }
         .action-card {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            padding: 24px 22px;
+            padding: 20px 20px;
             display: flex;
-            align-items: flex-start;
-            gap: 16px;
+            align-items: center;
+            gap: 14px;
             transition: box-shadow 0.18s, transform 0.18s, border-color 0.18s;
             cursor: pointer;
         }
@@ -270,77 +194,65 @@
             border-color: transparent;
         }
         .action-icon {
-            width: 42px; height: 42px;
-            border-radius: 10px;
+            width: 38px; height: 38px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 18px;
             flex-shrink: 0;
-        }
-        .icon-teal { background: var(--primary-hl); }
-        .icon-orange { background: var(--orange-bg); }
-        .icon-purple { background: var(--purple-bg); }
-        .icon-gray { background: #f3f4f6; }
-        .action-text {
-            flex: 1;
-        }
-        .action-label {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text);
-            margin-bottom: 3px;
-        }
-        .action-desc {
-            font-size: 12px;
             color: var(--text-muted);
         }
+        .action-icon svg { width: 22px; height: 22px; }
+        .action-text { flex: 1; }
+        .action-label { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+        .action-desc { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+        .action-arrow {
+            color: var(--text-faint);
+            flex-shrink: 0;
+            transition: transform 0.15s, color 0.15s;
+        }
+        .action-card:hover .action-arrow { transform: translateX(3px); color: var(--primary); }
 
-        /* ── ADMIN PANEL ── */
+        /* ADMIN BANNER */
         .admin-section {
             background: var(--purple-bg);
-            border: 1px solid rgba(124,58,237,0.12);
+            border: 1px solid rgba(124,58,237,0.14);
             border-radius: var(--radius);
-            padding: 20px 24px;
+            padding: 18px 24px;
             margin-bottom: 36px;
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 14px;
         }
         .admin-icon {
-            width: 40px; height: 40px;
+            width: 36px; height: 36px;
             background: var(--purple);
-            border-radius: 9px;
+            border-radius: 8px;
             display: flex; align-items: center; justify-content: center;
-            color: #fff;
-            font-size: 18px;
-            flex-shrink: 0;
+            color: #fff; flex-shrink: 0;
         }
         .admin-text { flex: 1; }
-        .admin-title { font-size: 14px; font-weight: 700; color: var(--purple); margin-bottom: 2px; }
-        .admin-desc { font-size: 13px; color: #6d28d9; opacity: 0.7; }
-        .admin-links {
-            display: flex; gap: 8px; flex-shrink: 0;
-        }
+        .admin-title { font-size: 13.5px; font-weight: 700; color: var(--purple); margin-bottom: 1px; }
+        .admin-desc { font-size: 12.5px; color: #6d28d9; opacity: 0.72; }
+        .admin-links { display: flex; gap: 8px; flex-shrink: 0; }
         .btn-purple {
-            padding: 8px 16px;
-            background: var(--purple);
-            color: #fff;
-            border: none;
-            border-radius: 7px;
-            font-size: 13px;
-            font-weight: 600;
-            font-family: var(--font);
-            cursor: pointer;
-            transition: opacity 0.15s;
+            padding: 7px 15px;
+            background: var(--purple); color: #fff;
+            border: none; border-radius: 7px;
+            font-size: 13px; font-weight: 600; font-family: var(--font);
+            cursor: pointer; transition: opacity 0.15s;
         }
         .btn-purple:hover { opacity: 0.85; }
 
         @media (max-width: 768px) {
             .nav { padding: 0 16px; }
-            .welcome-card { flex-direction: column; gap: 24px; padding: 28px 24px; }
+            .nav-links { display: none; }
+            .welcome-card { flex-direction: column; align-items: flex-start; gap: 22px; padding: 26px 22px; }
             .welcome-actions { width: 100%; }
             .btn-white, .btn-ghost-white { flex: 1; justify-content: center; }
             .admin-section { flex-wrap: wrap; }
             .admin-links { width: 100%; }
+            .actions-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 420px) {
+            .actions-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -377,11 +289,17 @@
     <!-- Welcome Banner -->
     <div class="welcome-card">
         <div class="welcome-left">
-            <div class="welcome-greeting">你好呀 👋</div>
+            <div class="welcome-greeting">欢迎回来</div>
             <div class="welcome-name"><%= loginUser.getRealName() %></div>
             <div class="welcome-meta">
-                <span>学号/工号：<%= loginUser.getStudentOrStaffNo() %></span>
-                <span>角色：<%= "ADMIN".equals(loginUser.getRoleCode()) ? "管理员" : "普通用户" %></span>
+                <span>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                    <%= loginUser.getStudentOrStaffNo() %>
+                </span>
+                <span>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <%= "ADMIN".equals(loginUser.getRoleCode()) ? "管理员" : "普通用户" %>
+                </span>
             </div>
         </div>
         <div class="welcome-actions">
@@ -393,20 +311,22 @@
             </a>
             <a href="${pageContext.request.contextPath}/publish-product">
                 <button class="btn-ghost-white">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     发布商品
                 </button>
             </a>
         </div>
     </div>
 
-    <!-- Admin Panel (Admin only) -->
+    <!-- Admin Banner (Admin only) -->
     <% if ("ADMIN".equals(loginUser.getRoleCode())) { %>
     <div class="admin-section">
-        <div class="admin-icon">🛡</div>
+        <div class="admin-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
         <div class="admin-text">
             <div class="admin-title">管理员控制台</div>
-            <div class="admin-desc">你拥有管理员权限，可以审核用户和商品</div>
+            <div class="admin-desc">你拥有管理员权限，可以审核用户与商品、查看数据报告</div>
         </div>
         <div class="admin-links">
             <a href="${pageContext.request.contextPath}/admin/user-review"><button class="btn-purple">用户审核</button></a>
@@ -418,78 +338,127 @@
     <!-- Quick Actions -->
     <div class="section-title">快捷入口</div>
     <div class="actions-grid">
+
         <a href="${pageContext.request.contextPath}/product-list">
             <div class="action-card">
-                <div class="action-icon icon-teal">🛍</div>
+                <div class="action-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                </div>
                 <div class="action-text">
                     <div class="action-label">浏览商品</div>
-                    <div class="action-desc">查看全部在售商品</div>
+                    <div class="action-desc">查看全部在售二手好物</div>
+                </div>
+                <div class="action-arrow" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                 </div>
             </div>
         </a>
+
         <a href="${pageContext.request.contextPath}/publish-product">
             <div class="action-card">
-                <div class="action-icon icon-orange">📤</div>
+                <div class="action-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                </div>
                 <div class="action-text">
                     <div class="action-label">发布商品</div>
-                    <div class="action-desc">把闲置挂出来卖</div>
+                    <div class="action-desc">把闲置挂出来，让它找到新主人</div>
+                </div>
+                <div class="action-arrow" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                 </div>
             </div>
         </a>
+
         <a href="${pageContext.request.contextPath}/my-products">
             <div class="action-card">
-                <div class="action-icon icon-teal">📦</div>
+                <div class="action-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                </div>
                 <div class="action-text">
                     <div class="action-label">我的商品</div>
                     <div class="action-desc">管理已发布的商品</div>
                 </div>
+                <div class="action-arrow" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
             </div>
         </a>
+
         <a href="${pageContext.request.contextPath}/orders">
             <div class="action-card">
-                <div class="action-icon icon-orange">📋</div>
+                <div class="action-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                </div>
                 <div class="action-text">
                     <div class="action-label">我的订单</div>
-                    <div class="action-desc">查看买卖订单记录</div>
+                    <div class="action-desc">查看买卖交易记录</div>
+                </div>
+                <div class="action-arrow" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                 </div>
             </div>
         </a>
+
         <a href="${pageContext.request.contextPath}/my-favorites">
             <div class="action-card">
-                <div class="action-icon icon-gray">❤️</div>
+                <div class="action-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                </div>
                 <div class="action-text">
                     <div class="action-label">我的收藏</div>
-                    <div class="action-desc">看看收藏的好物</div>
+                    <div class="action-desc">看看收藏的心仪好物</div>
+                </div>
+                <div class="action-arrow" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                 </div>
             </div>
         </a>
+
         <a href="${pageContext.request.contextPath}/messages">
             <div class="action-card">
-                <div class="action-icon icon-purple">💬</div>
+                <div class="action-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </div>
                 <div class="action-text">
                     <div class="action-label">我的私信</div>
-                    <div class="action-desc">与卖家/买家沟通</div>
+                    <div class="action-desc">与买家或卖家沟通交流</div>
+                </div>
+                <div class="action-arrow" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                 </div>
             </div>
         </a>
+
         <a href="${pageContext.request.contextPath}/notifications">
             <div class="action-card">
-                <div class="action-icon icon-gray">🔔</div>
+                <div class="action-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                </div>
                 <div class="action-text">
                     <div class="action-label">通知中心</div>
-                    <div class="action-desc">查看系统通知</div>
+                    <div class="action-desc">查看平台系统通知</div>
+                </div>
+                <div class="action-arrow" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                 </div>
             </div>
         </a>
+
         <a href="${pageContext.request.contextPath}/pickup-locations.jsp">
             <div class="action-card">
-                <div class="action-icon icon-teal">📍</div>
+                <div class="action-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                </div>
                 <div class="action-text">
                     <div class="action-label">自提点</div>
-                    <div class="action-desc">查看校内自提地点</div>
+                    <div class="action-desc">查看校内自提交货地点</div>
+                </div>
+                <div class="action-arrow" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                 </div>
             </div>
         </a>
+
     </div>
 
 </main>
