@@ -101,6 +101,34 @@ public class NotificationServlet extends HttpServlet {
             }
             resp.sendRedirect(req.getContextPath() + "/notifications");
 
+        } else if ("delete".equals(action)) {
+            // 删除单条通知
+            String notifyIdStr = req.getParameter("notifyId");
+            if (notifyIdStr != null && !notifyIdStr.trim().isEmpty()) {
+                try (Connection conn = DBUtil.getConnection();
+                     PreparedStatement ps = conn.prepareStatement(
+                         "DELETE FROM notifications WHERE notification_id = ? AND user_id = ?")) {
+                    ps.setInt(1, Integer.parseInt(notifyIdStr.trim()));
+                    ps.setInt(2, loginUser.getUserId());
+                    ps.executeUpdate();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            resp.sendRedirect(req.getContextPath() + "/notifications");
+
+        } else if ("deleteRead".equals(action)) {
+            // 清空所有已读通知
+            try (Connection conn = DBUtil.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(
+                     "DELETE FROM notifications WHERE user_id = ? AND is_read = 1")) {
+                ps.setInt(1, loginUser.getUserId());
+                ps.executeUpdate();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            resp.sendRedirect(req.getContextPath() + "/notifications");
+
         } else {
             resp.sendRedirect(req.getContextPath() + "/notifications");
         }

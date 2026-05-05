@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
 <%@ page import="com.minzu.entity.Product" %>
 <%@ page import="com.minzu.entity.User" %>
 <%
@@ -7,6 +8,8 @@
     User loginUser  = (User) session.getAttribute("loginUser");
     String keyword  = request.getAttribute("keyword") != null ? (String) request.getAttribute("keyword") : "";
     String catId    = request.getAttribute("categoryId") != null ? (String) request.getAttribute("categoryId") : "";
+    List<Map<String, Object>> categories = (List<Map<String, Object>>) request.getAttribute("categories");
+    if (categories == null) categories = new java.util.ArrayList<>();
     int currentPage = request.getAttribute("currentPage") != null ? (int) request.getAttribute("currentPage") : 1;
     int totalPages  = request.getAttribute("totalPages")  != null ? (int) request.getAttribute("totalPages")  : 1;
     int totalCount  = request.getAttribute("totalCount")  != null ? (int) request.getAttribute("totalCount")  : 0;
@@ -27,15 +30,6 @@
             nRs.close(); nPs.close(); nConn.close();
         } catch (Exception ignore) {}
     }
-
-    int textbookCatId = 0;
-    try {
-        java.sql.Connection catConn = com.minzu.util.DBUtil.getConnection();
-        java.sql.PreparedStatement catPs = catConn.prepareStatement("SELECT category_id FROM categories WHERE category_name LIKE '%教材%' LIMIT 1");
-        java.sql.ResultSet catRs = catPs.executeQuery();
-        if (catRs.next()) textbookCatId = catRs.getInt("category_id");
-        catRs.close(); catPs.close(); catConn.close();
-    } catch (Exception ignore) {}
 %>
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -201,6 +195,53 @@
         }
         .btn-reset:hover { border-color: var(--primary); color: var(--primary); }
 
+        /* SORT SELECT */
+        .sort-select {
+            padding: 9px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.18s;
+            white-space: nowrap;
+        }
+        .sort-select:focus {
+            border-color: var(--primary);
+        }
+
+        /* PRICE FILTER */
+        .price-filter {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .price-input {
+            width: 80px;
+            padding: 9px 10px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.18s;
+        }
+        .price-input:focus {
+            border-color: var(--primary);
+        }
+        .price-input::placeholder {
+            color: #c0c0c0;
+        }
+        .price-separator {
+            color: var(--text-faint);
+            font-size: 14px;
+        }
+
         /* FILTER ROW */
         .filter-row {
             display: flex;
@@ -222,6 +263,22 @@
         .cat-tag:hover { opacity: 0.75; }
         .cat-tag-textbook { background: #fffbeb; color: #b45309; border-color: #fcd34d; }
         .cat-tag-graduation { background: #f0fdf4; color: #15803d; border-color: #86efac; }
+        .cat-tag-active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+        .cat-tag-default {
+            background: var(--surface);
+            color: var(--text-muted);
+            border-color: var(--border);
+        }
+        .cat-tag-default:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+            background: var(--primary-hl);
+            opacity: 1;
+        }
         .result-info { font-size: 13px; color: var(--text-muted); white-space: nowrap; }
         .result-info strong { color: var(--text); }
 
@@ -429,8 +486,21 @@
             <input type="text" name="keyword" placeholder="搜索商品名称、分类…"
                    value="<%= keyword != null ? keyword : "" %>" aria-label="搜索商品">
         </div>
+        <div class="price-filter">
+            <input type="number" name="minPrice" placeholder="最低价" min="0" step="0.01"
+                   value="<%= request.getAttribute("minPrice") != null ? request.getAttribute("minPrice") : "" %>" class="price-input">
+            <span class="price-separator">-</span>
+            <input type="number" name="maxPrice" placeholder="最高价" min="0" step="0.01"
+                   value="<%= request.getAttribute("maxPrice") != null ? request.getAttribute("maxPrice") : "" %>" class="price-input">
+        </div>
+        <select name="sort" class="sort-select" onchange="this.form.submit()">
+            <option value="newest" <%= "newest".equals(request.getAttribute("sort")) || request.getAttribute("sort") == null ? "selected" : "" %>>最新发布</option>
+            <option value="price_asc" <%= "price_asc".equals(request.getAttribute("sort")) ? "selected" : "" %>>价格从低到高</option>
+            <option value="price_desc" <%= "price_desc".equals(request.getAttribute("sort")) ? "selected" : "" %>>价格从高到低</option>
+            <option value="views" <%= "views".equals(request.getAttribute("sort")) ? "selected" : "" %>>浏览量最多</option>
+        </select>
         <button type="submit" class="btn-search">搜索</button>
-        <% if (keyword != null && !keyword.isEmpty()) { %>
+        <% if ((keyword != null && !keyword.isEmpty()) || (request.getAttribute("minPrice") != null && !request.getAttribute("minPrice").toString().isEmpty()) || (request.getAttribute("maxPrice") != null && !request.getAttribute("maxPrice").toString().isEmpty())) { %>
         <a href="${pageContext.request.contextPath}/product-list"><button type="button" class="btn-reset">清除筛选</button></a>
         <% } %>
     </form>
@@ -438,20 +508,37 @@
     <!-- Filter Row: category tags + result count -->
     <div class="filter-row">
         <div class="cat-tags">
-            <% if (textbookCatId > 0) { %>
-            <a href="${pageContext.request.contextPath}/product-list?categoryId=<%= textbookCatId %>" class="cat-tag cat-tag-textbook">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-                教材专区
+            <!-- 全部 -->
+            <a href="${pageContext.request.contextPath}/product-list"
+               class="cat-tag <%= (catId == null || catId.isEmpty()) && request.getParameter("tag") == null ? "cat-tag-active" : "cat-tag-default" %>">
+                全部
+            </a>
+            <!-- 动态分类 -->
+            <% for (Map<String, Object> cat : categories) { %>
+            <a href="${pageContext.request.contextPath}/product-list?categoryId=<%= cat.get("categoryId") %>"
+               class="cat-tag <%= String.valueOf(cat.get("categoryId")).equals(catId) ? "cat-tag-active" : "cat-tag-default" %>">
+                <%= cat.get("categoryName") %>专区
             </a>
             <% } %>
-            <a href="${pageContext.request.contextPath}/product-list?tag=graduation" class="cat-tag cat-tag-graduation">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+            <!-- 毕业季专区（特殊标签） -->
+            <a href="${pageContext.request.contextPath}/product-list?tag=graduation"
+               class="cat-tag <%= "graduation".equals(request.getParameter("tag")) ? "cat-tag-active" : "cat-tag-default" %>">
                 毕业季专区
             </a>
         </div>
         <span class="result-info">
             <% if (keyword != null && !keyword.isEmpty()) { %>
                 "<strong><%= keyword %></strong>" 的结果 · 共 <strong><%= totalCount %></strong> 件
+            <% } else if (catId != null && !catId.isEmpty()) {
+                String currentCatName = "未知分类";
+                for (Map<String, Object> cat : categories) {
+                    if (String.valueOf(cat.get("categoryId")).equals(catId)) {
+                        currentCatName = (String) cat.get("categoryName");
+                        break;
+                    }
+                }
+            %>
+                <strong><%= currentCatName %>专区</strong> · 共 <strong><%= totalCount %></strong> 件
             <% } else if ("graduation".equals(request.getParameter("tag"))) { %>
                 毕业季专区 · 共 <strong><%= totalCount %></strong> 件
             <% } else { %>
@@ -489,7 +576,19 @@
                     <span class="price-num"><%= p.getPrice() %></span>
                 </div>
                 <div class="meta-grid">
-                    <span class="meta-item"><span class="meta-dot"></span><%= p.getConditionLevel() != null ? p.getConditionLevel() : "成色未填" %></span>
+                    <%
+                        String conditionText = "成色未填";
+                        if (p.getConditionLevel() != null) {
+                            switch (p.getConditionLevel()) {
+                                case "NEW": conditionText = "全新"; break;
+                                case "NINETY_NEW": conditionText = "九成新"; break;
+                                case "EIGHTY_NEW": conditionText = "八成新"; break;
+                                case "SEVENTY_NEW": conditionText = "七成新及以下"; break;
+                                default: conditionText = p.getConditionLevel();
+                            }
+                        }
+                    %>
+                    <span class="meta-item"><span class="meta-dot"></span><%= conditionText %></span>
                     <span class="meta-item"><span class="meta-dot"></span><%= p.getCategoryName() != null ? p.getCategoryName() : "未分类" %></span>
                     <span class="meta-item" style="grid-column:1/-1"><span class="meta-dot"></span>卖家：<%= p.getSellerName() != null ? p.getSellerName() : "未知" %></span>
                 </div>

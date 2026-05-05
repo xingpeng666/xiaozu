@@ -138,6 +138,25 @@
             text-decoration: none; transition: background 0.15s;
         }
         .btn-primary:hover { background: var(--primary-h); }
+
+        /* Pagination */
+        .pagination {
+            display: flex; justify-content: center; align-items: center;
+            gap: 6px; margin-top: 32px; flex-wrap: wrap;
+        }
+        .page-btn {
+            min-width: 36px; height: 36px; padding: 0 10px;
+            border-radius: 8px; border: 1px solid var(--border);
+            background: var(--surface); color: var(--text-muted);
+            font-size: 14px; font-weight: 500;
+            display: inline-flex; align-items: center; justify-content: center;
+            transition: all 0.15s; text-decoration: none;
+        }
+        .page-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .page-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .page-btn.disabled { pointer-events: none; opacity: 0.35; }
+        .page-ellipsis { color: var(--text-faint); padding: 0 4px; }
+        .page-info { font-size: 12px; color: var(--text-muted); margin-left: 8px; }
     </style>
 </head>
 <body>
@@ -211,6 +230,36 @@
         </div>
         <% } %>
     </div>
+
+    <!-- Pagination -->
+    <%
+        int currentPage = request.getAttribute("currentPage") != null ? (int) request.getAttribute("currentPage") : 1;
+        int totalPages = request.getAttribute("totalPages") != null ? (int) request.getAttribute("totalPages") : 1;
+        int totalCount = request.getAttribute("totalCount") != null ? (int) request.getAttribute("totalCount") : 0;
+        if (totalPages > 1) {
+    %>
+    <nav class="pagination" aria-label="分页">
+        <a class="page-btn <%= currentPage == 1 ? "disabled" : "" %>" href="${pageContext.request.contextPath}/my-favorites?page=<%= currentPage - 1 %>" aria-label="上一页">&lsaquo;</a>
+        <%
+            int startP = Math.max(1, currentPage - 2);
+            int endP = Math.min(totalPages, currentPage + 2);
+        %>
+        <% if (startP > 1) { %>
+            <a class="page-btn" href="${pageContext.request.contextPath}/my-favorites?page=1">1</a>
+            <% if (startP > 2) { %><span class="page-ellipsis">…</span><% } %>
+        <% } %>
+        <% for (int p = startP; p <= endP; p++) { %>
+            <a class="page-btn <%= p == currentPage ? "active" : "" %>" href="${pageContext.request.contextPath}/my-favorites?page=<%= p %>"><%= p %></a>
+        <% } %>
+        <% if (endP < totalPages) { %>
+            <% if (endP < totalPages - 1) { %><span class="page-ellipsis">…</span><% } %>
+            <a class="page-btn" href="${pageContext.request.contextPath}/my-favorites?page=<%= totalPages %>"><%= totalPages %></a>
+        <% } %>
+        <a class="page-btn <%= currentPage == totalPages ? "disabled" : "" %>" href="${pageContext.request.contextPath}/my-favorites?page=<%= currentPage + 1 %>" aria-label="下一页">&rsaquo;</a>
+        <span class="page-info">共 <%= totalCount %> 件</span>
+    </nav>
+    <% } %>
+
     <% } %>
 </div>
 

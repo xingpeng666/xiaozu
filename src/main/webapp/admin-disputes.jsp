@@ -76,7 +76,7 @@
     </a>
     <div class="nav-links">
         <a href="${pageContext.request.contextPath}/admin/dashboard">统计面板</a>
-        <a href="${pageContext.request.contextPath}/admin/users">用户审核</a>
+        <a href="${pageContext.request.contextPath}/admin/user-review">用户审核</a>
         <a href="${pageContext.request.contextPath}/admin/products">商品审核</a>
         <a href="${pageContext.request.contextPath}/report">举报管理</a>
         <a href="${pageContext.request.contextPath}/dispute?action=admin" class="active">纠纷管理</a>

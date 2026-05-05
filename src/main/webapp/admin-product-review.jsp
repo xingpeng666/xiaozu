@@ -79,7 +79,7 @@ tr:hover td{background:#f9f9f7}
     </a>
     <div class="nav-links">
         <a href="${pageContext.request.contextPath}/admin/dashboard">统计面板</a>
-        <a href="${pageContext.request.contextPath}/admin/users">用户审核</a>
+        <a href="${pageContext.request.contextPath}/admin/user-review">用户审核</a>
         <a href="${pageContext.request.contextPath}/admin/products" class="active">商品审核</a>
         <a href="${pageContext.request.contextPath}/index.jsp">前台首页</a>
         <a href="${pageContext.request.contextPath}/logout" class="btn-logout">退出</a>
@@ -118,7 +118,20 @@ tr:hover td{background:#f9f9f7}
             <td><%=p.get("title")%></td>
             <td><%=p.get("categoryName") != null ? p.get("categoryName") : "—"%></td>
             <td>&yen;<%=p.get("price")%></td>
-            <td><%=p.get("conditionLevel") != null ? p.get("conditionLevel") : "—"%></td>
+            <td><%
+                String adminConditionText = "—";
+                Object condObj = p.get("conditionLevel");
+                if (condObj != null) {
+                    String cond = condObj.toString();
+                    switch (cond) {
+                        case "NEW": adminConditionText = "全新"; break;
+                        case "NINETY_NEW": adminConditionText = "九成新"; break;
+                        case "EIGHTY_NEW": adminConditionText = "八成新"; break;
+                        case "SEVENTY_NEW": adminConditionText = "七成新及以下"; break;
+                        default: adminConditionText = cond;
+                    }
+                }
+            %><%= adminConditionText %></td>
             <td><%=p.get("sellerName")%></td>
             <td><%=p.get("sellerNo")%></td>
             <td style="white-space:nowrap;"><small><%=p.get("createdAt") != null ? p.get("createdAt").toString().substring(0,10) : "-"%></small></td>

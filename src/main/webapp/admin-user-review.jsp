@@ -61,7 +61,7 @@
     </a>
     <div class="nav-links">
         <a href="${pageContext.request.contextPath}/admin/dashboard">统计面板</a>
-        <a href="${pageContext.request.contextPath}/admin/users" class="active">用户审核</a>
+        <a href="${pageContext.request.contextPath}/admin/user-review" class="active">用户审核</a>
         <a href="${pageContext.request.contextPath}/admin/products">商品审核</a>
         <a href="${pageContext.request.contextPath}/index.jsp">首页</a>
         <a href="${pageContext.request.contextPath}/logout" class="btn-logout">退出登录</a>

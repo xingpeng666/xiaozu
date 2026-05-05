@@ -10,7 +10,9 @@ import javax.servlet.http.*;
 import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @WebServlet("/product-list")
 public class ProductListServlet extends HttpServlet {
@@ -30,6 +32,9 @@ public class ProductListServlet extends HttpServlet {
         String keyword     = request.getParameter("keyword");
         String categoryIdStr = request.getParameter("categoryId");
         String tag          = request.getParameter("tag");
+        String sort         = request.getParameter("sort");
+        String minPriceStr  = request.getParameter("minPrice");
+        String maxPriceStr  = request.getParameter("maxPrice");
 
         // 分页
         int page = 1;
@@ -54,6 +59,41 @@ public class ProductListServlet extends HttpServlet {
         if (tag != null && !tag.trim().isEmpty()) {
             where.append(" AND p.tags LIKE ?");
             params.add("%" + tag.trim() + "%");
+        }
+        // 价格区间筛选
+        if (minPriceStr != null && !minPriceStr.trim().isEmpty()) {
+            try {
+                double minPrice = Double.parseDouble(minPriceStr.trim());
+                where.append(" AND p.price >= ?");
+                params.add(minPrice);
+            } catch (NumberFormatException ignored) {}
+        }
+        if (maxPriceStr != null && !maxPriceStr.trim().isEmpty()) {
+            try {
+                double maxPrice = Double.parseDouble(maxPriceStr.trim());
+                where.append(" AND p.price <= ?");
+                params.add(maxPrice);
+            } catch (NumberFormatException ignored) {}
+        }
+
+        // 排序条件
+        String orderBy = " ORDER BY p.created_at DESC";
+        if (sort != null && !sort.trim().isEmpty()) {
+            switch (sort.trim()) {
+                case "price_asc":
+                    orderBy = " ORDER BY p.price ASC";
+                    break;
+                case "price_desc":
+                    orderBy = " ORDER BY p.price DESC";
+                    break;
+                case "views":
+                    orderBy = " ORDER BY p.view_count DESC";
+                    break;
+                case "newest":
+                default:
+                    orderBy = " ORDER BY p.created_at DESC";
+                    break;
+            }
         }
 
         // 总数查询
@@ -80,7 +120,7 @@ public class ProductListServlet extends HttpServlet {
                 "FROM products p " +
                 "LEFT JOIN users u ON p.seller_id = u.user_id " +
                 "LEFT JOIN categories c ON p.category_id = c.category_id " +
-                where + " ORDER BY p.created_at DESC LIMIT ? OFFSET ?";
+                where + orderBy + " LIMIT ? OFFSET ?";
 
         List<Product> products = new ArrayList<>();
 
@@ -116,10 +156,32 @@ public class ProductListServlet extends HttpServlet {
             request.setAttribute("errorMsg", "获取商品列表失败：" + e.getMessage());
         }
 
+        // 查询所有分类
+        List<Map<String, Object>> categories = new ArrayList<>();
+        try (
+            Connection conn = DBUtil.getConnection();
+            PreparedStatement ps = conn.prepareStatement(
+                "SELECT category_id, category_name FROM categories ORDER BY category_id"
+            )
+        ) {
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> cat = new HashMap<>();
+                    cat.put("categoryId", rs.getInt("category_id"));
+                    cat.put("categoryName", rs.getString("category_name"));
+                    categories.add(cat);
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        request.setAttribute("categories", categories);
+
         request.setAttribute("products",    products);
         request.setAttribute("loginUser",   loginUser);
         request.setAttribute("keyword",     keyword);
         request.setAttribute("categoryId",  categoryIdStr);
+        request.setAttribute("sort",        sort);
+        request.setAttribute("minPrice",    minPriceStr);
+        request.setAttribute("maxPrice",    maxPriceStr);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages",  totalPages);
         request.setAttribute("totalCount",  totalCount);

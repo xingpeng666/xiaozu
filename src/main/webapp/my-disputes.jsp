@@ -132,7 +132,7 @@
     </a>
     <div class="nav-links">
         <a href="${pageContext.request.contextPath}/product-list">首页</a>
-        <a href="${pageContext.request.contextPath}/order?action=list">我的订单</a>
+        <a href="${pageContext.request.contextPath}/orders?type=buy">我的订单</a>
         <a href="${pageContext.request.contextPath}/dispute?action=list" class="active">我的纠纷</a>
         <a href="${pageContext.request.contextPath}/notifications">通知</a>
         <a href="${pageContext.request.contextPath}/logout" class="btn-logout">退出</a>
@@ -140,7 +140,7 @@
 </nav>
 
 <div class="container">
-    <a class="back-link" href="${pageContext.request.contextPath}/order?action=list">
+    <a class="back-link" href="${pageContext.request.contextPath}/orders?type=buy">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
         返回我的订单
     </a>

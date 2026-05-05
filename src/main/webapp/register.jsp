@@ -7,88 +7,79 @@
     <title>用户注册 - 民大二手交易平台</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
-            --color-bg: #f7f6f2;
-            --color-surface: #ffffff;
-            --color-surface-2: #f9f8f5;
-            --color-border: oklch(0.2 0.01 80 / 0.14);
-            --color-divider: #e8e6e1;
-            --color-text: #28251d;
-            --color-text-muted: #7a7974;
-            --color-text-faint: #bab9b4;
-            --color-primary: #01696f;
-            --color-primary-hover: #0c4e54;
-            --color-primary-bg: #e6f4f4;
-            --color-error: #a12c7b;
-            --color-error-bg: #f9eef5;
-            --color-error-border: #e0ced7;
-            --radius-sm: 6px;
-            --radius-md: 8px;
-            --radius-lg: 12px;
-            --radius-xl: 16px;
-            --shadow-sm: 0 1px 2px oklch(0.2 0.01 80 / 0.06);
-            --shadow-md: 0 4px 16px oklch(0.2 0.01 80 / 0.09);
-            --shadow-lg: 0 12px 36px oklch(0.2 0.01 80 / 0.11);
-            --font-body: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
-            --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
-            --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
-            --text-lg: clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
-            --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2.25rem);
-            --transition: 160ms cubic-bezier(0.16, 1, 0.3, 1);
+            --bg:         #f4f3ef;
+            --surface:    #ffffff;
+            --surface2:   #f9f8f6;
+            --border:     rgba(0,0,0,0.08);
+            --text:       #1a1a1a;
+            --text-muted: #737373;
+            --text-faint: #b0b0b0;
+            --primary:    #0b6e63;
+            --primary-h:  #085c52;
+            --primary-hl: #d0eae7;
+            --error:      #dc2626;
+            --error-bg:   #fff1f1;
+            --error-bd:   #fecaca;
+            --radius-sm:  8px;
+            --radius:     14px;
+            --shadow-sm:  0 2px 8px rgba(0,0,0,0.06);
+            --shadow:     0 8px 28px rgba(0,0,0,0.08);
+            --font:       'Plus Jakarta Sans','PingFang SC','Microsoft YaHei',sans-serif;
+            --nav-h:      60px;
         }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html { -webkit-font-smoothing: antialiased; }
         body {
-            font-family: var(--font-body);
-            font-size: var(--text-base);
-            color: var(--color-text);
-            background: var(--color-bg);
+            font-family: var(--font);
+            font-size: 15px;
+            color: var(--text);
+            background: var(--bg);
             min-height: 100dvh;
             line-height: 1.6;
         }
         a { color: inherit; text-decoration: none; }
+        button { cursor: pointer; font-family: var(--font); }
         button, input { font: inherit; color: inherit; }
 
-        /* ── Header ── */
-        .header {
-            height: 56px;
-            background: var(--color-surface);
-            border-bottom: 1px solid var(--color-divider);
+        /* NAV */
+        .nav {
+            height: var(--nav-h);
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 24px;
-            box-shadow: var(--shadow-sm);
+            padding: 0 28px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        .header-logo {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--color-text);
-            letter-spacing: -0.2px;
+        .nav-brand { display: flex; align-items: center; gap: 9px; }
+        .nav-logo {
+            width: 34px; height: 34px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; flex-shrink: 0;
         }
-        .header-logo svg { color: var(--color-primary); }
-        .header-nav { display: flex; gap: 4px; }
-        .header-nav a {
-            font-size: var(--text-sm);
-            color: var(--color-text-muted);
-            padding: 6px 10px;
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: background var(--transition), color var(--transition);
+        .nav-brand-name { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: 0.01em; }
+        .nav-links { display: flex; align-items: center; gap: 2px; list-style: none; }
+        .nav-links a {
+            font-size: 14px; font-weight: 500; color: var(--text-muted);
+            padding: 7px 12px; border-radius: 7px;
+            transition: color 0.15s, background 0.15s;
+            display: flex; align-items: center; gap: 5px;
         }
-        .header-nav a:hover { background: var(--color-surface-2); color: var(--color-text); }
+        .nav-links a:hover { color: var(--text); background: var(--bg); }
+        .nav-links a.active { color: var(--primary); background: var(--primary-hl); }
+        .nav-right { display: flex; align-items: center; gap: 10px; }
 
-        /* ── Page layout ── */
+        /* Page layout */
         .page-wrapper {
-            min-height: calc(100dvh - 56px);
+            min-height: calc(100dvh - var(--nav-h));
             display: flex;
             align-items: center;
             justify-content: center;
@@ -97,17 +88,17 @@
         .register-card {
             width: 100%;
             max-width: 460px;
-            background: var(--color-surface);
-            border-radius: var(--radius-xl);
-            border: 1px solid var(--color-border);
-            box-shadow: var(--shadow-lg);
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
             overflow: hidden;
         }
 
-        /* ── Card header ── */
+        /* Card header */
         .card-top {
             padding: 32px 32px 20px;
-            border-bottom: 1px solid var(--color-divider);
+            border-bottom: 1px solid var(--border);
         }
         .card-logo {
             display: flex;
@@ -118,18 +109,18 @@
         .card-logo-icon {
             width: 40px;
             height: 40px;
-            background: var(--color-primary-bg);
-            border-radius: var(--radius-lg);
+            background: var(--primary-hl);
+            border-radius: var(--radius-sm);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--color-primary);
+            color: var(--primary);
         }
-        .card-logo-text { font-size: var(--text-sm); font-weight: 600; color: var(--color-text-muted); }
-        .card-top h1 { font-size: var(--text-xl); font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
-        .card-top p { font-size: var(--text-sm); color: var(--color-text-muted); }
+        .card-logo-text { font-size: 14px; font-weight: 600; color: var(--text-muted); }
+        .card-top h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; color: var(--text); }
+        .card-top p { font-size: 14px; color: var(--text-muted); }
 
-        /* ── Form ── */
+        /* Form */
         .card-body { padding: 28px 32px 32px; }
         .form-item { margin-bottom: 18px; }
         .form-item label {
@@ -137,9 +128,9 @@
             align-items: center;
             gap: 4px;
             margin-bottom: 7px;
-            font-size: var(--text-sm);
+            font-size: 14px;
             font-weight: 500;
-            color: var(--color-text);
+            color: var(--text);
         }
         .required { color: #e53e3e; font-size: 13px; line-height: 1; }
         .input-wrap { position: relative; }
@@ -148,29 +139,29 @@
             left: 11px;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--color-text-faint);
+            color: var(--text-faint);
             pointer-events: none;
             display: flex;
         }
         .form-input {
             width: 100%;
             padding: 10px 12px 10px 36px;
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius-md);
-            font-size: var(--text-sm);
-            background: var(--color-surface);
-            color: var(--color-text);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            background: var(--surface);
+            color: var(--text);
             outline: none;
-            transition: border-color var(--transition), box-shadow var(--transition);
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
         .form-input.no-icon { padding-left: 12px; }
-        .form-input::placeholder { color: var(--color-text-faint); }
-        .form-input:hover { border-color: oklch(0.2 0.01 80 / 0.28); }
+        .form-input::placeholder { color: var(--text-faint); }
+        .form-input:hover { border-color: rgba(0,0,0,0.15); }
         .form-input:focus {
-            border-color: var(--color-primary);
-            box-shadow: 0 0 0 3px oklch(from var(--color-primary) l c h / 0.12);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(11,110,99,0.12);
         }
-        .form-hint { margin-top: 5px; font-size: var(--text-xs); color: var(--color-text-faint); }
+        .form-hint { margin-top: 5px; font-size: 12px; color: var(--text-faint); }
 
         /* Password toggle */
         .pwd-toggle {
@@ -181,14 +172,14 @@
             background: none;
             border: none;
             cursor: pointer;
-            color: var(--color-text-faint);
+            color: var(--text-faint);
             padding: 4px;
             display: flex;
             align-items: center;
             border-radius: var(--radius-sm);
-            transition: color var(--transition);
+            transition: color 0.15s;
         }
-        .pwd-toggle:hover { color: var(--color-text-muted); }
+        .pwd-toggle:hover { color: var(--text-muted); }
         .form-input.has-toggle { padding-right: 38px; }
 
         /* Error box */
@@ -198,11 +189,11 @@
             gap: 10px;
             margin-bottom: 18px;
             padding: 12px 14px;
-            background: var(--color-error-bg);
-            border: 1px solid var(--color-error-border);
-            color: var(--color-error);
-            border-radius: var(--radius-md);
-            font-size: var(--text-sm);
+            background: var(--error-bg);
+            border: 1px solid var(--error-bd);
+            color: var(--error);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
         }
 
         /* Buttons */
@@ -213,42 +204,42 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
-            background: var(--color-primary);
+            background: var(--primary);
             color: #fff;
             border: none;
             padding: 11px 20px;
-            border-radius: var(--radius-md);
-            font-size: var(--text-sm);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: background var(--transition), transform var(--transition);
+            transition: background 0.15s, transform 0.15s;
         }
-        .btn-primary:hover { background: var(--color-primary-hover); }
+        .btn-primary:hover { background: var(--primary-h); }
         .btn-primary:active { transform: scale(0.98); }
         .btn-ghost {
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            color: var(--color-text-muted);
-            background: var(--color-surface);
-            border: 1px solid var(--color-border);
+            color: var(--text-muted);
+            background: var(--surface);
+            border: 1px solid var(--border);
             padding: 10px 18px;
-            border-radius: var(--radius-md);
-            font-size: var(--text-sm);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
             font-weight: 500;
-            transition: all var(--transition);
+            transition: all 0.15s;
         }
-        .btn-ghost:hover { color: var(--color-text); border-color: oklch(0.2 0.01 80 / 0.28); background: var(--color-surface-2); }
+        .btn-ghost:hover { color: var(--text); border-color: rgba(0,0,0,0.15); background: var(--surface2); }
 
         /* Bottom link */
         .bottom-link {
             margin-top: 20px;
             text-align: center;
-            font-size: var(--text-sm);
-            color: var(--color-text-muted);
+            font-size: 14px;
+            color: var(--text-muted);
         }
-        .bottom-link a { color: var(--color-primary); font-weight: 500; }
-        .bottom-link a:hover { color: var(--color-primary-hover); text-decoration: underline; }
+        .bottom-link a { color: var(--primary); font-weight: 500; }
+        .bottom-link a:hover { color: var(--primary-h); text-decoration: underline; }
 
         /* Divider */
         .divider {
@@ -256,31 +247,39 @@
             align-items: center;
             gap: 12px;
             margin: 20px 0;
-            color: var(--color-text-faint);
-            font-size: var(--text-xs);
+            color: var(--text-faint);
+            font-size: 12px;
         }
-        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--color-divider); }
+        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+        @media (max-width: 768px) {
+            .nav { padding: 0 16px; }
+            .nav-links { display: none; }
+            .card-top { padding: 24px 20px 16px; }
+            .card-body { padding: 20px 20px 24px; }
+        }
     </style>
 </head>
 <body>
 
-<!-- Header -->
-<header class="header">
-    <a href="${pageContext.request.contextPath}/index.jsp" class="header-logo">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        <span>民大二手交易平台</span>
-    </a>
-    <nav class="header-nav">
-        <a href="${pageContext.request.contextPath}/index.jsp">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-            首页
-        </a>
-        <a href="${pageContext.request.contextPath}/login">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-            登录
-        </a>
-    </nav>
-</header>
+<!-- Nav -->
+<nav class="nav">
+    <div class="nav-brand">
+        <div class="nav-logo" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <path d="M16 10a4 4 0 0 1-8 0"/>
+            </svg>
+        </div>
+        <span class="nav-brand-name">民大二手平台</span>
+    </div>
+    <ul class="nav-links">
+        <li><a href="${pageContext.request.contextPath}/index.jsp">首页</a></li>
+        <li><a href="${pageContext.request.contextPath}/login">登录</a></li>
+    </ul>
+    <div class="nav-right"></div>
+</nav>
 
 <div class="page-wrapper">
     <div class="register-card">
@@ -328,7 +327,7 @@
                 </div>
 
                 <div class="form-item">
-                    <label for="nickname">昵称 <span style="color:var(--color-text-faint);font-weight:400;font-size:var(--text-xs);">（选填）</span></label>
+                    <label for="nickname">昵称 <span style="color:var(--text-faint);font-weight:400;font-size:12px;">（选填）</span></label>
                     <div class="input-wrap">
                         <span class="input-icon">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>

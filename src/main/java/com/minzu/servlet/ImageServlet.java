@@ -5,13 +5,20 @@ import javax.servlet.http.*;
 import java.io.*;
 
 /**
- * 提供外部目录 D:/uploads/minzu-secondhand/ 下图片的访问
+ * 提供外部目录下图片的访问
  * 访问路径：/uploads/{filename}
  */
 @WebServlet("/uploads/*")
 public class ImageServlet extends HttpServlet {
 
-    private static final String UPLOAD_DIR = "D:/uploads/minzu-secondhand/";
+    // 使用与 PublishProductServlet 相同的动态路径逻辑
+    private static String getUploadDir() {
+        String dir = System.getProperty("upload.dir");
+        if (dir != null && !dir.trim().isEmpty()) {
+            return dir.trim();
+        }
+        return System.getProperty("user.home") + File.separator + "minzu-secondhand-uploads";
+    }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -25,7 +32,7 @@ public class ImageServlet extends HttpServlet {
 
         // 防止路径穿越攻击
         String filename = new File(pathInfo.substring(1)).getName();
-        File file = new File(UPLOAD_DIR + filename);
+        File file = new File(getUploadDir(), filename);
 
         if (!file.exists() || !file.isFile()) {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);

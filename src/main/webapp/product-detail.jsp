@@ -233,7 +233,19 @@
                 </div>
 
                 <div class="meta-panel">
-                    <div class="meta-item"><div class="meta-label">商品成色</div><div class="meta-value"><%= product.getConditionLevel() != null ? product.getConditionLevel() : "未填写" %></div></div>
+                    <%
+                        String detailConditionText = "未填写";
+                        if (product.getConditionLevel() != null) {
+                            switch (product.getConditionLevel()) {
+                                case "NEW": detailConditionText = "全新"; break;
+                                case "NINETY_NEW": detailConditionText = "九成新"; break;
+                                case "EIGHTY_NEW": detailConditionText = "八成新"; break;
+                                case "SEVENTY_NEW": detailConditionText = "七成新及以下"; break;
+                                default: detailConditionText = product.getConditionLevel();
+                            }
+                        }
+                    %>
+                    <div class="meta-item"><div class="meta-label">商品成色</div><div class="meta-value"><%= detailConditionText %></div></div>
                     <div class="meta-item"><div class="meta-label">商品分类</div><div class="meta-value"><%= product.getCategoryName() != null ? product.getCategoryName() : "未分类" %></div></div>
                     <div class="meta-item"><div class="meta-label">卖家</div><div class="meta-value"><%= product.getSellerName() != null ? product.getSellerName() : "未知卖家" %></div></div>
                     <div class="meta-item"><div class="meta-label">浏览量</div><div class="meta-value"><%= product.getViewCount() %></div></div>
@@ -241,7 +253,7 @@
                         <div class="meta-label">收藏量</div>
                         <div class="meta-value" id="favCountDisplay"><%= product.getFavoriteCount() %></div>
                     </div>
-                    <div class="meta-item"><div class="meta-label">发布时间</div><div class="meta-value"><%= product.getCreatedAt() != null ? product.getCreatedAt() : "暂无" %></div></div>
+                    <div class="meta-item"><div class="meta-label">发布时间</div><div class="meta-value"><%= product.getCreatedAt() != null ? new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm").format(product.getCreatedAt()) : "暂无" %></div></div>
                 </div>
 
                 <div class="btn-row">

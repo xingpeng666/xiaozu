@@ -1,5 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="com.minzu.entity.User" %>
+<%@ page import="com.minzu.entity.Product" %>
+<%@ page import="java.util.List" %>
 <%
     User loginUser = (User) session.getAttribute("loginUser");
     if (loginUser == null) {
@@ -254,6 +256,93 @@
         @media (max-width: 420px) {
             .actions-grid { grid-template-columns: 1fr; }
         }
+
+        /* PRODUCTS GRID */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .product-card-link {
+            text-decoration: none;
+            color: inherit;
+        }
+        .product-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+        }
+        .product-card:hover {
+            box-shadow: var(--shadow);
+            transform: translateY(-3px);
+            border-color: transparent;
+        }
+        .product-cover {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background: #f3f4f6;
+        }
+        .product-cover-empty {
+            width: 100%;
+            height: 180px;
+            background: #f3f4f6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-faint);
+            font-size: 13px;
+            gap: 8px;
+        }
+        .product-info {
+            padding: 14px;
+        }
+        .product-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            line-height: 1.45;
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .product-price {
+            font-size: 18px;
+            font-weight: 700;
+            color: #c2410c;
+            margin-bottom: 8px;
+        }
+        .product-meta {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .product-tag {
+            font-size: 11px;
+            color: var(--text-muted);
+            background: var(--bg);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .btn-view-all {
+            display: inline-block;
+            padding: 10px 24px;
+            background: var(--primary);
+            color: #fff;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.15s;
+        }
+        .btn-view-all:hover {
+            background: var(--primary-h);
+        }
     </style>
 </head>
 <body>
@@ -460,6 +549,52 @@
         </a>
 
     </div>
+
+    <!-- Latest Products -->
+    <%
+        List<Product> latestProducts = (List<Product>) request.getAttribute("latestProducts");
+        if (latestProducts != null && !latestProducts.isEmpty()) {
+    %>
+    <div class="section-title" style="margin-top: 36px;">最新上架</div>
+    <div class="products-grid">
+        <% for (Product p : latestProducts) {
+            String condText = "成色未填";
+            if (p.getConditionLevel() != null) {
+                switch (p.getConditionLevel()) {
+                    case "NEW": condText = "全新"; break;
+                    case "NINETY_NEW": condText = "九成新"; break;
+                    case "EIGHTY_NEW": condText = "八成新"; break;
+                    case "SEVENTY_NEW": condText = "七成新及以下"; break;
+                    default: condText = p.getConditionLevel();
+                }
+            }
+        %>
+        <a href="${pageContext.request.contextPath}/product-detail?id=<%= p.getProductId() %>" class="product-card-link">
+            <div class="product-card">
+                <% if (p.getCoverImageUrl() != null && !p.getCoverImageUrl().isEmpty()) { %>
+                    <img src="<%= p.getCoverImageUrl() %>" alt="<%= p.getTitle() %>" class="product-cover" loading="lazy">
+                <% } else { %>
+                    <div class="product-cover-empty">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                        <span>暂无图片</span>
+                    </div>
+                <% } %>
+                <div class="product-info">
+                    <div class="product-title"><%= p.getTitle() %></div>
+                    <div class="product-price">¥<%= p.getPrice() %></div>
+                    <div class="product-meta">
+                        <span class="product-tag"><%= condText %></span>
+                        <span class="product-tag"><%= p.getCategoryName() != null ? p.getCategoryName() : "未分类" %></span>
+                    </div>
+                </div>
+            </div>
+        </a>
+        <% } %>
+    </div>
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="${pageContext.request.contextPath}/product-list" class="btn-view-all">查看全部商品 →</a>
+    </div>
+    <% } %>
 
 </main>
 

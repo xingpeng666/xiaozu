@@ -84,7 +84,7 @@
     </a>
     <div class="nav-links">
         <a href="${pageContext.request.contextPath}/admin/dashboard" class="active">统计面板</a>
-        <a href="${pageContext.request.contextPath}/admin/users">用户审核</a>
+        <a href="${pageContext.request.contextPath}/admin/user-review">用户审核</a>
         <a href="${pageContext.request.contextPath}/admin/products">商品审核</a>
         <a href="${pageContext.request.contextPath}/index.jsp">前台首页</a>
         <a href="${pageContext.request.contextPath}/logout" class="btn-logout">退出</a>
@@ -134,9 +134,9 @@
     </div>
 
     <div class="quick-links">
-        <a href="${pageContext.request.contextPath}/admin/users">👤 用户审核管理</a>
+        <a href="${pageContext.request.contextPath}/admin/user-review">👤 用户审核管理</a>
         <a href="${pageContext.request.contextPath}/admin/products">🔍 商品审核管理</a>
-        <a class="sec" href="${pageContext.request.contextPath}/admin/reports">🔔 举报管理</a>
+        <a class="sec" href="${pageContext.request.contextPath}/report">🔔 举报管理</a>
     </div>
 </div>
 </body>

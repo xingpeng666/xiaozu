@@ -174,6 +174,7 @@
                 <div class="card-meta">
                     <%= p.getCategoryName() != null ? p.getCategoryName() : "未分类" %>
                     &middot; 浏览 <%= p.getViewCount() %> 次
+                    &middot; 收藏 <%= p.getFavoriteCount() %> 次
                     &middot; <%= p.getCreatedAt() != null ? p.getCreatedAt().toString().substring(0,10) : "" %>
                 </div>
             </div>

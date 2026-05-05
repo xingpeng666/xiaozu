@@ -122,6 +122,30 @@ public class FavoriteServlet extends HttpServlet {
     // ---- 我的收藏列表 ----
     private void showFavoriteList(HttpServletRequest request, HttpServletResponse response,
                                   User loginUser) throws ServletException, IOException {
+
+        int page = 1;
+        try {
+            String pageStr = request.getParameter("page");
+            if (pageStr != null) page = Math.max(1, Integer.parseInt(pageStr.trim()));
+        } catch (NumberFormatException ignored) {}
+        int pageSize = 12;
+        int offset = (page - 1) * pageSize;
+
+        // 总数查询
+        String countSql = "SELECT COUNT(*) FROM favorites WHERE user_id = ?";
+        int totalCount = 0;
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(countSql)) {
+            ps.setInt(1, loginUser.getUserId());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) totalCount = rs.getInt(1);
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+
+        int totalPages = (int) Math.ceil((double) totalCount / pageSize);
+        if (totalPages < 1) totalPages = 1;
+        if (page > totalPages) page = totalPages;
+
         String sql =
             "SELECT p.product_id, p.title, p.price, p.original_price, " +
             "       p.cover_image_url, p.publish_status, p.view_count, p.favorite_count, " +
@@ -132,13 +156,15 @@ public class FavoriteServlet extends HttpServlet {
             "LEFT JOIN categories c ON c.category_id = p.category_id " +
             "LEFT JOIN users u ON u.user_id = p.seller_id " +
             "WHERE f.user_id = ? " +
-            "ORDER BY f.created_at DESC";
+            "ORDER BY f.created_at DESC LIMIT ? OFFSET ?";
 
         List<Product> list = new ArrayList<>();
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, loginUser.getUserId());
+            ps.setInt(2, pageSize);
+            ps.setInt(3, offset);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Product p = new Product();
@@ -162,6 +188,9 @@ public class FavoriteServlet extends HttpServlet {
         }
 
         request.setAttribute("favoriteList", list);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("totalCount", totalCount);
         request.getRequestDispatcher("/my-favorites.jsp").forward(request, response);
     }
 

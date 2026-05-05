@@ -519,11 +519,12 @@
                             </form>
                         <% } %>
                         <% if ("CREATED".equals(status) || "PAID_OFFLINE".equals(status)) { %>
-                            <form action="${pageContext.request.contextPath}/orders" method="post" style="margin:0;" onsubmit="return confirm('确定要对此订单发起纠纷吗？');">
+                            <form id="disputeForm_<%= o.get("orderId") %>" action="${pageContext.request.contextPath}/orders" method="post" style="margin:0;">
                                 <input type="hidden" name="action" value="dispute">
                                 <input type="hidden" name="orderId" value="<%= o.get("orderId") %>">
                                 <input type="hidden" name="type" value="<%= type %>">
-                                <button class="btn btn-danger" type="submit">
+                                <input type="hidden" name="reason" id="disputeReason_<%= o.get("orderId") %>" value="">
+                                <button class="btn btn-danger" type="button" onclick="submitDispute('<%= o.get("orderId") %>')">
                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                                     发起纠纷
                                 </button>
@@ -571,6 +572,21 @@
     </nav>
     <% } %>
 </div>
+
+<script>
+function submitDispute(orderId) {
+    var reason = prompt('请输入纠纷原因：');
+    if (reason === null) {
+        return; // 用户取消
+    }
+    if (reason.trim() === '') {
+        alert('请输入纠纷原因！');
+        return;
+    }
+    document.getElementById('disputeReason_' + orderId).value = reason.trim();
+    document.getElementById('disputeForm_' + orderId).submit();
+}
+</script>
 
 </body>
 </html>

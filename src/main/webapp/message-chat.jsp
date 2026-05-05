@@ -257,6 +257,35 @@
         this.style.height = 'auto';
         this.style.height = Math.min(this.scrollHeight, 120) + 'px';
     });
+
+    // 半实时刷新：每5秒拉取新消息
+    var lastMessageCount = <%= chatList != null ? chatList.size() : 0 %>;
+    var chatBody = document.getElementById('chatBody');
+    var currentUrl = window.location.href;
+
+    function checkNewMessages() {
+        fetch(currentUrl, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(function(response) { return response.text(); })
+        .then(function(html) {
+            var parser = new DOMParser();
+            var doc = parser.parseFromString(html, 'text/html');
+            var newChatBody = doc.getElementById('chatBody');
+            if (newChatBody) {
+                var newMessages = newChatBody.querySelectorAll('.msg-row');
+                if (newMessages.length > lastMessageCount) {
+                    chatBody.innerHTML = newChatBody.innerHTML;
+                    lastMessageCount = newMessages.length;
+                    chatBody.scrollTop = chatBody.scrollHeight;
+                }
+            }
+        })
+        .catch(function() {});
+    }
+
+    // 每5秒检查一次新消息
+    setInterval(checkNewMessages, 5000);
 </script>
 
 </body>

@@ -83,6 +83,10 @@
         .btn:hover { border-color: var(--primary); color: var(--primary); }
         .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
         .btn-primary:hover { background: var(--primary-h); color: #fff; }
+        .btn-danger { background: #fff1f1; color: #dc2626; border-color: #fecaca; }
+        .btn-danger:hover { background: #fee2e2; }
+        .btn-ghost { background: transparent; color: var(--text-muted); border-color: var(--border); }
+        .btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
         .btn-sm { padding: 5px 12px; font-size: 12px; }
 
         .notify-list { display: flex; flex-direction: column; gap: 8px; }
@@ -173,17 +177,28 @@
                 <%= n.get("content") %>
                 <div class="notify-time"><%= n.get("createdAt") %></div>
             </div>
-            <% if (!isRead) { %>
             <div class="notify-actions">
-                <form action="${pageContext.request.contextPath}/notifications" method="post" style="margin:0;">
+                <% if (!isRead) { %>
+                <form action="${pageContext.request.contextPath}/notifications" method="post" style="margin:0;display:inline;">
                     <input type="hidden" name="action" value="read">
                     <input type="hidden" name="notifyId" value="<%= n.get("notificationId") %>">
                     <button type="submit" class="btn btn-sm">已读</button>
                 </form>
+                <% } %>
+                <form action="${pageContext.request.contextPath}/notifications" method="post" style="margin:0;display:inline;" onsubmit="return confirm('确定删除这条通知吗？');">
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="notifyId" value="<%= n.get("notificationId") %>">
+                    <button type="submit" class="btn btn-sm btn-danger">删除</button>
+                </form>
             </div>
-            <% } %>
         </div>
         <% } %>
+    </div>
+    <div style="text-align:center;margin-top:20px;">
+        <form action="${pageContext.request.contextPath}/notifications" method="post" style="margin:0;display:inline;" onsubmit="return confirm('确定清空所有已读通知吗？');">
+            <input type="hidden" name="action" value="deleteRead">
+            <button type="submit" class="btn btn-ghost">清空所有已读通知</button>
+        </form>
     </div>
     <% } %>
 </div>
