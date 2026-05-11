@@ -5,166 +5,202 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>发布商品 — 民大二手交易平台</title>
+    <title>发布商品 - 民大二手交易平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d' },
+                        accent: { DEFAULT: '#f97316', hover: '#ea580c' },
+                        surface: { DEFAULT: '#fafaf9', raised: '#ffffff' },
+                        ink: { primary: '#1c1917', secondary: '#44403c', muted: '#78716c', faint: '#a8a29e' }
+                    },
+                    fontFamily: {
+                        display: ['Outfit', 'sans-serif'],
+                        body: ['Noto Sans SC', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-    :root{
-        --bg:#f4f3ef;--surface:#fff;--border:rgba(0,0,0,0.09);--text:#1a1a1a;--muted:#737373;
-        --primary:#0b6e63;--primary-h:#085c52;--primary-hl:#d0eae7;
-        --danger:#dc2626;
-        --error-bg:#fff1f0;--error-bd:#ffc5c5;--error-tx:#b91c1c;
-        --radius:12px;--font:'Plus Jakarta Sans','PingFang SC','Microsoft YaHei',sans-serif;
-        --shadow:0 4px 20px rgba(0,0,0,0.06);
-    }
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    html{-webkit-font-smoothing:antialiased}
-    body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100dvh}
-    .nav{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:100}
-    .nav-brand{display:flex;align-items:center;gap:9px;font-size:16px;font-weight:700;color:var(--primary);text-decoration:none}
-    .nav-links{display:flex;align-items:center;gap:4px}
-    .nav-links a{font-size:13.5px;font-weight:500;color:var(--muted);text-decoration:none;padding:6px 11px;border-radius:7px;transition:background .15s,color .15s}
-    .nav-links a:hover{background:var(--primary-hl);color:var(--primary)}
-    .page{max-width:920px;margin:36px auto;padding:0 16px 48px}
-    .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
-    .card-top{padding:24px 28px 16px;border-bottom:1px solid var(--border)}
-    .card-top h2{font-size:21px;font-weight:700;margin-bottom:4px}
-    .card-top p{font-size:13.5px;color:var(--muted)}
-    .alert-error{margin:16px 28px 0;padding:11px 14px;border-radius:8px;font-size:13.5px;background:var(--error-bg);border:1px solid var(--error-bd);color:var(--error-tx)}
-    .form-area{padding:24px 28px 28px}
-    .section-label{font-size:13px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
-    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 20px}
-    .form-item{display:flex;flex-direction:column}
-    .form-item.full{grid-column:1/span 2}
-    .form-item label{font-size:13.5px;font-weight:600;margin-bottom:6px}
-    .required{color:var(--danger);margin-left:3px}
-    .form-item input,.form-item select,.form-item textarea{
-        width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;
-        font-size:13.5px;font-family:var(--font);background:var(--surface);outline:none;
-        transition:border-color .15s,box-shadow .15s;
-    }
-    .form-item input:focus,.form-item select:focus,.form-item textarea:focus{
-        border-color:var(--primary);box-shadow:0 0 0 3px rgba(11,110,99,0.1);
-    }
-    .form-item textarea{min-height:120px;resize:vertical}
-    .hint{margin-top:5px;font-size:12px;color:var(--muted)}
-    .img-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .tips-box{
-        margin-top:20px;padding:14px 16px;
-        background:var(--primary-hl);border:1px solid #a7d9d4;
-        border-radius:10px;color:#1a4a45;font-size:13px;line-height:1.8;
-    }
-    .action-bar{margin-top:24px;display:flex;gap:10px;align-items:center}
-    .btn-submit{background:var(--primary);color:#fff;border:none;padding:10px 22px;border-radius:8px;font-size:14px;font-weight:600;font-family:var(--font);cursor:pointer;transition:background .15s}
-    .btn-submit:hover{background:var(--primary-h)}
-    .btn-back{display:inline-block;text-decoration:none;color:var(--muted);background:var(--surface);border:1.5px solid var(--border);padding:9px 18px;border-radius:8px;font-size:14px;font-weight:500;transition:all .15s}
-    .btn-back:hover{border-color:var(--primary);color:var(--primary)}
-    @media(max-width:768px){
-        .form-grid{grid-template-columns:1fr}.form-item.full{grid-column:auto}
-        .action-bar{flex-direction:column;align-items:stretch}
-        .btn-submit,.btn-back{text-align:center}
-    }
+        .hover-lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+        .btn-press { transition: transform 0.1s ease; }
+        .btn-press:active { transform: scale(0.97); }
+        .input-focus-ring:focus { outline: none; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15); }
+        @media (prefers-reduced-motion: reduce) {
+            .hover-lift, .btn-press { transition: none; }
+            .hover-lift:hover { transform: none; }
+            .btn-press:active { transform: none; }
+        }
     </style>
 </head>
-<body>
-<nav class="nav">
-    <a class="nav-brand" href="${pageContext.request.contextPath}/index.jsp">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-        民大二手交易平台
-    </a>
-    <div class="nav-links">
-        <a href="${pageContext.request.contextPath}/product-list">商品列表</a>
-        <a href="${pageContext.request.contextPath}/index.jsp">首页</a>
-    </div>
-</nav>
-<div class="page">
-    <div class="card">
-        <div class="card-top">
-            <h2>发布商品</h2>
-            <p>填写商品基本信息后，提交即可上架到平台展示。</p>
+<body class="font-body min-h-screen bg-surface-DEFAULT">
+
+<jsp:include page="/common/header.jsp">
+    <jsp:param name="active" value=""/>
+</jsp:include>
+
+<!-- 主内容 -->
+<main class="max-w-3xl mx-auto px-4 py-8">
+    <div class="bg-surface-raised border border-stone-200 rounded-xl shadow-lg overflow-hidden hover-lift">
+        <!-- 卡片头部 -->
+        <div class="px-8 py-6 border-b border-stone-100 bg-gradient-to-br from-brand-50 to-transparent">
+            <h1 class="font-display text-xl font-bold text-ink-primary mb-1">发布商品</h1>
+            <p class="text-sm text-ink-muted">填写商品基本信息后，提交即可上架到平台展示。</p>
         </div>
+
+        <!-- 错误提示 -->
         <c:if test="${not empty errorMsg}">
-            <div class="alert-error">${errorMsg}</div>
+            <div class="px-8 pt-4">
+                <div class="bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex items-center gap-3">
+                    <svg class="w-5 h-5 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+                    </svg>
+                    <span class="text-red-700 text-sm">${errorMsg}</span>
+                </div>
+            </div>
         </c:if>
-        <div class="form-area">
-            <div class="section-label">商品信息</div>
-            <form action="${pageContext.request.contextPath}/publish-product" method="post" enctype="multipart/form-data">
-                <div class="form-grid">
-                    <div class="form-item full">
-                        <label>商品标题<span class="required">*</span></label>
-                        <input type="text" name="title" maxlength="120" required value="${param.title}" placeholder="例如：高等数学教材、宿舍小电扇">
-                        <div class="hint">标题尽量简洁清楚，方便别人搜索到。</div>
-                    </div>
-                    <div class="form-item">
-                        <label>售价<span class="required">*</span></label>
-                        <input type="number" name="price" step="0.01" min="0" required value="${param.price}" placeholder="请输入售价">
-                    </div>
-                    <div class="form-item">
-                        <label>原价</label>
-                        <input type="number" name="originalPrice" step="0.01" min="0" value="${param.originalPrice}" placeholder="选填">
-                    </div>
-                    <div class="form-item">
-                        <label>商品成色<span class="required">*</span></label>
-                        <select name="conditionLevel" required>
-                            <option value="">—请选择—</option>
-                            <option value="NEW" <c:if test="${param.conditionLevel eq 'NEW'}">selected</c:if>>全新</option>
-                            <option value="NINETY_NEW" <c:if test="${param.conditionLevel eq 'NINETY_NEW'}">selected</c:if>>九成新</option>
-                            <option value="EIGHTY_NEW" <c:if test="${param.conditionLevel eq 'EIGHTY_NEW'}">selected</c:if>>八成新</option>
-                            <option value="SEVENTY_NEW" <c:if test="${param.conditionLevel eq 'SEVENTY_NEW'}">selected</c:if>>七成新及以下</option>
-                        </select>
-                    </div>
-                    <div class="form-item">
-                        <label>商品分类<span class="required">*</span></label>
-                        <select name="categoryId" required>
-                            <option value="">请选择分类</option>
-                            <c:forEach var="cat" items="${categories}">
-                                <option value="${cat.categoryId}" <c:if test="${param.categoryId eq cat.categoryId.toString()}">selected</c:if>>${cat.categoryName}</option>
-                            </c:forEach>
-                        </select>
-                    </div>
-                    <div class="form-item full">
-                        <label>商品描述</label>
-                        <textarea name="description" placeholder="请填写商品使用情况、是否有瑕疵、交易方式等信息">${param.description}</textarea>
-                        <div class="hint">建议写清楚：新旧程度、是否可小刀、交易地点、是否支持当面验货。</div>
-                    </div>
-                    <div class="form-item full">
-                        <label>封面图片<span class="required">*</span></label>
-                        <input type="file" name="coverImage" accept="image/*" required>
-                        <div class="hint">用于商品列表展示，支持 jpg/png/jpeg，单张不超过 10MB。</div>
-                    </div>
-                    <div class="form-item full">
-                        <label>详情图片</label>
-                        <input type="file" name="detailImages" accept="image/*" multiple>
-                        <div class="hint">可一次选择多张，用于详情页展示；单张不超过 10MB，总不超过 50MB。</div>
-                    </div>
-                    <div class="form-item full">
-                        <label>额外展示图片（图片URL）</label>
-                        <div class="img-grid">
-                            <input type="text" name="imageUrl1" placeholder="图片URL 1（选填）" value="${param.imageUrl1}">
-                            <input type="text" name="imageUrl2" placeholder="图片URL 2（选填）" value="${param.imageUrl2}">
-                            <input type="text" name="imageUrl3" placeholder="图片URL 3（选填）" value="${param.imageUrl3}">
-                            <input type="text" name="imageUrl4" placeholder="图片URL 4（选填）" value="${param.imageUrl4}">
-                        </div>
-                        <div class="hint">可填入外部图片链接，最多 4 张，将在详情页以轮播图展示。</div>
-                    </div>
-                </div>
-                <div style="margin-top:14px">
-                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13.5px">
-                        <input type="checkbox" name="isGraduation" value="1" style="width:auto" <c:if test="${param.isGraduation eq '1'}">checked</c:if>>
-                        这是毕业季商品（将在「毕业季专区」展示）
+
+        <!-- 表单区 -->
+        <form action="${pageContext.request.contextPath}/publish-product" method="post" enctype="multipart/form-data" class="px-8 py-6 space-y-6">
+            <!-- 分段标题 -->
+            <div class="flex items-center gap-2 text-brand-600 font-display font-semibold text-sm uppercase tracking-wide">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/>
+                </svg>
+                商品信息
+            </div>
+
+            <!-- 商品标题 -->
+            <div>
+                <label for="title" class="flex items-center gap-1 text-sm font-medium text-ink-primary mb-2">
+                    商品标题
+                    <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="title" name="title" maxlength="120" required value="${param.title}" placeholder="例如：高等数学教材、宿舍小电扇" class="w-full px-4 py-3 bg-surface-raised border border-stone-200 rounded-lg text-ink-primary placeholder:text-ink-faint input-focus-ring focus:border-brand-500 transition-colors">
+                <p class="mt-2 text-xs text-ink-faint">标题尽量简洁清楚，方便别人搜索到。</p>
+            </div>
+
+            <!-- 价格行 -->
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="price" class="flex items-center gap-1 text-sm font-medium text-ink-primary mb-2">
+                        售价
+                        <span class="text-red-500">*</span>
                     </label>
+                    <input type="number" id="price" name="price" step="0.01" min="0" required value="${param.price}" placeholder="请输入售价" class="w-full px-4 py-3 bg-surface-raised border border-stone-200 rounded-lg text-ink-primary placeholder:text-ink-faint input-focus-ring focus:border-brand-500 transition-colors">
                 </div>
-                <div class="action-bar">
-                    <button type="submit" class="btn-submit">立即发布</button>
-                    <a href="${pageContext.request.contextPath}/product-list" class="btn-back">返回列表</a>
+                <div>
+                    <label for="originalPrice" class="text-sm font-medium text-ink-primary mb-2">原价</label>
+                    <input type="number" id="originalPrice" name="originalPrice" step="0.01" min="0" value="${param.originalPrice}" placeholder="选填" class="w-full px-4 py-3 bg-surface-raised border border-stone-200 rounded-lg text-ink-primary placeholder:text-ink-faint input-focus-ring focus:border-brand-500 transition-colors">
                 </div>
-                <div class="tips-box">
-                    💡 温馨提示：发布前请确认商品描述真实、价格合理，避免填写联系方式等敏感信息。
+            </div>
+
+            <!-- 成色和分类 -->
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="conditionLevel" class="flex items-center gap-1 text-sm font-medium text-ink-primary mb-2">
+                        商品成色
+                        <span class="text-red-500">*</span>
+                    </label>
+                    <select id="conditionLevel" name="conditionLevel" required class="w-full px-4 py-3 bg-surface-raised border border-stone-200 rounded-lg text-ink-primary input-focus-ring focus:border-brand-500 transition-colors">
+                        <option value="">--请选择--</option>
+                        <option value="NEW" <c:if test="${param.conditionLevel eq 'NEW'}">selected</c:if>>全新</option>
+                        <option value="NINETY_NEW" <c:if test="${param.conditionLevel eq 'NINETY_NEW'}">selected</c:if>>九成新</option>
+                        <option value="EIGHTY_NEW" <c:if test="${param.conditionLevel eq 'EIGHTY_NEW'}">selected</c:if>>八成新</option>
+                        <option value="SEVENTY_NEW" <c:if test="${param.conditionLevel eq 'SEVENTY_NEW'}">selected</c:if>>七成新及以下</option>
+                    </select>
                 </div>
-            </form>
-        </div>
+                <div>
+                    <label for="categoryId" class="flex items-center gap-1 text-sm font-medium text-ink-primary mb-2">
+                        商品分类
+                        <span class="text-red-500">*</span>
+                    </label>
+                    <select id="categoryId" name="categoryId" required class="w-full px-4 py-3 bg-surface-raised border border-stone-200 rounded-lg text-ink-primary input-focus-ring focus:border-brand-500 transition-colors">
+                        <option value="">请选择分类</option>
+                        <c:forEach var="cat" items="${categories}">
+                            <option value="${cat.categoryId}" <c:if test="${param.categoryId eq cat.categoryId.toString()}">selected</c:if>>${cat.categoryName}</option>
+                        </c:forEach>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 商品描述 -->
+            <div>
+                <label for="description" class="text-sm font-medium text-ink-primary mb-2">商品描述</label>
+                <textarea id="description" name="description" rows="4" placeholder="请填写商品使用情况、是否有瑕疵、交易方式等信息" class="w-full px-4 py-3 bg-surface-raised border border-stone-200 rounded-lg text-ink-primary placeholder:text-ink-faint input-focus-ring focus:border-brand-500 transition-colors resize-vertical">${param.description}</textarea>
+                <p class="mt-2 text-xs text-ink-faint">建议写清楚：新旧程度、是否可小刀、交易地点、是否支持当面验货。</p>
+            </div>
+
+            <!-- 封面图片上传 -->
+            <div>
+                <label for="coverImage" class="flex items-center gap-1 text-sm font-medium text-ink-primary mb-2">
+                    封面图片
+                    <span class="text-red-500">*</span>
+                </label>
+                <div class="relative">
+                    <input type="file" id="coverImage" name="coverImage" accept="image/*" required class="block w-full text-sm text-ink-muted file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 file:cursor-pointer file:transition-colors">
+                </div>
+                <p class="mt-2 text-xs text-ink-faint">用于商品列表展示，支持 jpg/png/jpeg，单张不超过 10MB。</p>
+            </div>
+
+            <!-- 详情图片上传 -->
+            <div>
+                <label for="detailImages" class="text-sm font-medium text-ink-primary mb-2">详情图片</label>
+                <input type="file" id="detailImages" name="detailImages" accept="image/*" multiple class="block w-full text-sm text-ink-muted file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-stone-50 file:text-ink-secondary hover:file:bg-stone-100 file:cursor-pointer file:transition-colors">
+                <p class="mt-2 text-xs text-ink-faint">可一次选择多张，用于详情页展示；单张不超过 10MB，总不超过 50MB。</p>
+            </div>
+
+            <!-- 额外展示图片（图片URL） -->
+            <div>
+                <label class="text-sm font-medium text-ink-primary mb-2">额外展示图片（图片URL）</label>
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="text" name="imageUrl1" placeholder="图片URL 1（选填）" value="${param.imageUrl1}" class="w-full px-4 py-3 bg-surface-raised border border-stone-200 rounded-lg text-ink-primary placeholder:text-ink-faint input-focus-ring focus:border-brand-500 transition-colors">
+                    <input type="text" name="imageUrl2" placeholder="图片URL 2（选填）" value="${param.imageUrl2}" class="w-full px-4 py-3 bg-surface-raised border border-stone-200 rounded-lg text-ink-primary placeholder:text-ink-faint input-focus-ring focus:border-brand-500 transition-colors">
+                    <input type="text" name="imageUrl3" placeholder="图片URL 3（选填）" value="${param.imageUrl3}" class="w-full px-4 py-3 bg-surface-raised border border-stone-200 rounded-lg text-ink-primary placeholder:text-ink-faint input-focus-ring focus:border-brand-500 transition-colors">
+                    <input type="text" name="imageUrl4" placeholder="图片URL 4（选填）" value="${param.imageUrl4}" class="w-full px-4 py-3 bg-surface-raised border border-stone-200 rounded-lg text-ink-primary placeholder:text-ink-faint input-focus-ring focus:border-brand-500 transition-colors">
+                </div>
+                <p class="mt-2 text-xs text-ink-faint">可填入外部图片链接，最多 4 张，将在详情页以轮播图展示。</p>
+            </div>
+
+            <!-- 毕业季标记 -->
+            <div class="flex items-center gap-3 py-3">
+                <input type="checkbox" id="isGraduation" name="isGraduation" value="1" <c:if test="${param.isGraduation eq '1'}">checked</c:if> class="w-5 h-5 rounded border-stone-300 text-brand-500 focus:ring-brand-500 cursor-pointer">
+                <label for="isGraduation" class="text-sm text-ink-primary cursor-pointer">
+                    这是毕业季商品（将在「毕业季专区」展示）
+                </label>
+            </div>
+
+            <!-- 提示框 -->
+            <div class="bg-brand-50 border border-brand-200 rounded-lg px-4 py-3 text-brand-700 text-sm leading-relaxed">
+                <strong>温馨提示：</strong>发布前请确认商品描述真实、价格合理，避免填写联系方式等敏感信息。
+            </div>
+
+            <!-- 按钮组 -->
+            <div class="flex gap-3 pt-2">
+                <button type="submit" class="flex-1 py-3 bg-brand-500 hover:bg-brand-600 text-white font-display font-semibold rounded-lg btn-press transition-colors flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    立即发布
+                </button>
+                <a href="${pageContext.request.contextPath}/product-list" class="px-6 py-3 bg-surface-raised border border-stone-200 hover:border-stone-300 text-ink-muted hover:text-ink-primary font-medium rounded-lg flex items-center gap-2 transition-colors">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"/>
+                    </svg>
+                    返回列表
+                </a>
+            </div>
+        </form>
     </div>
-</div>
+</main>
+
 </body>
 </html>

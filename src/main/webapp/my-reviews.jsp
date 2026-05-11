@@ -11,166 +11,88 @@
     String sucMsg = (String) session.getAttribute("successMsg");
     session.removeAttribute("errorMsg");
     session.removeAttribute("successMsg");
-    String sentActive     = "sent".equals(view)     ? " active" : "";
-    String receivedActive = "received".equals(view) ? " active" : "";
 %>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的评价 — 民大二手交易平台</title>
+    <title>我的评价 - 民大二手交易平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg:         #f4f3ef;
-            --surface:    #ffffff;
-            --border:     rgba(0,0,0,0.09);
-            --text:       #1a1a1a;
-            --text-muted: #737373;
-            --primary:    #0b6e63;
-            --primary-h:  #085c52;
-            --primary-hl: #d0eae7;
-            --error-bg:   #fff1f0;
-            --error-bd:   #ffc5c5;
-            --error-tx:   #b91c1c;
-            --success-bg: #f0fdf4;
-            --success-bd: #bbf7d0;
-            --success-tx: #15803d;
-            --radius:     12px;
-            --font:       'Plus Jakarta Sans','PingFang SC','Microsoft YaHei',sans-serif;
-            --shadow:     0 2px 12px rgba(0,0,0,0.06);
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d' },
+                        accent: { DEFAULT: '#f97316', hover: '#ea580c' },
+                        surface: { DEFAULT: '#fafaf9', raised: '#ffffff' },
+                        ink: { primary: '#1c1917', secondary: '#44403c', muted: '#78716c', faint: '#a8a29e' }
+                    },
+                    fontFamily: {
+                        display: ['Outfit', 'sans-serif'],
+                        body: ['Noto Sans SC', 'sans-serif']
+                    }
+                }
+            }
         }
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { -webkit-font-smoothing: antialiased; }
-        body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100dvh; }
-
-        .nav {
-            height: 56px; background: var(--surface);
-            border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 28px; position: sticky; top: 0; z-index: 100;
-        }
-        .nav-brand {
-            display: flex; align-items: center; gap: 9px;
-            font-size: 16px; font-weight: 700; color: var(--primary); text-decoration: none;
-        }
-        .nav-links { display: flex; align-items: center; gap: 4px; }
-        .nav-links a {
-            font-size: 13.5px; font-weight: 500; color: var(--text-muted);
-            text-decoration: none; padding: 6px 11px; border-radius: 7px;
-            transition: background 0.15s, color 0.15s;
-        }
-        .nav-links a:hover { background: var(--primary-hl); color: var(--primary); }
-        .nav-links a.active { background: var(--primary-hl); color: var(--primary); }
-        .nav-links .btn-logout { margin-left: 6px; padding: 6px 14px; background: var(--primary); color: #fff; border-radius: 7px; }
-        .nav-links .btn-logout:hover { background: var(--primary-h); color: #fff; }
-
-        .container { max-width: 800px; margin: 36px auto; padding: 0 16px 48px; }
-        .page-header { margin-bottom: 24px; }
-        .page-header h1 { font-size: 22px; font-weight: 700; }
-
-        .alert { padding: 11px 14px; border-radius: 8px; font-size: 13.5px; margin-bottom: 18px; display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; }
-        .alert-error   { background: var(--error-bg);   border: 1px solid var(--error-bd);   color: var(--error-tx); }
-        .alert-success { background: var(--success-bg); border: 1px solid var(--success-bd); color: var(--success-tx); }
-
-        /* Tabs */
-        .tabs { display: flex; gap: 4px; margin-bottom: 22px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
-        .tabs a {
-            font-size: 14px; font-weight: 600; color: var(--text-muted);
-            text-decoration: none; padding: 9px 16px;
-            border-bottom: 2px solid transparent;
-            margin-bottom: -1px; transition: color 0.15s, border-color 0.15s;
-        }
-        .tabs a:hover { color: var(--primary); }
-        .tabs a.active { color: var(--primary); border-bottom-color: var(--primary); }
-
-        /* Review card */
-        .review-list { display: flex; flex-direction: column; gap: 10px; }
-        .review-card {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius); box-shadow: var(--shadow);
-            padding: 16px 20px;
-        }
-        .review-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
-        .review-title { font-size: 14.5px; font-weight: 600; }
-        .role-badge {
-            display: inline-block; padding: 2px 9px; border-radius: 20px;
-            font-size: 12px; font-weight: 600; margin-left: 8px;
-            background: var(--primary-hl); color: var(--primary);
-        }
-        .stars { font-size: 16px; }
-        .star-filled { color: #f59e0b; }
-        .star-empty  { color: #d1d5db; }
-        .review-content { font-size: 14px; color: var(--text); line-height: 1.65; margin-bottom: 8px; }
-        .review-meta { font-size: 12px; color: var(--text-muted); }
-
-        .empty {
-            text-align: center; padding: 72px 20px;
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius); box-shadow: var(--shadow);
-        }
-        .empty p { font-size: 14.5px; color: var(--text-muted); }
-    </style>
+    </script>
 </head>
-<body>
+<body class="font-body min-h-screen bg-surface-DEFAULT">
 
-<nav class="nav">
-    <a class="nav-brand" href="<%=request.getContextPath()%>/index.jsp">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-            <line x1="3" y1="6" x2="21" y2="6"/>
-            <path d="M16 10a4 4 0 0 1-8 0"/>
-        </svg>
-        民大二手交易平台
-    </a>
-    <div class="nav-links">
-        <a href="<%=request.getContextPath()%>/orders?type=buy">我的订单</a>
-        <a href="<%=request.getContextPath()%>/profile">个人信息</a>
-        <a href="<%=request.getContextPath()%>/my-reviews" class="active">我的评价</a>
-        <a href="<%=request.getContextPath()%>/logout" class="btn-logout">退出</a>
-    </div>
-</nav>
+<jsp:include page="/common/header.jsp">
+    <jsp:param name="active" value="my-reviews"/>
+</jsp:include>
 
-<div class="container">
-    <div class="page-header">
-        <h1>我的评价</h1>
-    </div>
+<main class="max-w-3xl mx-auto px-4 py-8">
+    <h1 class="font-display text-xl font-bold text-ink-primary mb-6">我的评价</h1>
 
     <% if (errMsg != null) { %>
-    <div class="alert alert-error"><span>✕</span><span><%=errMsg%></span></div>
+    <div class="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm mb-4 flex items-center gap-2">
+        <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        <%=errMsg%>
+    </div>
     <% } %>
     <% if (sucMsg != null) { %>
-    <div class="alert alert-success"><span>✓</span><span><%=sucMsg%></span></div>
+    <div class="bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-3 text-sm mb-4 flex items-center gap-2">
+        <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <%=sucMsg%>
+    </div>
     <% } %>
 
-    <div class="tabs">
-        <a href="<%=request.getContextPath()%>/review?view=sent" class="<%="sent".equals(view)?"active":""%>">我发出的评价</a>
-        <a href="<%=request.getContextPath()%>/review?view=received" class="<%="received".equals(view)?"active":""%>">收到的评价</a>
+    <div class="flex gap-4 border-b border-stone-200 mb-6">
+        <a href="<%=request.getContextPath()%>/review?view=sent"
+           class="text-sm font-medium pb-2 border-b-2 transition-colors <%="sent".equals(view)?"text-brand-600 border-brand-500":"text-ink-muted border-transparent hover:text-brand-600"%>">我发出的评价</a>
+        <a href="<%=request.getContextPath()%>/review?view=received"
+           class="text-sm font-medium pb-2 border-b-2 transition-colors <%="received".equals(view)?"text-brand-600 border-brand-500":"text-ink-muted border-transparent hover:text-brand-600"%>">收到的评价</a>
     </div>
 
     <% if (reviews.isEmpty()) { %>
-    <div class="empty"><p>暂无评价记录</p></div>
+    <div class="text-center py-16 bg-surface-raised border border-stone-200 rounded-xl">
+        <svg class="w-12 h-12 text-stone-300 mx-auto mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <p class="text-sm text-ink-muted">暂无评价记录</p>
+    </div>
     <% } else { %>
-    <div class="review-list">
+    <div class="flex flex-col gap-3">
         <% for (Review r : reviews) { %>
-        <div class="review-card">
-            <div class="review-top">
+        <div class="bg-surface-raised border border-stone-200 rounded-xl p-5">
+            <div class="flex justify-between items-start gap-3 mb-2">
                 <div>
-                    <span class="review-title"><%=r.getProductTitle() != null ? r.getProductTitle() : "已删除商品"%></span>
-                    <span class="role-badge"><%="BUYER".equals(r.getRole()) ? "买家评价" : "卖家评价"%></span>
+                    <span class="text-sm font-semibold text-ink-primary"><%=r.getProductTitle() != null ? r.getProductTitle() : "已删除商品"%></span>
+                    <span class="inline-block bg-brand-50 text-brand-600 px-2.5 py-0.5 rounded-full text-xs font-semibold ml-2"><%="BUYER".equals(r.getRole()) ? "买家评价" : "卖家评价"%></span>
                 </div>
-                <div class="stars">
-                    <% for (int i = 0; i < r.getScore(); i++) { %><span class="star-filled">★</span><% } %>
-                    <% for (int i = r.getScore(); i < 5; i++) { %><span class="star-empty">★</span><% } %>
+                <div class="text-base">
+                    <% for (int i = 0; i < r.getScore(); i++) { %><span class="text-amber-400">★</span><% } %>
+                    <% for (int i = r.getScore(); i < 5; i++) { %><span class="text-stone-300">★</span><% } %>
                 </div>
             </div>
             <% if (r.getContent() != null && !r.getContent().isEmpty()) { %>
-            <div class="review-content"><%=r.getContent()%></div>
+            <p class="text-sm text-ink-primary leading-relaxed mb-2"><%=r.getContent()%></p>
             <% } %>
-            <div class="review-meta">
+            <div class="text-xs text-ink-muted">
                 <% if ("sent".equals(view)) { %>评价对象：<%=r.getReviewedName()%>
                 <% } else { %>评价人：<%=r.getReviewerName()%><% } %>
                 &nbsp;&middot;&nbsp;<%=r.getCreatedAt()%>
@@ -179,7 +101,7 @@
         <% } %>
     </div>
     <% } %>
-</div>
+</main>
 
 </body>
 </html>

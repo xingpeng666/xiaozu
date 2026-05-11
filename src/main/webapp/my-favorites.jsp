@@ -17,257 +17,261 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的收藏 — 民大二手交易平台</title>
+    <title>我的收藏 - 民大二手交易平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d' },
+                        accent: { DEFAULT: '#f97316', hover: '#ea580c' },
+                        surface: { DEFAULT: '#fafaf9', raised: '#ffffff' },
+                        ink: { primary: '#1c1917', secondary: '#44403c', muted: '#78716c', faint: '#a8a29e' }
+                    },
+                    fontFamily: {
+                        display: ['Outfit', 'sans-serif'],
+                        body: ['Noto Sans SC', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        :root {
-            --bg:         #f4f3ef;
-            --surface:    #ffffff;
-            --border:     rgba(0,0,0,0.09);
-            --text:       #1a1a1a;
-            --text-muted: #737373;
-            --primary:    #0b6e63;
-            --primary-h:  #085c52;
-            --primary-hl: #d0eae7;
-            --danger:     #dc2626;
-            --danger-hl:  #fee2e2;
-            --success-bg: #f0fdf4;
-            --success-bd: #bbf7d0;
-            --success-tx: #15803d;
-            --radius:     12px;
-            --font:       'Plus Jakarta Sans','PingFang SC','Microsoft YaHei',sans-serif;
-            --shadow:     0 2px 12px rgba(0,0,0,0.06);
-        }
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { -webkit-font-smoothing: antialiased; }
-        body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100dvh; }
+        .hover-lift { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease; }
+        .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
+        .btn-press { transition: transform 0.15s ease; }
+        .btn-press:active { transform: scale(0.97); }
+        .img-zoom { transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .img-zoom:hover { transform: scale(1.1); }
 
-        .nav {
-            height: 56px; background: var(--surface);
-            border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 28px; position: sticky; top: 0; z-index: 100;
+        .card-enter {
+            animation: cardIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
         }
-        .nav-brand {
-            display: flex; align-items: center; gap: 9px;
-            font-size: 16px; font-weight: 700; color: var(--primary); text-decoration: none;
-        }
-        .nav-links { display: flex; align-items: center; gap: 4px; }
-        .nav-links a {
-            font-size: 13.5px; font-weight: 500; color: var(--text-muted);
-            text-decoration: none; padding: 6px 11px; border-radius: 7px;
-            transition: background 0.15s, color 0.15s;
-        }
-        .nav-links a:hover { background: var(--primary-hl); color: var(--primary); }
-        .nav-links a.active { background: var(--primary-hl); color: var(--primary); }
-        .nav-links .btn-logout { margin-left: 6px; padding: 6px 14px; background: var(--primary); color: #fff; border-radius: 7px; }
-        .nav-links .btn-logout:hover { background: var(--primary-h); color: #fff; }
-
-        .container { max-width: 1080px; margin: 36px auto; padding: 0 16px 48px; }
-        .page-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 24px; }
-        .page-header h1 { font-size: 22px; font-weight: 700; }
-        .page-header .count { font-size: 13.5px; color: var(--text-muted); }
-
-        .alert-success { background: var(--success-bg); border: 1px solid var(--success-bd); color: var(--success-tx); padding: 11px 14px; border-radius: 8px; font-size: 13.5px; margin-bottom: 18px; }
-
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 18px;
-        }
-        .product-card {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius); box-shadow: var(--shadow);
-            overflow: hidden; display: flex; flex-direction: column;
-            transition: box-shadow 0.18s, transform 0.15s;
-        }
-        .product-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.1); transform: translateY(-2px); }
-
-        .card-cover { position: relative; }
-        .card-cover img { width: 100%; height: 170px; object-fit: cover; display: block; background: #f0f0ee; }
-        .no-cover { width: 100%; height: 170px; background: #f0f0ee; display: flex; align-items: center; justify-content: center; font-size: 36px; color: #ccc; }
-        .sold-mask {
-            position: absolute; inset: 0;
-            background: rgba(0,0,0,0.42);
-            display: flex; align-items: center; justify-content: center;
-            color: #fff; font-size: 18px; font-weight: 700; letter-spacing: 2px;
-            pointer-events: none;
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        .card-body { padding: 12px 14px; flex: 1; display: flex; flex-direction: column; gap: 4px; }
-        .card-title {
-            font-size: 14.5px; font-weight: 600;
-            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        .heart-beat {
+            animation: heartBeat 0.6s ease-in-out;
         }
-        .card-price { font-size: 17px; font-weight: 700; color: var(--danger); }
-        .card-price .orig {
-            font-size: 12px; font-weight: 400; color: #b0b0b0;
-            text-decoration: line-through; margin-left: 6px;
+        @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.2); }
+            50% { transform: scale(0.95); }
+            75% { transform: scale(1.1); }
         }
-        .card-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 
-        .card-actions {
-            padding: 10px 14px; border-top: 1px solid var(--border);
-            display: flex; gap: 8px;
+        .price-tag {
+            position: relative; overflow: hidden;
         }
-        .btn {
-            display: inline-block; padding: 7px 14px; border-radius: 7px;
-            text-decoration: none; font-size: 13px; font-weight: 600;
-            font-family: var(--font); border: 1.5px solid var(--border);
-            background: var(--surface); color: var(--text-muted);
-            cursor: pointer; transition: all 0.15s;
+        .price-tag::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transform: translateX(-100%);
+            animation: shimmer 2s infinite;
         }
-        .btn:hover { border-color: var(--primary); color: var(--primary); }
-        .btn-unfav { background: var(--danger-hl); color: var(--danger); border-color: #fca5a5; }
-        .btn-unfav:hover { background: #fecaca; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        @keyframes shimmer {
+            100% { transform: translateX(100%); }
+        }
 
-        .empty {
-            text-align: center; padding: 72px 20px;
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius); box-shadow: var(--shadow);
+        .sold-overlay {
+            backdrop-filter: blur(2px);
         }
-        .empty-icon { font-size: 48px; margin-bottom: 14px; }
-        .empty p { font-size: 14.5px; color: var(--text-muted); margin-bottom: 20px; }
-        .btn-primary {
-            display: inline-block; padding: 10px 24px;
-            background: var(--primary); color: #fff;
-            border-radius: 8px; font-size: 14px; font-weight: 600;
-            text-decoration: none; transition: background 0.15s;
-        }
-        .btn-primary:hover { background: var(--primary-h); }
 
-        /* Pagination */
-        .pagination {
-            display: flex; justify-content: center; align-items: center;
-            gap: 6px; margin-top: 32px; flex-wrap: wrap;
+        @media (prefers-reduced-motion: reduce) {
+            .hover-lift, .btn-press, .img-zoom, .card-enter, .heart-beat { animation: none; transition: none; }
+            .hover-lift:hover, .img-zoom:hover { transform: none; }
+            .btn-press:active { transform: none; }
+            .price-tag::after { animation: none; }
         }
-        .page-btn {
-            min-width: 36px; height: 36px; padding: 0 10px;
-            border-radius: 8px; border: 1px solid var(--border);
-            background: var(--surface); color: var(--text-muted);
-            font-size: 14px; font-weight: 500;
-            display: inline-flex; align-items: center; justify-content: center;
-            transition: all 0.15s; text-decoration: none;
-        }
-        .page-btn:hover { border-color: var(--primary); color: var(--primary); }
-        .page-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-        .page-btn.disabled { pointer-events: none; opacity: 0.35; }
-        .page-ellipsis { color: var(--text-faint); padding: 0 4px; }
-        .page-info { font-size: 12px; color: var(--text-muted); margin-left: 8px; }
     </style>
 </head>
-<body>
+<body class="font-body min-h-screen bg-gradient-to-br from-stone-50 via-brand-50/20 to-stone-100">
 
-<nav class="nav">
-    <a class="nav-brand" href="${pageContext.request.contextPath}/index.jsp">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-            <line x1="3" y1="6" x2="21" y2="6"/>
-            <path d="M16 10a4 4 0 0 1-8 0"/>
-        </svg>
-        民大二手交易平台
-    </a>
-    <div class="nav-links">
-        <a href="${pageContext.request.contextPath}/index.jsp">首页</a>
-        <a href="${pageContext.request.contextPath}/product-list">浏览商品</a>
-        <a href="${pageContext.request.contextPath}/my-favorites" class="active">我的收藏</a>
-        <a href="${pageContext.request.contextPath}/my-products">我的商品</a>
-        <a href="${pageContext.request.contextPath}/messages">私信</a>
-        <a href="${pageContext.request.contextPath}/logout" class="btn-logout">退出</a>
+<jsp:include page="/common/header.jsp">
+    <jsp:param name="active" value="favorites"/>
+</jsp:include>
+
+<!-- 主内容 -->
+<main class="max-w-6xl mx-auto px-4 py-8">
+    <!-- 标题区 -->
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="font-display text-3xl font-bold text-ink-primary flex items-center gap-3">
+                <span class="w-10 h-10 bg-gradient-to-br from-red-400 to-red-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/20">
+                    <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                </span>
+                我的收藏
+            </h1>
+            <p class="text-ink-muted mt-1">共 <span class="text-ink-primary font-medium"><%= favoriteList != null ? favoriteList.size() : 0 %></span> 件商品</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <select class="px-4 py-2 bg-surface-raised border border-stone-200 rounded-xl text-sm text-ink-primary focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all outline-none">
+                <option>按收藏时间</option>
+                <option>按价格升序</option>
+                <option>按价格降序</option>
+            </select>
+        </div>
     </div>
-</nav>
 
-<div class="container">
-    <div class="page-header">
-        <h1>我的收藏</h1>
-        <span class="count">共 <%= favoriteList != null ? favoriteList.size() : 0 %> 件商品</span>
-    </div>
-
+    <!-- 成功提示 -->
     <% if (successMsg != null) { %>
-    <div class="alert-success"><%= successMsg %></div>
+    <div class="bg-brand-50 border border-brand-200 rounded-lg px-4 py-3 mb-6 flex items-center gap-3">
+        <svg class="w-5 h-5 text-brand-600 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span class="text-brand-700 text-sm"><%= successMsg %></span>
+    </div>
     <% } %>
 
     <% if (favoriteList == null || favoriteList.isEmpty()) { %>
-    <div class="empty">
-        <div class="empty-icon">❤️</div>
-        <p>还没有收藏任何商品</p>
-        <a href="${pageContext.request.contextPath}/product-list" class="btn-primary">去浏览商品</a>
+    <!-- 空状态 -->
+    <div class="bg-surface-raised border border-stone-200 rounded-2xl p-16 text-center shadow-sm">
+        <div class="w-16 h-16 mx-auto mb-4 bg-red-50 rounded-full flex items-center justify-center">
+            <svg class="w-8 h-8 text-red-400" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+        </div>
+        <p class="text-ink-muted text-sm mb-4">还没有收藏任何商品</p>
+        <a href="${pageContext.request.contextPath}/product-list" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-brand-500 to-brand-600 text-white font-medium rounded-lg hover:from-brand-600 hover:to-brand-700 transition-all btn-press shadow-lg shadow-brand-500/20">
+            去浏览商品
+        </a>
     </div>
     <% } else { %>
-    <div class="product-grid">
-        <% for (Product p : favoriteList) {
-            boolean isSold    = "SOLD".equals(p.getProductStatus());
-            boolean isOffline = "OFF_SHELF".equals(p.getProductStatus());
+    <!-- 商品网格 -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+        <%
+            int delay = 0;
+            for (Product p : favoriteList) {
+                boolean isSold    = "SOLD".equals(p.getProductStatus());
+                boolean isOffline = "OFF_SHELF".equals(p.getProductStatus());
+                String delayStyle = "animation-delay: " + String.format("%.2f", delay * 0.05) + "s";
+                delay++;
         %>
-        <div class="product-card" id="card-<%= p.getProductId() %>">
-            <div class="card-cover">
+        <div class="card-enter bg-surface-raised border border-stone-200 rounded-2xl overflow-hidden hover-lift flex flex-col group <%= (isSold || isOffline) ? "opacity-75" : "" %>" style="<%= delayStyle %>" id="card-<%= p.getProductId() %>">
+            <div class="relative overflow-hidden">
                 <% if (p.getCoverImageUrl() != null && !p.getCoverImageUrl().isEmpty()) { %>
-                    <img src="<%= p.getCoverImageUrl() %>" alt="<%= p.getTitle() %>" loading="lazy">
+                    <img src="<%= p.getCoverImageUrl() %>" alt="<%= p.getTitle() %>" class="w-full h-40 object-cover <%= (isSold || isOffline) ? "" : "img-zoom" %>" loading="lazy">
                 <% } else { %>
-                    <div class="no-cover">📦</div>
+                    <div class="w-full h-40 bg-stone-100 flex items-center justify-center">
+                        <svg class="w-10 h-10 text-stone-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                    </div>
                 <% } %>
-                <% if (isSold) { %><div class="sold-mask">已售出</div><% } %>
-                <% if (isOffline) { %><div class="sold-mask" style="background:rgba(0,0,0,0.3);">已下架</div><% } %>
-            </div>
-            <div class="card-body">
-                <div class="card-title" title="<%= p.getTitle() %>"><%= p.getTitle() %></div>
-                <div class="card-price">
-                    &yen;<%= p.getPrice() %>
-                    <% if (p.getOriginalPrice() != null) { %><span class="orig">&yen;<%= p.getOriginalPrice() %></span><% } %>
+                <% if (isSold) { %>
+                <div class="sold-overlay absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <span class="px-4 py-2 bg-black/60 text-white font-bold text-sm rounded-full backdrop-blur-sm">已售出</span>
                 </div>
-                <div class="card-meta">
-                    <%= p.getCategoryName() != null ? p.getCategoryName() : "未分类" %>
-                    &nbsp;&middot;&nbsp;<%= p.getSellerName() != null ? p.getSellerName() : "未知" %>
+                <% } %>
+                <% if (isOffline) { %>
+                <div class="sold-overlay absolute inset-0 bg-black/30 flex items-center justify-center">
+                    <span class="px-4 py-2 bg-black/60 text-white font-bold text-sm rounded-full backdrop-blur-sm">已下架</span>
                 </div>
+                <% } %>
+                <!-- 收藏按钮 -->
+                <button onclick="unfavorite(<%= p.getProductId() %>, this)" class="absolute top-3 right-3 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform heart-beat">
+                    <svg class="w-5 h-5 text-red-500 fill-current" viewBox="0 0 24 24">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                </button>
+                <!-- 分类标签 -->
+                <% if (p.getCategoryName() != null) { %>
+                <div class="absolute bottom-3 left-3">
+                    <span class="px-2.5 py-1 bg-brand-500/90 backdrop-blur-sm text-white text-xs font-medium rounded-full"><%= p.getCategoryName() %></span>
+                </div>
+                <% } %>
             </div>
-            <div class="card-actions">
-                <a href="${pageContext.request.contextPath}/product-detail?id=<%= p.getProductId() %>" class="btn">查看详情</a>
-                <button class="btn btn-unfav" onclick="unfavorite(<%= p.getProductId() %>, this)">取消收藏</button>
+            <div class="p-4 flex-1 flex flex-col">
+                <h3 class="text-sm font-medium <% if (isSold || isOffline) { %>text-ink-secondary<% } else { %>text-ink-primary<% } %> truncate <% if (!isSold && !isOffline) { %>group-hover:text-brand-600 transition-colors<% } %>" title="<%= p.getTitle() %>"><%= p.getTitle() %></h3>
+                <div class="mt-2">
+                    <% if (isSold || isOffline) { %>
+                        <span class="text-lg font-bold text-ink-muted">&yen;<%= p.getPrice() %></span>
+                    <% } else { %>
+                        <span class="price-tag text-xl font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded inline-block">&yen;<%= p.getPrice() %></span>
+                    <% } %>
+                    <% if (p.getOriginalPrice() != null && !isSold && !isOffline) { %>
+                        <span class="text-xs text-ink-faint line-through ml-1">&yen;<%= p.getOriginalPrice() %></span>
+                    <% } %>
+                </div>
+                <p class="text-xs text-ink-muted mt-2 flex items-center gap-1">
+                    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    <%= p.getSellerName() != null ? p.getSellerName() : "未知" %>
+                </p>
+            </div>
+            <div class="px-4 py-3 border-t border-stone-100 flex gap-2">
+                <a href="${pageContext.request.contextPath}/product-detail?id=<%= p.getProductId() %>" class="flex-1 py-2 <% if (isSold || isOffline) { %>bg-stone-100 text-ink-muted<% } else { %>bg-gradient-to-r from-brand-500 to-brand-600 text-white hover:from-brand-600 hover:to-brand-700 shadow-sm<% } %> text-xs font-medium rounded-xl text-center transition-all btn-press">查看详情</a>
+                <button onclick="unfavorite(<%= p.getProductId() %>, this)" class="px-3 py-2 bg-red-50 text-red-600 text-xs font-medium rounded-xl hover:bg-red-100 transition-colors btn-press border border-red-200/50">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    </svg>
+                </button>
             </div>
         </div>
         <% } %>
     </div>
 
-    <!-- Pagination -->
+    <!-- 分页 -->
     <%
         int currentPage = request.getAttribute("currentPage") != null ? (int) request.getAttribute("currentPage") : 1;
         int totalPages = request.getAttribute("totalPages") != null ? (int) request.getAttribute("totalPages") : 1;
         int totalCount = request.getAttribute("totalCount") != null ? (int) request.getAttribute("totalCount") : 0;
         if (totalPages > 1) {
     %>
-    <nav class="pagination" aria-label="分页">
-        <a class="page-btn <%= currentPage == 1 ? "disabled" : "" %>" href="${pageContext.request.contextPath}/my-favorites?page=<%= currentPage - 1 %>" aria-label="上一页">&lsaquo;</a>
+    <nav class="flex justify-center items-center gap-2 mt-10" aria-label="分页">
+        <a class="w-10 h-10 flex items-center justify-center border border-stone-200 rounded-xl text-ink-muted hover:border-brand-300 hover:text-brand-600 transition-all btn-press <%= currentPage == 1 ? "pointer-events-none opacity-35" : "" %>" href="${pageContext.request.contextPath}/my-favorites?page=<%= currentPage - 1 %>" aria-label="上一页">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+            </svg>
+        </a>
         <%
             int startP = Math.max(1, currentPage - 2);
             int endP = Math.min(totalPages, currentPage + 2);
         %>
         <% if (startP > 1) { %>
-            <a class="page-btn" href="${pageContext.request.contextPath}/my-favorites?page=1">1</a>
-            <% if (startP > 2) { %><span class="page-ellipsis">…</span><% } %>
+            <a class="w-10 h-10 flex items-center justify-center border border-stone-200 rounded-xl text-ink-muted hover:border-brand-300 hover:text-brand-600 transition-all btn-press" href="${pageContext.request.contextPath}/my-favorites?page=1">1</a>
+            <% if (startP > 2) { %><span class="text-xs text-ink-muted px-1">...</span><% } %>
         <% } %>
         <% for (int p = startP; p <= endP; p++) { %>
-            <a class="page-btn <%= p == currentPage ? "active" : "" %>" href="${pageContext.request.contextPath}/my-favorites?page=<%= p %>"><%= p %></a>
+            <a class="w-10 h-10 flex items-center justify-center <%= p == currentPage ? "bg-gradient-to-r from-brand-500 to-brand-600 text-white rounded-xl font-semibold shadow-lg shadow-brand-500/20" : "border border-stone-200 rounded-xl text-ink-muted hover:border-brand-300 hover:text-brand-600 transition-all btn-press" %>" href="${pageContext.request.contextPath}/my-favorites?page=<%= p %>"><%= p %></a>
         <% } %>
         <% if (endP < totalPages) { %>
-            <% if (endP < totalPages - 1) { %><span class="page-ellipsis">…</span><% } %>
-            <a class="page-btn" href="${pageContext.request.contextPath}/my-favorites?page=<%= totalPages %>"><%= totalPages %></a>
+            <% if (endP < totalPages - 1) { %><span class="text-xs text-ink-muted px-1">...</span><% } %>
+            <a class="w-10 h-10 flex items-center justify-center border border-stone-200 rounded-xl text-ink-muted hover:border-brand-300 hover:text-brand-600 transition-all btn-press" href="${pageContext.request.contextPath}/my-favorites?page=<%= totalPages %>"><%= totalPages %></a>
         <% } %>
-        <a class="page-btn <%= currentPage == totalPages ? "disabled" : "" %>" href="${pageContext.request.contextPath}/my-favorites?page=<%= currentPage + 1 %>" aria-label="下一页">&rsaquo;</a>
-        <span class="page-info">共 <%= totalCount %> 件</span>
+        <a class="w-10 h-10 flex items-center justify-center border border-stone-200 rounded-xl text-ink-muted hover:border-brand-300 hover:text-brand-600 transition-all btn-press <%= currentPage == totalPages ? "pointer-events-none opacity-35" : "" %>" href="${pageContext.request.contextPath}/my-favorites?page=<%= currentPage + 1 %>" aria-label="下一页">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"/>
+            </svg>
+        </a>
+        <span class="text-xs text-ink-muted ml-2">共 <%= totalCount %> 件</span>
     </nav>
     <% } %>
 
     <% } %>
-</div>
+</main>
 
 <script>
 function unfavorite(productId, btn) {
     if (!confirm('确定取消收藏吗？')) return;
     btn.disabled = true;
-    btn.textContent = '处理中…';
+    var originalHtml = btn.innerHTML;
+    btn.innerHTML = '<span class="animate-spin inline-block w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full"></span>';
     fetch('${pageContext.request.contextPath}/favorite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -286,13 +290,13 @@ function unfavorite(productId, btn) {
         } else {
             alert(data.msg || '操作失败');
             btn.disabled = false;
-            btn.textContent = '取消收藏';
+            btn.innerHTML = originalHtml;
         }
     })
     .catch(function(){
         alert('网络错误，请重试');
         btn.disabled = false;
-        btn.textContent = '取消收藏';
+        btn.innerHTML = originalHtml;
     });
 }
 </script>

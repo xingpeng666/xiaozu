@@ -8,6 +8,7 @@
     User loginUser  = (User) session.getAttribute("loginUser");
     String keyword  = request.getAttribute("keyword") != null ? (String) request.getAttribute("keyword") : "";
     String catId    = request.getAttribute("categoryId") != null ? (String) request.getAttribute("categoryId") : "";
+    String catName  = request.getAttribute("categoryName") != null ? (String) request.getAttribute("categoryName") : "";
     List<Map<String, Object>> categories = (List<Map<String, Object>>) request.getAttribute("categories");
     if (categories == null) categories = new java.util.ArrayList<>();
     int currentPage = request.getAttribute("currentPage") != null ? (int) request.getAttribute("currentPage") : 1;
@@ -19,516 +20,217 @@
     String errorMsg = (String) session.getAttribute("errorMsg");
     if (errorMsg != null) session.removeAttribute("errorMsg");
 
-    int unreadNotifyCount = 0;
-    if (loginUser != null) {
-        try {
-            java.sql.Connection nConn = com.minzu.util.DBUtil.getConnection();
-            java.sql.PreparedStatement nPs = nConn.prepareStatement("SELECT COUNT(*) FROM notifications WHERE user_id=? AND is_read=0");
-            nPs.setInt(1, loginUser.getUserId());
-            java.sql.ResultSet nRs = nPs.executeQuery();
-            if (nRs.next()) unreadNotifyCount = nRs.getInt(1);
-            nRs.close(); nPs.close(); nConn.close();
-        } catch (Exception ignore) {}
-    }
 %>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>浏览商品 — 民大二手交易平台</title>
+    <title>商品列表 - 民大二手交易平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d' },
+                        accent: { DEFAULT: '#f97316', hover: '#ea580c' },
+                        surface: { DEFAULT: '#fafaf9', raised: '#ffffff' },
+                        ink: { primary: '#1c1917', secondary: '#44403c', muted: '#78716c', faint: '#a8a29e' }
+                    },
+                    fontFamily: {
+                        display: ['Outfit', 'sans-serif'],
+                        body: ['Noto Sans SC', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        :root {
-            --bg:         #f4f3ef;
-            --surface:    #ffffff;
-            --border:     rgba(0,0,0,0.08);
-            --text:       #1a1a1a;
-            --text-muted: #737373;
-            --text-faint: #b0b0b0;
-            --primary:    #0b6e63;
-            --primary-h:  #085c52;
-            --primary-hl: #d0eae7;
-            --price-color:#c2410c;
-            --radius-sm:  8px;
-            --radius:     14px;
-            --shadow-sm:  0 2px 8px rgba(0,0,0,0.05);
-            --shadow:     0 8px 28px rgba(0,0,0,0.08);
-            --font:       'Plus Jakarta Sans','PingFang SC','Microsoft YaHei',sans-serif;
-            --nav-h:      60px;
-        }
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { -webkit-font-smoothing: antialiased; }
-        body { font-family: var(--font); background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.6; min-height: 100dvh; }
-        a { text-decoration: none; color: inherit; }
-        button { cursor: pointer; font-family: var(--font); }
-        img { display: block; max-width: 100%; }
+        .hover-lift { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease; }
+        .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
+        .btn-press { transition: transform 0.15s ease; }
+        .btn-press:active { transform: scale(0.97); }
+        .img-zoom { transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .img-zoom:hover { transform: scale(1.08); }
 
-        /* NAV */
-        .nav {
-            height: var(--nav-h);
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 28px;
-            position: sticky; top: 0; z-index: 100;
+        .card-enter {
+            animation: cardIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
         }
-        .nav-brand { display: flex; align-items: center; gap: 9px; }
-        .nav-logo {
-            width: 34px; height: 34px;
-            background: var(--primary);
-            border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            color: #fff; flex-shrink: 0;
-        }
-        .nav-brand-name { font-size: 15px; font-weight: 700; }
-        .nav-links { display: flex; align-items: center; gap: 2px; list-style: none; }
-        .nav-links a {
-            font-size: 14px; font-weight: 500; color: var(--text-muted);
-            padding: 7px 12px; border-radius: 7px;
-            transition: color 0.15s, background 0.15s;
-            display: flex; align-items: center; gap: 5px; position: relative;
-        }
-        .nav-links a:hover { color: var(--text); background: var(--bg); }
-        .nav-links a.active { color: var(--primary); background: var(--primary-hl); }
-        .notif-badge {
-            position: absolute; top: 2px; right: 2px;
-            background: #ef4444; color: #fff;
-            border-radius: 10px; font-size: 9px; line-height: 1;
-            padding: 2px 4px; font-weight: 700; min-width: 14px; text-align: center;
-        }
-        .nav-right { display: flex; align-items: center; gap: 10px; }
-        .logout-link {
-            font-size: 13px; color: var(--text-muted);
-            padding: 7px 10px; border-radius: 7px;
-            transition: color 0.15s, background 0.15s;
-        }
-        .logout-link:hover { color: #ef4444; background: #fff1f1; }
-        .btn-publish-nav {
-            padding: 8px 16px;
-            background: var(--primary); color: #fff;
-            border: none; border-radius: 7px;
-            font-size: 13px; font-weight: 600;
-            font-family: var(--font);
-            transition: background 0.15s;
-            display: flex; align-items: center; gap: 5px;
-        }
-        .btn-publish-nav:hover { background: var(--primary-h); }
-
-        /* CONTAINER */
-        .container { max-width: 1200px; margin: 0 auto; padding: 28px 20px 64px; }
-
-        /* ALERTS */
-        .alert {
-            padding: 12px 16px; border-radius: 9px;
-            font-size: 14px; margin-bottom: 18px;
-            display: flex; align-items: center; gap: 8px;
-        }
-        .alert-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; }
-        .alert-error   { background: #fff1f0; border: 1px solid #ffc5c5; color: #b91c1c; }
-
-        /* SEARCH BAR */
-        .search-bar {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 12px 16px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin-bottom: 14px;
-            box-shadow: var(--shadow-sm);
-            flex-wrap: wrap;
-        }
-        .search-input-wrap {
-            flex: 1; min-width: 200px;
-            position: relative;
-            display: flex; align-items: center;
-        }
-        .search-input-icon {
-            position: absolute; left: 11px;
-            color: var(--text-faint);
-            pointer-events: none;
-        }
-        .search-bar input[type=text] {
-            width: 100%;
-            padding: 9px 14px 9px 36px;
-            border: 1.5px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-size: 14px;
-            font-family: var(--font);
-            background: var(--bg);
-            color: var(--text);
-            outline: none;
-            transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
-        }
-        .search-bar input[type=text]:focus {
-            border-color: var(--primary);
-            background: #fff;
-            box-shadow: 0 0 0 3px rgba(11,110,99,0.1);
-        }
-        .search-bar input::placeholder { color: #c0c0c0; }
-        .btn-search {
-            padding: 9px 22px;
-            background: var(--primary); color: #fff;
-            border: none; border-radius: var(--radius-sm);
-            font-size: 14px; font-weight: 600;
-            font-family: var(--font);
-            transition: background 0.15s;
-            display: flex; align-items: center; gap: 6px;
-            white-space: nowrap;
-        }
-        .btn-search:hover { background: var(--primary-h); }
-        .btn-reset {
-            padding: 9px 14px;
-            background: transparent; color: var(--text-muted);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-size: 14px;
-            font-family: var(--font);
-            transition: border-color 0.15s, color 0.15s;
-            white-space: nowrap;
-        }
-        .btn-reset:hover { border-color: var(--primary); color: var(--primary); }
-
-        /* SORT SELECT */
-        .sort-select {
-            padding: 9px 14px;
-            border: 1.5px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-size: 14px;
-            font-family: var(--font);
-            background: var(--bg);
-            color: var(--text);
-            outline: none;
-            cursor: pointer;
-            transition: border-color 0.18s;
-            white-space: nowrap;
-        }
-        .sort-select:focus {
-            border-color: var(--primary);
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        /* PRICE FILTER */
-        .price-filter {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .price-input {
-            width: 80px;
-            padding: 9px 10px;
-            border: 1.5px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-size: 14px;
-            font-family: var(--font);
-            background: var(--bg);
-            color: var(--text);
-            outline: none;
-            transition: border-color 0.18s;
-        }
-        .price-input:focus {
-            border-color: var(--primary);
-        }
-        .price-input::placeholder {
-            color: #c0c0c0;
-        }
-        .price-separator {
-            color: var(--text-faint);
-            font-size: 14px;
+        .search-glow:focus-within {
+            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15), 0 8px 24px rgba(0,0,0,0.1);
         }
 
-        /* FILTER ROW */
-        .filter-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            gap: 10px;
-            flex-wrap: wrap;
+        .category-tag {
+            transition: all 0.2s ease;
         }
-        .cat-tags { display: flex; gap: 8px; flex-wrap: wrap; }
-        .cat-tag {
-            display: inline-flex; align-items: center; gap: 5px;
-            padding: 5px 14px;
-            border-radius: 99px;
-            font-size: 12.5px; font-weight: 600;
-            border: 1.5px solid;
-            transition: opacity 0.15s;
-        }
-        .cat-tag:hover { opacity: 0.75; }
-        .cat-tag-textbook { background: #fffbeb; color: #b45309; border-color: #fcd34d; }
-        .cat-tag-graduation { background: #f0fdf4; color: #15803d; border-color: #86efac; }
-        .cat-tag-active {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
-        .cat-tag-default {
-            background: var(--surface);
-            color: var(--text-muted);
-            border-color: var(--border);
-        }
-        .cat-tag-default:hover {
-            color: var(--primary);
-            border-color: var(--primary);
-            background: var(--primary-hl);
-            opacity: 1;
-        }
-        .result-info { font-size: 13px; color: var(--text-muted); white-space: nowrap; }
-        .result-info strong { color: var(--text); }
-
-        /* PRODUCT GRID */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 16px;
-        }
-        .product-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            overflow: hidden;
-            transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
-            display: flex; flex-direction: column;
-        }
-        .product-card:hover {
-            box-shadow: var(--shadow);
-            transform: translateY(-3px);
+        .category-tag.active {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
             border-color: transparent;
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
         }
-        .product-img {
-            width: 100%; aspect-ratio: 4/3;
-            object-fit: cover;
-            background: #f3f4f6;
-        }
-        .no-img {
-            width: 100%; aspect-ratio: 4/3;
-            background: #f3f4f6;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            color: var(--text-faint);
-            font-size: 13px; gap: 10px;
-        }
-        .no-img-icon { color: #d1d5db; }
-        .card-body { padding: 15px; flex: 1; display: flex; flex-direction: column; }
-        .product-title {
-            font-size: 14px; font-weight: 600; color: var(--text);
-            line-height: 1.45; margin-bottom: 10px;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
+
+        .price-tag {
+            position: relative;
             overflow: hidden;
         }
-        .price-row { display: flex; align-items: baseline; gap: 3px; margin-bottom: 10px; }
-        .price-symbol { font-size: 13px; color: var(--price-color); font-weight: 700; }
-        .price-num { font-size: 21px; font-weight: 700; color: var(--price-color); line-height: 1; }
-        .meta-grid {
-            display: grid; grid-template-columns: 1fr 1fr;
-            gap: 4px 8px; margin-bottom: 14px;
+        .price-tag::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transform: translateX(-100%);
+            animation: shimmer 2.5s infinite;
         }
-        .meta-item {
-            font-size: 12px; color: var(--text-muted);
-            display: flex; align-items: center; gap: 4px;
+        @keyframes shimmer {
+            100% { transform: translateX(100%); }
         }
-        .meta-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--text-faint); flex-shrink: 0; }
-        .card-footer {
-            margin-top: auto;
-            display: flex; align-items: center;
-            justify-content: space-between;
-            padding-top: 12px;
-            border-top: 1px solid var(--border);
-        }
-        .btn-detail {
-            font-size: 13px; font-weight: 600;
-            color: var(--primary);
-            padding: 7px 14px;
-            border-radius: 7px;
-            background: var(--primary-hl);
-            transition: background 0.15s;
-        }
-        .btn-detail:hover { background: #b5dad6; }
-        .btn-delete {
-            font-size: 12px; color: #dc2626;
-            background: #fff1f1;
-            border: 1px solid #fecaca;
-            padding: 6px 11px;
-            border-radius: 7px;
-            font-family: var(--font);
-            transition: background 0.15s;
-        }
-        .btn-delete:hover { background: #fee2e2; }
 
-        /* EMPTY STATE */
-        .empty-state {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 72px 24px;
+        .filter-dropdown {
+            animation: dropIn 0.2s ease;
+        }
+        @keyframes dropIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .heart-btn:hover svg {
+            animation: heartBeat 0.6s ease-in-out;
+        }
+        @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.2); }
+            50% { transform: scale(0.95); }
+            75% { transform: scale(1.1); }
+        }
+
+        .notif-badge {
+            background: #ef4444;
+            color: #fff;
+            border-radius: 10px;
+            font-size: 10px;
+            line-height: 1;
+            padding: 1px 5px;
+            font-weight: 700;
+            min-width: 16px;
             text-align: center;
-            color: var(--text-muted);
         }
-        .empty-icon { margin: 0 auto 16px; color: #d1d5db; }
-        .empty-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
-        .empty-desc { font-size: 14px; }
 
-        /* PAGINATION */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 6px;
-            margin-top: 40px;
-            flex-wrap: wrap;
-        }
-        .page-btn {
-            min-width: 36px; height: 36px;
-            padding: 0 10px;
-            border-radius: 8px;
-            border: 1.5px solid var(--border);
-            background: var(--surface);
-            color: var(--text-muted);
-            font-size: 14px; font-weight: 500;
-            display: inline-flex; align-items: center; justify-content: center;
-            transition: all 0.15s;
-            font-family: var(--font);
-            cursor: pointer;
-        }
-        .page-btn:hover { border-color: var(--primary); color: var(--primary); }
-        .page-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-        .page-btn.disabled { pointer-events: none; opacity: 0.35; }
-        .page-info { font-size: 12px; color: var(--text-faint); padding: 0 6px; }
-        .page-ellipsis { color: var(--text-faint); padding: 0 4px; }
-
-        @media (max-width: 768px) {
-            .nav { padding: 0 14px; }
-            .nav-links { display: none; }
-            .grid { grid-template-columns: 1fr 1fr; }
-        }
-        @media (max-width: 480px) {
-            .grid { grid-template-columns: 1fr; }
-            .filter-row { flex-direction: column; align-items: flex-start; }
+        @media (prefers-reduced-motion: reduce) {
+            .hover-lift, .btn-press, .img-zoom, .card-enter, .filter-dropdown { animation: none; transition: none; }
+            .hover-lift:hover, .img-zoom:hover { transform: none; }
+            .btn-press:active { transform: none; }
+            .price-tag::after { animation: none; }
         }
     </style>
 </head>
-<body>
+<body class="font-body min-h-screen bg-gradient-to-br from-stone-50 via-brand-50/20 to-stone-100">
 
-<nav class="nav">
-    <div class="nav-brand">
-        <div class="nav-logo" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                <line x1="3" y1="6" x2="21" y2="6"/>
-                <path d="M16 10a4 4 0 0 1-8 0"/>
-            </svg>
-        </div>
-        <span class="nav-brand-name">民大二手平台</span>
-    </div>
-    <ul class="nav-links">
-        <li><a href="${pageContext.request.contextPath}/index.jsp">首页</a></li>
-        <li><a href="${pageContext.request.contextPath}/pickup-locations.jsp">自提点</a></li>
-        <li><a href="${pageContext.request.contextPath}/product-list" class="active">浏览商品</a></li>
-        <% if (loginUser != null) { %>
-        <li><a href="${pageContext.request.contextPath}/my-products">我的商品</a></li>
-        <li><a href="${pageContext.request.contextPath}/orders">我的订单</a></li>
-        <li><a href="${pageContext.request.contextPath}/messages">私信</a></li>
-        <li><a href="${pageContext.request.contextPath}/my-favorites">收藏</a></li>
-        <li>
-            <a href="${pageContext.request.contextPath}/notifications" style="position:relative;">
-                通知
-                <% if (unreadNotifyCount > 0) { %>
-                <span class="notif-badge"><%= unreadNotifyCount %></span>
-                <% } %>
-            </a>
-        </li>
-        <% } %>
-    </ul>
-    <div class="nav-right">
-        <% if (loginUser != null) { %>
-            <a href="${pageContext.request.contextPath}/publish-product">
-                <button class="btn-publish-nav">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    发布商品
-                </button>
-            </a>
-            <a href="${pageContext.request.contextPath}/logout" class="logout-link">退出</a>
-        <% } else { %>
-            <a href="${pageContext.request.contextPath}/login" class="logout-link">登录</a>
-        <% } %>
-    </div>
-</nav>
+<jsp:include page="/common/header.jsp">
+    <jsp:param name="active" value="products"/>
+</jsp:include>
 
-<div class="container">
+<!-- Main content -->
+<main class="max-w-7xl mx-auto px-4 py-6">
 
+    <!-- Alerts -->
     <% if (successMsg != null) { %>
-    <div class="alert alert-success">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+    <div class="flex items-center gap-3 p-4 bg-brand-50 border border-brand-200 text-brand-700 rounded-xl text-sm mb-4">
+        <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         <%= successMsg %>
     </div>
     <% } %>
     <% if (errorMsg != null) { %>
-    <div class="alert alert-error">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+    <div class="flex items-center gap-3 p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm mb-4">
+        <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
         <%= errorMsg %>
     </div>
     <% } %>
 
-    <!-- Search Bar -->
-    <form class="search-bar" method="get" action="${pageContext.request.contextPath}/product-list">
-        <div class="search-input-wrap">
-            <span class="search-input-icon" aria-hidden="true">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            </span>
-            <input type="text" name="keyword" placeholder="搜索商品名称、分类…"
-                   value="<%= keyword != null ? keyword : "" %>" aria-label="搜索商品">
-        </div>
-        <div class="price-filter">
+    <!-- Search Form -->
+    <form method="get" action="${pageContext.request.contextPath}/product-list" class="bg-surface-raised rounded-2xl shadow-lg p-6 mb-6">
+        <div class="flex flex-col md:flex-row gap-4">
+            <!-- Search input -->
+            <div class="flex-1 relative search-glow rounded-xl transition-all">
+                <input
+                    type="text"
+                    name="keyword"
+                    placeholder="搜索商品名称、分类..."
+                    value="<%= keyword != null ? keyword : "" %>"
+                    class="w-full pl-12 pr-4 py-3.5 bg-surface-DEFAULT border border-stone-200 rounded-xl text-ink-primary placeholder:text-ink-faint focus:border-brand-500 focus:outline-none transition-all"
+                >
+                <svg class="w-5 h-5 text-ink-faint absolute left-4 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+            </div>
+            <!-- Min price -->
             <input type="number" name="minPrice" placeholder="最低价" min="0" step="0.01"
-                   value="<%= request.getAttribute("minPrice") != null ? request.getAttribute("minPrice") : "" %>" class="price-input">
-            <span class="price-separator">-</span>
+                   value="<%= request.getAttribute("minPrice") != null ? request.getAttribute("minPrice") : "" %>"
+                   class="px-4 py-3.5 bg-surface-DEFAULT border border-stone-200 rounded-xl text-ink-primary placeholder:text-ink-faint focus:border-brand-500 focus:outline-none transition-all w-28">
+            <span class="hidden md:flex items-center text-ink-faint">-</span>
+            <!-- Max price -->
             <input type="number" name="maxPrice" placeholder="最高价" min="0" step="0.01"
-                   value="<%= request.getAttribute("maxPrice") != null ? request.getAttribute("maxPrice") : "" %>" class="price-input">
+                   value="<%= request.getAttribute("maxPrice") != null ? request.getAttribute("maxPrice") : "" %>"
+                   class="px-4 py-3.5 bg-surface-DEFAULT border border-stone-200 rounded-xl text-ink-primary placeholder:text-ink-faint focus:border-brand-500 focus:outline-none transition-all w-28">
+            <!-- Sort -->
+            <select name="sort" class="px-4 py-3.5 bg-surface-DEFAULT border border-stone-200 rounded-xl text-ink-primary focus:border-brand-500 focus:outline-none transition-all" onchange="this.form.submit()">
+                <option value="newest" <%= "newest".equals(request.getAttribute("sort")) || request.getAttribute("sort") == null ? "selected" : "" %>>最新发布</option>
+                <option value="price_asc" <%= "price_asc".equals(request.getAttribute("sort")) ? "selected" : "" %>>价格从低到高</option>
+                <option value="price_desc" <%= "price_desc".equals(request.getAttribute("sort")) ? "selected" : "" %>>价格从高到低</option>
+                <option value="views" <%= "views".equals(request.getAttribute("sort")) ? "selected" : "" %>>浏览量最多</option>
+            </select>
+            <!-- Search button -->
+            <button type="submit" class="px-8 py-3.5 bg-gradient-to-r from-brand-500 to-brand-600 text-white font-display font-semibold rounded-xl hover:from-brand-600 hover:to-brand-700 transition-all btn-press shadow-lg shadow-brand-500/20 flex items-center gap-2">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                搜索
+            </button>
+            <!-- Clear filter -->
+            <% if ((keyword != null && !keyword.isEmpty()) || (request.getAttribute("minPrice") != null && !request.getAttribute("minPrice").toString().isEmpty()) || (request.getAttribute("maxPrice") != null && !request.getAttribute("maxPrice").toString().isEmpty())) { %>
+            <a href="${pageContext.request.contextPath}/product-list" class="px-6 py-3.5 bg-surface-DEFAULT border border-stone-200 rounded-xl text-ink-muted font-medium hover:border-brand-300 hover:text-brand-600 transition-all flex items-center gap-1 btn-press">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                清除
+            </a>
+            <% } %>
         </div>
-        <select name="sort" class="sort-select" onchange="this.form.submit()">
-            <option value="newest" <%= "newest".equals(request.getAttribute("sort")) || request.getAttribute("sort") == null ? "selected" : "" %>>最新发布</option>
-            <option value="price_asc" <%= "price_asc".equals(request.getAttribute("sort")) ? "selected" : "" %>>价格从低到高</option>
-            <option value="price_desc" <%= "price_desc".equals(request.getAttribute("sort")) ? "selected" : "" %>>价格从高到低</option>
-            <option value="views" <%= "views".equals(request.getAttribute("sort")) ? "selected" : "" %>>浏览量最多</option>
-        </select>
-        <button type="submit" class="btn-search">搜索</button>
-        <% if ((keyword != null && !keyword.isEmpty()) || (request.getAttribute("minPrice") != null && !request.getAttribute("minPrice").toString().isEmpty()) || (request.getAttribute("maxPrice") != null && !request.getAttribute("maxPrice").toString().isEmpty())) { %>
-        <a href="${pageContext.request.contextPath}/product-list"><button type="button" class="btn-reset">清除筛选</button></a>
-        <% } %>
     </form>
 
-    <!-- Filter Row: category tags + result count -->
-    <div class="filter-row">
-        <div class="cat-tags">
-            <!-- 全部 -->
+    <!-- Filter Row -->
+    <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <!-- Category tags -->
+        <div class="flex flex-wrap gap-2">
             <a href="${pageContext.request.contextPath}/product-list"
-               class="cat-tag <%= (catId == null || catId.isEmpty()) && request.getParameter("tag") == null ? "cat-tag-active" : "cat-tag-default" %>">
+               class="category-tag <%= (catId == null || catId.isEmpty()) && (catName == null || catName.isEmpty()) && request.getParameter("tag") == null ? "active" : "" %> px-4 py-2 bg-surface-DEFAULT border border-stone-200 text-sm font-medium rounded-full hover:border-brand-300 hover:text-brand-600 transition-all">
                 全部
             </a>
-            <!-- 动态分类 -->
             <% for (Map<String, Object> cat : categories) { %>
             <a href="${pageContext.request.contextPath}/product-list?categoryId=<%= cat.get("categoryId") %>"
-               class="cat-tag <%= String.valueOf(cat.get("categoryId")).equals(catId) ? "cat-tag-active" : "cat-tag-default" %>">
+               class="category-tag <%= String.valueOf(cat.get("categoryId")).equals(catId) || String.valueOf(cat.get("categoryName")).equals(catName) ? "active" : "" %> px-4 py-2 bg-surface-DEFAULT border border-stone-200 text-sm font-medium rounded-full hover:border-brand-300 hover:text-brand-600 transition-all">
                 <%= cat.get("categoryName") %>专区
             </a>
             <% } %>
-            <!-- 毕业季专区（特殊标签） -->
             <a href="${pageContext.request.contextPath}/product-list?tag=graduation"
-               class="cat-tag <%= "graduation".equals(request.getParameter("tag")) ? "cat-tag-active" : "cat-tag-default" %>">
+               class="category-tag <%= "graduation".equals(request.getParameter("tag")) ? "active" : "" %> px-4 py-2 bg-surface-DEFAULT border border-stone-200 text-sm font-medium rounded-full hover:border-brand-300 hover:text-brand-600 transition-all">
                 毕业季专区
             </a>
         </div>
-        <span class="result-info">
+
+        <!-- Result info -->
+        <span class="text-sm text-ink-muted">
             <% if (keyword != null && !keyword.isEmpty()) { %>
-                "<strong><%= keyword %></strong>" 的结果 · 共 <strong><%= totalCount %></strong> 件
+                "<span class="text-ink-primary font-semibold"><%= keyword %></span>" 的结果 · 共 <span class="text-ink-primary font-semibold"><%= totalCount %></span> 件
             <% } else if (catId != null && !catId.isEmpty()) {
                 String currentCatName = "未知分类";
                 for (Map<String, Object> cat : categories) {
@@ -538,70 +240,86 @@
                     }
                 }
             %>
-                <strong><%= currentCatName %>专区</strong> · 共 <strong><%= totalCount %></strong> 件
+                <span class="text-ink-primary font-semibold"><%= currentCatName %>专区</span> · 共 <span class="text-ink-primary font-semibold"><%= totalCount %></span> 件
+            <% } else if (catName != null && !catName.isEmpty()) { %>
+                <span class="text-ink-primary font-semibold"><%= catName %>专区</span> · 共 <span class="text-ink-primary font-semibold"><%= totalCount %></span> 件
             <% } else if ("graduation".equals(request.getParameter("tag"))) { %>
-                毕业季专区 · 共 <strong><%= totalCount %></strong> 件
+                毕业季专区 · 共 <span class="text-ink-primary font-semibold"><%= totalCount %></span> 件
             <% } else { %>
-                全部商品 · 共 <strong><%= totalCount %></strong> 件
+                全部商品 · 共 <span class="text-ink-primary font-semibold"><%= totalCount %></span> 件
             <% } %>
         </span>
     </div>
 
     <!-- Product Grid -->
     <% if (productList != null && !productList.isEmpty()) { %>
-    <div class="grid">
-    <% for (Product p : productList) {
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+    <% int delayIdx = 0;
+       for (Product p : productList) {
+           delayIdx++;
            boolean canDelete = false;
            if (loginUser != null) {
                boolean isAdmin = "ADMIN".equalsIgnoreCase(loginUser.getRoleCode());
                boolean isOwner = loginUser.getUserId() == p.getSellerId();
                canDelete = isAdmin || isOwner;
            }
+
+           String conditionText = "成色未填";
+           if (p.getConditionLevel() != null) {
+               switch (p.getConditionLevel()) {
+                   case "NEW": conditionText = "全新"; break;
+                   case "NINETY_NEW": conditionText = "九成新"; break;
+                   case "EIGHTY_NEW": conditionText = "八成新"; break;
+                   case "SEVENTY_NEW": conditionText = "七成新及以下"; break;
+                   default: conditionText = p.getConditionLevel();
+               }
+           }
     %>
-        <div class="product-card">
-            <% if (p.getCoverImageUrl() != null && !"".equals(p.getCoverImageUrl())) { %>
-                <img src="<%= p.getCoverImageUrl() %>" alt="<%= p.getTitle() %>" class="product-img" loading="lazy" width="320" height="240">
-            <% } else { %>
-                <div class="no-img" aria-label="暂无图片">
-                    <div class="no-img-icon">
-                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <div class="card-enter bg-surface-raised border border-stone-200 rounded-2xl overflow-hidden hover-lift flex flex-col group" style="animation-delay: <%= delayIdx * 0.05 %>s">
+            <div class="relative overflow-hidden">
+                <% if (p.getCoverImageUrl() != null && !"".equals(p.getCoverImageUrl())) { %>
+                    <img src="<%= p.getCoverImageUrl() %>" alt="<%= p.getTitle() %>" class="w-full h-44 object-cover img-zoom" loading="lazy">
+                <% } else { %>
+                    <div class="w-full h-44 bg-stone-100 flex items-center justify-center">
+                        <svg class="w-12 h-12 text-stone-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                     </div>
-                    <span>暂无图片</span>
+                <% } %>
+                <!-- Heart button -->
+                <a href="${pageContext.request.contextPath}/product-detail?id=<%= p.getProductId() %>" class="heart-btn absolute top-3 right-3 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100">
+                    <svg class="w-5 h-5 text-ink-muted hover:text-red-500 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                </a>
+                <!-- Category badge -->
+                <div class="absolute bottom-3 left-3">
+                    <span class="px-2.5 py-1 bg-brand-500/90 backdrop-blur-sm text-white text-xs font-medium rounded-full"><%= p.getCategoryName() != null ? p.getCategoryName() : "未分类" %></span>
                 </div>
-            <% } %>
-            <div class="card-body">
-                <div class="product-title"><%= p.getTitle() %></div>
-                <div class="price-row">
-                    <span class="price-symbol">¥</span>
-                    <span class="price-num"><%= p.getPrice() %></span>
-                </div>
-                <div class="meta-grid">
-                    <%
-                        String conditionText = "成色未填";
-                        if (p.getConditionLevel() != null) {
-                            switch (p.getConditionLevel()) {
-                                case "NEW": conditionText = "全新"; break;
-                                case "NINETY_NEW": conditionText = "九成新"; break;
-                                case "EIGHTY_NEW": conditionText = "八成新"; break;
-                                case "SEVENTY_NEW": conditionText = "七成新及以下"; break;
-                                default: conditionText = p.getConditionLevel();
-                            }
-                        }
-                    %>
-                    <span class="meta-item"><span class="meta-dot"></span><%= conditionText %></span>
-                    <span class="meta-item"><span class="meta-dot"></span><%= p.getCategoryName() != null ? p.getCategoryName() : "未分类" %></span>
-                    <span class="meta-item" style="grid-column:1/-1"><span class="meta-dot"></span>卖家：<%= p.getSellerName() != null ? p.getSellerName() : "未知" %></span>
-                </div>
-                <div class="card-footer">
-                    <a href="${pageContext.request.contextPath}/product-detail?id=<%= p.getProductId() %>" class="btn-detail">查看详情</a>
-                    <% if (canDelete) { %>
-                    <form action="${pageContext.request.contextPath}/delete-product" method="post" style="margin:0;"
-                          onsubmit="return confirm('确定要删除这个商品吗？');">
-                        <input type="hidden" name="productId" value="<%= p.getProductId() %>">
-                        <button type="submit" class="btn-delete">删除</button>
-                    </form>
+            </div>
+            <div class="p-4 flex-1 flex flex-col">
+                <h3 class="text-sm font-medium text-ink-primary line-clamp-2 group-hover:text-brand-600 transition-colors"><%= p.getTitle() %></h3>
+                <div class="mt-2">
+                    <span class="price-tag text-xl font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded">¥<%= p.getPrice() %></span>
+                    <% if (p.getOriginalPrice() != null) { %>
+                    <span class="text-xs text-ink-faint line-through ml-1">¥<%= p.getOriginalPrice() %></span>
                     <% } %>
                 </div>
+                <div class="flex items-center gap-3 mt-2 text-xs text-ink-muted">
+                    <span><%= conditionText %></span>
+                    <span class="w-1 h-1 bg-stone-300 rounded-full"></span>
+                    <span><%= p.getSellerName() != null ? p.getSellerName() : "未知" %></span>
+                </div>
+            </div>
+            <div class="px-4 py-3 border-t border-stone-100 flex items-center gap-2">
+                <a href="${pageContext.request.contextPath}/product-detail?id=<%= p.getProductId() %>" class="flex-1 py-2.5 bg-gradient-to-r from-brand-500 to-brand-600 text-white text-xs font-medium rounded-xl text-center hover:from-brand-600 hover:to-brand-700 transition-all btn-press shadow-sm block">查看详情</a>
+                <% if (canDelete) { %>
+                <form action="${pageContext.request.contextPath}/delete-product" method="post" class="flex-shrink-0"
+                      onsubmit="return confirm('确定要删除这个商品吗？');">
+                    <input type="hidden" name="productId" value="<%= p.getProductId() %>">
+                    <button type="submit" class="w-9 h-9 bg-red-50 border border-red-200 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-100 transition-all btn-press" title="删除">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    </button>
+                </form>
+                <% } %>
             </div>
         </div>
     <% } %>
@@ -612,59 +330,67 @@
            String kw = (keyword != null && !keyword.isEmpty()) ? "&keyword=" + java.net.URLEncoder.encode(keyword, "UTF-8") : "";
            String ci = (catId != null && !catId.isEmpty()) ? "&categoryId=" + catId : "";
     %>
-    <div class="pagination">
+    <nav class="flex justify-center items-center gap-2 mt-10 flex-wrap">
         <a href="<%= request.getContextPath() %>/product-list?page=<%= currentPage - 1 %><%= kw %><%= ci %>">
-            <button class="page-btn <%= currentPage == 1 ? "disabled" : "" %>" <%= currentPage == 1 ? "disabled" : "" %> aria-label="上一页">&lsaquo;</button>
+            <span class="w-10 h-10 flex items-center justify-center border border-stone-200 rounded-xl text-ink-muted hover:border-brand-300 hover:text-brand-600 transition-all btn-press <%= currentPage == 1 ? "opacity-35 pointer-events-none" : "" %>">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </span>
         </a>
 
         <% int startP = Math.max(1, currentPage - 2);
            int endP   = Math.min(totalPages, currentPage + 2);
            if (startP > 1) { %>
-            <a href="<%= request.getContextPath() %>/product-list?page=1<%= kw %><%= ci %>"><button class="page-btn">1</button></a>
-            <% if (startP > 2) { %><span class="page-ellipsis">…</span><% } %>
+            <a href="<%= request.getContextPath() %>/product-list?page=1<%= kw %><%= ci %>">
+                <span class="w-10 h-10 flex items-center justify-center border border-stone-200 rounded-xl text-ink-muted hover:border-brand-300 hover:text-brand-600 transition-all btn-press">1</span>
+            </a>
+            <% if (startP > 2) { %><span class="text-ink-faint px-1">...</span><% } %>
         <% }
            for (int pp = startP; pp <= endP; pp++) { %>
             <a href="<%= request.getContextPath() %>/product-list?page=<%= pp %><%= kw %><%= ci %>">
-                <button class="page-btn <%= pp == currentPage ? "active" : "" %>"><%= pp %></button>
+                <span class="w-10 h-10 flex items-center justify-center rounded-xl font-semibold transition-all btn-press <%= pp == currentPage ? "bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-lg shadow-brand-500/20" : "border border-stone-200 text-ink-muted hover:border-brand-300 hover:text-brand-600" %>"><%= pp %></span>
             </a>
         <% }
            if (endP < totalPages) { %>
-            <% if (endP < totalPages - 1) { %><span class="page-ellipsis">…</span><% } %>
-            <a href="<%= request.getContextPath() %>/product-list?page=<%= totalPages %><%= kw %><%= ci %>"><button class="page-btn"><%= totalPages %></button></a>
+            <% if (endP < totalPages - 1) { %><span class="text-ink-faint px-1">...</span><% } %>
+            <a href="<%= request.getContextPath() %>/product-list?page=<%= totalPages %><%= kw %><%= ci %>">
+                <span class="w-10 h-10 flex items-center justify-center border border-stone-200 rounded-xl text-ink-muted hover:border-brand-300 hover:text-brand-600 transition-all btn-press"><%= totalPages %></span>
+            </a>
         <% } %>
 
         <a href="<%= request.getContextPath() %>/product-list?page=<%= currentPage + 1 %><%= kw %><%= ci %>">
-            <button class="page-btn <%= currentPage == totalPages ? "disabled" : "" %>" <%= currentPage == totalPages ? "disabled" : "" %> aria-label="下一页">&rsaquo;</button>
+            <span class="w-10 h-10 flex items-center justify-center border border-stone-200 rounded-xl text-ink-muted hover:border-brand-300 hover:text-brand-600 transition-all btn-press <%= currentPage == totalPages ? "opacity-35 pointer-events-none" : "" %>">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </span>
         </a>
 
-        <span class="page-info">第 <%= currentPage %> / <%= totalPages %> 页 · 共 <%= totalCount %> 件</span>
-    </div>
+        <span class="text-xs text-ink-muted ml-3">第 <%= currentPage %> / <%= totalPages %> 页 · 共 <%= totalCount %> 件</span>
+    </nav>
     <% } %>
 
     <% } else { %>
     <!-- Empty State -->
-    <div class="empty-state">
-        <div class="empty-icon">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+    <div class="bg-surface-raised border border-stone-200 rounded-2xl p-16 text-center shadow-sm">
+        <div class="mx-auto mb-4 w-16 h-16 bg-stone-100 rounded-2xl flex items-center justify-center">
+            <svg class="w-8 h-8 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
         </div>
-        <div class="empty-title">
+        <h3 class="text-lg font-display font-semibold text-ink-primary mb-2">
             <% if (keyword != null && !keyword.isEmpty()) { %>
                 没有找到 "<%= keyword %>" 相关商品
             <% } else { %>
                 暂时没有商品
             <% } %>
-        </div>
-        <div class="empty-desc">
+        </h3>
+        <p class="text-ink-muted text-sm">
             <% if (keyword != null && !keyword.isEmpty()) { %>
-                换个关键词试试，或者 <a href="${pageContext.request.contextPath}/product-list" style="color:var(--primary);font-weight:600;">查看全部商品</a>
+                换个关键词试试，或者 <a href="${pageContext.request.contextPath}/product-list" class="text-brand-600 font-semibold hover:underline">查看全部商品</a>
             <% } else { %>
                 快去发布第一件商品吧
             <% } %>
-        </div>
+        </p>
     </div>
     <% } %>
 
-</div>
+</main>
 
 </body>
 </html>

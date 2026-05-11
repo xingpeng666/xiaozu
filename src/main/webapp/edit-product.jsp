@@ -18,175 +18,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>编辑商品 — 民大二手交易平台</title>
+    <title>编辑商品 - 民大二手交易平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d' },
+                        accent: { DEFAULT: '#f97316', hover: '#ea580c' },
+                        surface: { DEFAULT: '#fafaf9', raised: '#ffffff' },
+                        ink: { primary: '#1c1917', secondary: '#44403c', muted: '#78716c', faint: '#a8a29e' }
+                    },
+                    fontFamily: {
+                        display: ['Outfit', 'sans-serif'],
+                        body: ['Noto Sans SC', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-    :root{
-        --bg:#f4f3ef;--surface:#fff;--border:rgba(0,0,0,0.09);--text:#1a1a1a;--muted:#737373;
-        --primary:#0b6e63;--primary-h:#085c52;--primary-hl:#d0eae7;
-        --danger:#dc2626;
-        --success-bg:#f0fdf4;--success-bd:#bbf7d0;--success-tx:#15803d;
-        --error-bg:#fff1f0;--error-bd:#ffc5c5;--error-tx:#b91c1c;
-        --radius:12px;--font:'Plus Jakarta Sans','PingFang SC','Microsoft YaHei',sans-serif;
-        --shadow:0 4px 20px rgba(0,0,0,0.06);
-    }
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    html{-webkit-font-smoothing:antialiased}
-    body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100dvh}
-    .nav{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:100}
-    .nav-brand{display:flex;align-items:center;gap:9px;font-size:16px;font-weight:700;color:var(--primary);text-decoration:none}
-    .nav-links{display:flex;align-items:center;gap:4px}
-    .nav-links a{font-size:13.5px;font-weight:500;color:var(--muted);text-decoration:none;padding:6px 11px;border-radius:7px;transition:background .15s,color .15s}
-    .nav-links a:hover{background:var(--primary-hl);color:var(--primary)}
-    .nav-links .btn-logout{margin-left:6px;padding:6px 14px;background:var(--primary);color:#fff;border-radius:7px}
-    .nav-links .btn-logout:hover{background:var(--primary-h);color:#fff}
-    .page{max-width:920px;margin:36px auto;padding:0 16px 48px}
-    .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
-    .card-top{padding:24px 28px 16px;border-bottom:1px solid var(--border)}
-    .card-top h2{font-size:21px;font-weight:700;margin-bottom:4px}
-    .card-top p{font-size:13.5px;color:var(--muted)}
-    .alert{margin:16px 28px 0;padding:11px 14px;border-radius:8px;font-size:13.5px}
-    .alert-success{background:var(--success-bg);border:1px solid var(--success-bd);color:var(--success-tx)}
-    .alert-error{background:var(--error-bg);border:1px solid var(--error-bd);color:var(--error-tx)}
-    .form-area{padding:24px 28px 28px}
-    .section-label{font-size:13px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px;margin-top:4px}
-    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 20px}
-    .form-item{display:flex;flex-direction:column}
-    .form-item.full{grid-column:1/span 2}
-    .form-item label{font-size:13.5px;font-weight:600;margin-bottom:6px}
-    .required{color:var(--danger);margin-left:3px}
-    .form-item input,.form-item select,.form-item textarea{
-        width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;
-        font-size:13.5px;font-family:var(--font);background:var(--surface);outline:none;
-        transition:border-color .15s,box-shadow .15s;
-    }
-    .form-item input:focus,.form-item select:focus,.form-item textarea:focus{
-        border-color:var(--primary);box-shadow:0 0 0 3px rgba(11,110,99,0.1);
-    }
-    .form-item textarea{min-height:120px;resize:vertical}
-    .hint{margin-top:5px;font-size:12px;color:var(--muted)}
-    .cover-preview{margin-top:10px;display:flex;align-items:center;gap:12px}
-    .cover-preview img{width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid var(--border)}
-    .cover-preview span{font-size:12px;color:var(--muted)}
-    .img-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .action-bar{margin-top:24px;display:flex;gap:10px;align-items:center}
-    .btn-submit{background:var(--primary);color:#fff;border:none;padding:10px 22px;border-radius:8px;font-size:14px;font-weight:600;font-family:var(--font);cursor:pointer;transition:background .15s}
-    .btn-submit:hover{background:var(--primary-h)}
-    .btn-back{display:inline-block;text-decoration:none;color:var(--muted);background:var(--surface);border:1.5px solid var(--border);padding:9px 18px;border-radius:8px;font-size:14px;font-weight:500;transition:all .15s}
-    .btn-back:hover{border-color:var(--primary);color:var(--primary)}
-    @media(max-width:768px){
-        .form-grid{grid-template-columns:1fr}.form-item.full{grid-column:auto}
-        .action-bar{flex-direction:column;align-items:stretch}
-        .btn-submit,.btn-back{text-align:center}
-    }
+        .btn-press { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+        .btn-press:active { transform: scale(0.97); }
+        .input-focus-ring:focus { outline: none; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15); }
     </style>
 </head>
-<body>
-<nav class="nav">
-    <a class="nav-brand" href="${pageContext.request.contextPath}/index.jsp">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-        民大二手交易平台
-    </a>
-    <div class="nav-links">
-        <a href="${pageContext.request.contextPath}/my-products">我的商品</a>
-        <a href="${pageContext.request.contextPath}/product-list">商品列表</a>
-        <a href="${pageContext.request.contextPath}/index.jsp">首页</a>
-    </div>
-</nav>
-<div class="page">
-    <div class="card">
-        <div class="card-top">
-            <h2>编辑商品</h2>
-            <p>修改商品信息后点击保存，封面图不选则保留原图。</p>
+<body class="font-body min-h-screen bg-surface-DEFAULT">
+
+<jsp:include page="/common/header.jsp">
+    <jsp:param name="active" value="my-products"/>
+</jsp:include>
+
+<main class="max-w-3xl mx-auto px-4 py-8">
+    <div class="bg-surface-raised border border-stone-200 rounded-xl shadow-lg overflow-hidden">
+        <div class="px-8 py-6 border-b border-stone-100 bg-gradient-to-br from-brand-50 to-transparent">
+            <h1 class="font-display text-xl font-bold text-ink-primary mb-1">编辑商品</h1>
+            <p class="text-sm text-ink-muted">修改商品信息后点击保存，封面图不选则保留原图。</p>
         </div>
-        <% if (successMsg != null) { %><div class="alert alert-success"><%= successMsg %></div><% } %>
-        <% if (sessionErrorMsg != null) { %><div class="alert alert-error"><%= sessionErrorMsg %></div>
-        <% } else if (request.getAttribute("errorMsg") != null) { %><div class="alert alert-error"><%= request.getAttribute("errorMsg") %></div><% } %>
-        <div class="form-area">
-            <div class="section-label">商品信息</div>
-            <form action="${pageContext.request.contextPath}/edit-product" method="post" enctype="multipart/form-data">
-                <input type="hidden" name="productId" value="<%= product.getProductId() %>">
-                <div class="form-grid">
-                    <div class="form-item full">
-                        <label>商品标题<span class="required">*</span></label>
-                        <input type="text" name="title" maxlength="120" required value="<%= product.getTitle() %>" placeholder="例如：高等数学教材、宿舍小电扇">
-                    </div>
-                    <div class="form-item">
-                        <label>售价<span class="required">*</span></label>
-                        <input type="number" name="price" step="0.01" min="0" required value="<%= product.getPrice() %>" placeholder="请输入售价">
-                    </div>
-                    <div class="form-item">
-                        <label>原价</label>
-                        <input type="number" name="originalPrice" step="0.01" min="0" value="<%= product.getOriginalPrice() != null ? product.getOriginalPrice() : "" %>" placeholder="选填">
-                    </div>
-                    <div class="form-item">
-                        <label>商品成色<span class="required">*</span></label>
-                        <select name="conditionLevel" required>
-                            <option value="">—请选择—</option>
-                            <option value="NEW" <%= "NEW".equals(product.getConditionLevel()) ? "selected" : "" %>>全新</option>
-                            <option value="NINETY_NEW" <%= "NINETY_NEW".equals(product.getConditionLevel()) ? "selected" : "" %>>九成新</option>
-                            <option value="EIGHTY_NEW" <%= "EIGHTY_NEW".equals(product.getConditionLevel()) ? "selected" : "" %>>八成新</option>
-                            <option value="SEVENTY_NEW" <%= "SEVENTY_NEW".equals(product.getConditionLevel()) ? "selected" : "" %>>七成新及以下</option>
-                        </select>
-                    </div>
-                    <div class="form-item">
-                        <label>商品分类<span class="required">*</span></label>
-                        <select name="categoryId" required>
-                            <option value="">请选择分类</option>
-                            <% if (categories != null) { for (Map<String,Object> cat : categories) { %>
-                            <option value="<%= cat.get("categoryId") %>" <%= cat.get("categoryId").equals(product.getCategoryId()) ? "selected" : "" %>>
-                                <%= cat.get("categoryName") %>
-                            </option>
-                            <% } } %>
-                        </select>
-                    </div>
-                    <div class="form-item full">
-                        <label>商品描述</label>
-                        <textarea name="description" placeholder="请填写商品使用情况、是否有瑕疵、交易方式等信息"><%= product.getDescription() != null ? product.getDescription() : "" %></textarea>
-                    </div>
-                    <div class="form-item full">
-                        <label>封面图片（不选则保留原图）</label>
-                        <input type="file" name="coverImage" accept="image/*">
-                        <div class="hint">支持 jpg/png/jpeg，单张不超过 10MB。</div>
-                        <% if (product.getCoverImageUrl() != null && !product.getCoverImageUrl().isEmpty()) { %>
-                        <div class="cover-preview">
-                            <img src="<%= product.getCoverImageUrl() %>" alt="封面预览">
-                            <span>当前封面图，重新选择则替换</span>
-                        </div>
-                        <% } %>
-                    </div>
-                    <div class="form-item full">
-                        <label>额外展示图片（图片URL）</label>
-                        <%
-                            String existingUrls = product.getImageUrls();
-                            String[] urlArr = (existingUrls != null && !existingUrls.isEmpty()) ? existingUrls.split(",", -1) : new String[]{"","","",""};
-                        %>
-                        <div class="img-grid">
-                            <input type="text" name="imageUrl1" placeholder="图片URL 1（选填）" value="<%= urlArr.length > 0 ? urlArr[0] : "" %>">
-                            <input type="text" name="imageUrl2" placeholder="图片URL 2（选填）" value="<%= urlArr.length > 1 ? urlArr[1] : "" %>">
-                            <input type="text" name="imageUrl3" placeholder="图片URL 3（选填）" value="<%= urlArr.length > 2 ? urlArr[2] : "" %>">
-                            <input type="text" name="imageUrl4" placeholder="图片URL 4（选填）" value="<%= urlArr.length > 3 ? urlArr[3] : "" %>">
-                        </div>
-                        <div class="hint">可填入外部图片链接，与封面图搞配轮播展示。</div>
-                    </div>
-                </div>
-                <div style="margin-top:14px">
-                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13.5px">
-                        <input type="checkbox" name="isGraduation" value="1" style="width:auto"
-                            <%= product.getTags() != null && product.getTags().contains("graduation") ? "checked" : "" %>>
-                        这是毕业季商品（将在「毕业季专区」展示）
-                    </label>
-                </div>
-                <div class="action-bar">
-                    <button type="submit" class="btn-submit">保存修改</button>
-                    <a href="${pageContext.request.contextPath}/my-products" class="btn-back">返回我的商品</a>
-                    <a href="${pageContext.request.contextPath}/product-detail?id=<%= product.getProductId() %>" class="btn-back">查看商品详情</a>
-                </div>
-            </form>
+
+        <% if (successMsg != null) { %>
+        <div class="px-8 pt-4">
+            <div class="bg-green-50 border border-green-200 rounded-lg px-4 py-3 flex items-center gap-3">
+                <svg class="w-5 h-5 text-green-600 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <span class="text-green-700 text-sm"><%= successMsg %></span>
+            </div>
         </div>
+        <% } %>
+        <% if (sessionErrorMsg != null) { %>
+        <div class="px-8 pt-4">
+            <div class="bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex items-center gap-3">
+                <svg class="w-5 h-5 text-red-600 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                <span class="text-red-700 text-sm"><%= sessionErrorMsg %></span>
+            </div>
+        </div>
+        <% } else if (request.getAttribute("errorMsg") != null) { %>
+        <div class="px-8 pt-4">
+            <div class="bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex items-center gap-3">
+                <svg class="w-5 h-5 text-red-600 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                <span class="text-red-700 text-sm"><%= request.getAttribute("errorMsg") %></span>
+            </div>
+        </div>
+        <% } %>
+
+        <form action="${pageContext.request.contextPath}/edit-product" method="post" enctype="multipart/form-data" class="px-8 py-6 space-y-6">
+            <input type="hidden" name="productId" value="<%= product.getProductId() %>">
+
+            <div class="flex items-center gap-2 text-brand-600 font-display font-semibold text-sm uppercase tracking-wide">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+                商品信息
+            </div>
+
+            <div>
+                <label for="title" class="flex items-center gap-1 text-sm font-medium text-ink-primary mb-2">商品标题 <span class="text-red-500">*</span></label>
+                <input type="text" id="title" name="title" maxlength="120" required value="<%= product.getTitle() %>" placeholder="例如：高等数学教材、宿舍小电扇"
+                    class="w-full px-4 py-3 bg-surface-raised border border-stone-200 rounded-lg text-ink-primary placeholder:text-ink-faint input-focus-ring focus:border-brand-500 transition-colors">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="price" class="flex items-center gap-1 text-sm font-medium text-ink-primary mb-2">售价 <span class="text-red-500">*</span></label>
+                    <input type="number" id="price" name="price" step="0.01" min="0" required value="<%= product.getPrice() %>" placeholder="请输入售价"
+                        class="w-full px-4 py-3 bg-surface-raised border border-stone-200 rounded-lg text-ink-primary placeholder:text-ink-faint input-focus-ring focus:border-brand-500 transition-colors">
+                </div>
+                <div>
+                    <label for="originalPrice" class="text-sm font-medium text-ink-primary mb-2 block">原价</label>
+                    <input type="number" id="originalPrice" name="originalPrice" step="0.01" min="0" value="<%= product.getOriginalPrice() != null ? product.getOriginalPrice() : "" %>" placeholder="选填"
+                        class="w-full px-4 py-3 bg-surface-raised border border-stone-200 rounded-lg text-ink-primary placeholder:text-ink-faint input-focus-ring focus:border-brand-500 transition-colors">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="conditionLevel" class="flex items-center gap-1 text-sm font-medium text-ink-primary mb-2">商品成色 <span class="text-red-500">*</span></label>
+                    <select id="conditionLevel" name="conditionLevel" required
+                        class="w-full px-4 py-3 bg-surface-raised border border-stone-200 rounded-lg text-ink-primary input-focus-ring focus:border-brand-500 transition-colors">
+                        <option value="">请选择</option>
+                        <option value="NEW" <%= "NEW".equals(product.getConditionLevel()) ? "selected" : "" %>>全新</option>
+                        <option value="NINETY_NEW" <%= "NINETY_NEW".equals(product.getConditionLevel()) ? "selected" : "" %>>九成新</option>
+                        <option value="EIGHTY_NEW" <%= "EIGHTY_NEW".equals(product.getConditionLevel()) ? "selected" : "" %>>八成新</option>
+                        <option value="SEVENTY_NEW" <%= "SEVENTY_NEW".equals(product.getConditionLevel()) ? "selected" : "" %>>七成新及以下</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="categoryId" class="flex items-center gap-1 text-sm font-medium text-ink-primary mb-2">商品分类 <span class="text-red-500">*</span></label>
+                    <select id="categoryId" name="categoryId" required
+                        class="w-full px-4 py-3 bg-surface-raised border border-stone-200 rounded-lg text-ink-primary input-focus-ring focus:border-brand-500 transition-colors">
+                        <option value="">请选择分类</option>
+                        <% if (categories != null) { for (Map<String,Object> cat : categories) { %>
+                        <option value="<%= cat.get("categoryId") %>" <%= cat.get("categoryId").equals(product.getCategoryId()) ? "selected" : "" %>><%= cat.get("categoryName") %></option>
+                        <% } } %>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label for="description" class="text-sm font-medium text-ink-primary mb-2 block">商品描述</label>
+                <textarea id="description" name="description" placeholder="请填写商品使用情况、是否有瑕疵、交易方式等信息"
+                    class="w-full px-4 py-3 bg-surface-raised border border-stone-200 rounded-lg text-ink-primary placeholder:text-ink-faint input-focus-ring focus:border-brand-500 transition-colors resize-y min-h-[120px]"><%= product.getDescription() != null ? product.getDescription() : "" %></textarea>
+            </div>
+
+            <div>
+                <label class="text-sm font-medium text-ink-primary mb-2 block">封面图片（不选则保留原图）</label>
+                <input type="file" name="coverImage" accept="image/*"
+                    class="w-full px-4 py-3 bg-surface-raised border border-stone-200 rounded-lg text-ink-primary text-sm input-focus-ring focus:border-brand-500 transition-colors">
+                <p class="mt-2 text-xs text-ink-faint">支持 jpg/png/jpeg，单张不超过 10MB。</p>
+                <% if (product.getCoverImageUrl() != null && !product.getCoverImageUrl().isEmpty()) { %>
+                <div class="flex items-center gap-3 mt-3">
+                    <img src="<%= product.getCoverImageUrl() %>" alt="封面预览" class="w-20 h-20 object-cover rounded-lg border border-stone-200">
+                    <span class="text-xs text-ink-muted">当前封面图，重新选择则替换</span>
+                </div>
+                <% } %>
+            </div>
+
+            <div>
+                <label class="text-sm font-medium text-ink-primary mb-2 block">额外展示图片（图片URL）</label>
+                <%
+                    String existingUrls = product.getImageUrls();
+                    String[] urlArr = (existingUrls != null && !existingUrls.isEmpty()) ? existingUrls.split(",", -1) : new String[]{"","","",""};
+                %>
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="text" name="imageUrl1" placeholder="图片URL 1（选填）" value="<%= urlArr.length > 0 ? urlArr[0] : "" %>"
+                        class="w-full px-4 py-3 bg-surface-raised border border-stone-200 rounded-lg text-ink-primary placeholder:text-ink-faint input-focus-ring focus:border-brand-500 transition-colors text-sm">
+                    <input type="text" name="imageUrl2" placeholder="图片URL 2（选填）" value="<%= urlArr.length > 1 ? urlArr[1] : "" %>"
+                        class="w-full px-4 py-3 bg-surface-raised border border-stone-200 rounded-lg text-ink-primary placeholder:text-ink-faint input-focus-ring focus:border-brand-500 transition-colors text-sm">
+                    <input type="text" name="imageUrl3" placeholder="图片URL 3（选填）" value="<%= urlArr.length > 2 ? urlArr[2] : "" %>"
+                        class="w-full px-4 py-3 bg-surface-raised border border-stone-200 rounded-lg text-ink-primary placeholder:text-ink-faint input-focus-ring focus:border-brand-500 transition-colors text-sm">
+                    <input type="text" name="imageUrl4" placeholder="图片URL 4（选填）" value="<%= urlArr.length > 3 ? urlArr[3] : "" %>"
+                        class="w-full px-4 py-3 bg-surface-raised border border-stone-200 rounded-lg text-ink-primary placeholder:text-ink-faint input-focus-ring focus:border-brand-500 transition-colors text-sm">
+                </div>
+                <p class="mt-2 text-xs text-ink-faint">可填入外部图片链接，与封面图搭配轮播展示。</p>
+            </div>
+
+            <label class="flex items-center gap-2 cursor-pointer text-sm text-ink-primary">
+                <input type="checkbox" name="isGraduation" value="1" class="w-4 h-4 rounded border-stone-300 text-brand-500 focus:ring-brand-500"
+                    <%= product.getTags() != null && product.getTags().contains("graduation") ? "checked" : "" %>>
+                这是毕业季商品（将在「毕业季专区」展示）
+            </label>
+
+            <div class="flex gap-3 pt-2">
+                <button type="submit" class="bg-brand-500 text-white px-5 py-2.5 rounded-lg hover:bg-brand-600 transition-colors btn-press font-medium text-sm">保存修改</button>
+                <a href="${pageContext.request.contextPath}/my-products" class="border border-stone-200 text-ink-muted px-5 py-2.5 rounded-lg hover:border-brand-500 hover:text-brand-600 transition-colors font-medium text-sm">返回我的商品</a>
+                <a href="${pageContext.request.contextPath}/product-detail?id=<%= product.getProductId() %>" class="border border-stone-200 text-ink-muted px-5 py-2.5 rounded-lg hover:border-brand-500 hover:text-brand-600 transition-colors font-medium text-sm">查看商品详情</a>
+            </div>
+        </form>
     </div>
-</div>
+</main>
+
 </body>
 </html>

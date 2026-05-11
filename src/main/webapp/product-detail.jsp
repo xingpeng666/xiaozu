@@ -7,7 +7,6 @@
     List<String> detailImages = (List<String>) request.getAttribute("detailImages");
     User loginUser = (User) session.getAttribute("loginUser");
 
-    // 查询未读通知数
     int unreadNotifyCount = 0;
     if (loginUser != null) {
         try {
@@ -34,409 +33,464 @@
     }
 %>
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>商品详情 - 民大二手交易平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d' },
+                        accent: { light: '#fed7aa', DEFAULT: '#f97316', dark: '#ea580c' },
+                        surface: { DEFAULT: '#fafaf9', raised: '#ffffff', muted: '#f5f5f4' },
+                        ink: { primary: '#1c1917', secondary: '#44403c', muted: '#78716c', faint: '#a8a29e' },
+                        stroke: { DEFAULT: '#e7e5e4', subtle: '#f5f5f4' },
+                    },
+                    fontFamily: {
+                        display: ['Outfit', 'sans-serif'],
+                        body: ['Noto Sans SC', 'sans-serif']
+                    },
+                    borderRadius: {
+                        'soft': '12px',
+                        'card': '16px',
+                        'xl': '20px',
+                        'hero': '24px'
+                    },
+                    boxShadow: {
+                        'soft': '0 2px 8px rgba(28, 25, 23, 0.06)',
+                        'card': '0 4px 16px rgba(28, 25, 23, 0.08)',
+                        'raised': '0 8px 32px rgba(28, 25, 23, 0.12)',
+                        'glow': '0 0 0 4px rgba(34, 197, 94, 0.15)'
+                    },
+                }
+            }
+        }
+    </script>
     <style>
-        * { box-sizing: border-box; }
-        body { margin: 0; font-family: Arial, sans-serif; background: #f5f7fa; color: #333; }
-
-        .header {
-            height: 56px; background: #1677ff; color: #fff;
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 24px; box-shadow: 0 2px 8px rgba(22,119,255,0.18);
+        @media (prefers-reduced-motion: no-preference) {
+            .hover-lift { transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+            .hover-lift:hover { transform: translateY(-6px); box-shadow: 0 12px 40px rgba(28, 25, 23, 0.15); }
+            .btn-press { transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.15s ease; }
+            .btn-press:active { transform: scale(0.97); }
+            .img-zoom { transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+            .img-zoom:hover { transform: scale(1.05); }
+            .animate-up { animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+            .animate-fade { animation: fadeIn 0.5s ease-out both; }
+            @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+            .carousel-dot-active { background: white; transform: scale(1.2); }
         }
-        .header .logo { font-size: 18px; font-weight: bold; letter-spacing: 1px; }
-        .header .nav a {
-            color: #fff; text-decoration: none; margin-left: 14px;
-            font-size: 14px; padding: 6px 12px; border-radius: 6px; transition: background 0.2s;
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
         }
-        .header .nav a:hover { background: rgba(255,255,255,0.16); }
-
-        .container { max-width: 1180px; margin: 28px auto; padding: 0 16px 32px; }
-        .back-bar { margin-bottom: 16px; }
-        .back-bar a { color: #1677ff; text-decoration: none; font-size: 14px; }
-
-        .detail-card { background: #fff; border-radius: 16px; box-shadow: 0 10px 28px rgba(0,0,0,0.06); overflow: hidden; }
-        .detail-main { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 28px; padding: 24px; }
-        .gallery-box { min-width: 0; }
-        .main-image-wrap { width: 100%; background: #f3f5f7; border-radius: 14px; overflow: hidden; border: 1px solid #eef0f3; }
-        .main-image { width: 100%; height: 440px; object-fit: cover; display: block; cursor: zoom-in; background: #f0f2f5; }
-
-        .thumb-list { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 10px; }
-        .thumb-item { width: 78px; height: 78px; border-radius: 10px; overflow: hidden; border: 2px solid transparent; background: #f3f5f7; cursor: pointer; padding: 0; }
-        .thumb-item.active { border-color: #1677ff; }
-        .thumb-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .thumb-empty { width: 78px; height: 78px; border-radius: 10px; background: #f0f2f5; color: #999; display: flex; align-items: center; justify-content: center; font-size: 12px; }
-
-        .info-box { min-width: 0; }
-        .title { margin: 0 0 14px; font-size: 30px; line-height: 1.35; color: #1f1f1f; }
-        .price-row { margin-bottom: 18px; padding: 16px 18px; background: #fff7f7; border-radius: 12px; border: 1px solid #ffe1e1; }
-        .price-now { color: #ff4d4f; font-size: 32px; font-weight: bold; }
-        .price-old { margin-top: 6px; color: #999; font-size: 14px; text-decoration: line-through; }
-        .sold-badge {
-            display: inline-block; margin-left: 12px;
-            background: #d9d9d9; color: #595959;
-            font-size: 13px; font-weight: bold;
-            padding: 2px 10px; border-radius: 20px;
-            vertical-align: middle;
-        }
-        .sold-tip {
-            margin-top: 10px; padding: 10px 14px;
-            background: #f5f5f5; border-radius: 8px;
-            color: #888; font-size: 13px;
-        }
-
-        .meta-panel { background: #fafbfc; border: 1px solid #eef0f3; border-radius: 12px; padding: 14px 16px; }
-        .meta-item { display: flex; padding: 10px 0; border-bottom: 1px dashed #e8ebef; font-size: 14px; }
-        .meta-item:last-child { border-bottom: none; }
-        .meta-label { width: 88px; color: #888; flex-shrink: 0; }
-        .meta-value { color: #333; word-break: break-all; }
-
-        .desc-section, .images-section { margin-top: 22px; background: #fff; border-radius: 16px; box-shadow: 0 10px 28px rgba(0,0,0,0.05); overflow: hidden; }
-        .section-title { margin: 0; padding: 18px 22px; font-size: 18px; color: #1f1f1f; border-bottom: 1px solid #f0f0f0; background: #fcfcfd; }
-        .section-body { padding: 22px; }
-        .description { color: #444; line-height: 1.9; white-space: pre-wrap; word-break: break-word; }
-        .detail-images { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
-        .detail-image-card { background: #fff; border: 1px solid #eef0f3; border-radius: 12px; overflow: hidden; }
-        .detail-image { width: 100%; height: 220px; object-fit: cover; display: block; cursor: zoom-in; background: #f0f2f5; }
-        .empty-block { padding: 40px 20px; text-align: center; color: #999; background: #fff; border-radius: 16px; box-shadow: 0 10px 28px rgba(0,0,0,0.05); }
-
-        .btn-row { margin-top: 22px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-        .btn { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; padding: 10px 18px; border-radius: 8px; font-size: 14px; transition: all 0.2s; border: none; cursor: pointer; }
-        .btn-default { background: #fff; color: #555; border: 1px solid #d9d9d9; }
-        .btn-default:hover { color: #1677ff; border-color: #1677ff; }
-        .btn-message { background: #f0f7ff; color: #1677ff; border: 1px solid #91caff; }
-        .btn-message:hover { background: #e0efff; }
-        .btn-order { background: #ff4d4f; color: #fff; border: none; }
-        .btn-order:hover { background: #d9363e; }
-
-        .btn-fav {
-            background: #fff; color: #999;
-            border: 1px solid #d9d9d9;
-            min-width: 100px; justify-content: center;
-        }
-        .btn-fav:hover { border-color: #ff4d4f; color: #ff4d4f; }
-        .btn-fav.active { background: #fff1f0; color: #ff4d4f; border-color: #ffb3b3; }
-        .btn-fav .fav-icon { font-size: 16px; transition: transform 0.2s; }
-        .btn-fav.active .fav-icon { animation: heartBeat 0.35s ease; }
-        @keyframes heartBeat {
-            0%   { transform: scale(1); }
-            40%  { transform: scale(1.35); }
-            70%  { transform: scale(0.9); }
-            100% { transform: scale(1); }
-        }
-
-        .delete-form { display: inline-block; margin: 0; }
-        .delete-btn { background: #fff1f0; color: #cf1322; border: 1px solid #ffccc7; padding: 10px 18px; border-radius: 8px; font-size: 14px; cursor: pointer; transition: all 0.2s; }
-        .delete-btn:hover { background: #ffe7e6; }
-
-        .image-preview-mask { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.78); z-index: 9999; align-items: center; justify-content: center; padding: 30px; }
-        .image-preview-mask.show { display: flex; }
-        .image-preview-big { max-width: 92vw; max-height: 88vh; border-radius: 12px; box-shadow: 0 12px 36px rgba(0,0,0,0.35); background: #fff; }
-        .image-preview-close { position: absolute; top: 18px; right: 24px; color: #fff; font-size: 36px; cursor: pointer; line-height: 1; }
-
-        @media (max-width: 900px) { .detail-main { grid-template-columns: 1fr; } .main-image { height: 320px; } }
-        @media (max-width: 768px) {
-            .header { padding: 0 14px; } .header .logo { font-size: 16px; }
-            .container { margin-top: 18px; } .detail-main { padding: 16px; gap: 18px; }
-            .section-body { padding: 16px; } .title { font-size: 24px; } .price-now { font-size: 28px; }
-            .detail-images { grid-template-columns: 1fr; } .detail-image { height: 240px; }
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: #f5f5f4; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
+        .price-tag { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 4px 14px; border-radius: 8px; }
+        .thumb-active { border-color: #22c55e; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2); }
+        .fav-btn-active { background: #fff1f2; color: #e11d48; border-color: #fecdd3; }
+        .fav-btn-active:hover { background: #ffe4e6; }
+        .notif-badge {
+            background: #ef4444; color: #fff;
+            border-radius: 10px; font-size: 10px; line-height: 1;
+            padding: 1px 5px; font-weight: 700;
+            min-width: 16px; text-align: center;
         }
     </style>
 </head>
-<body>
+<body class="bg-surface font-body text-ink-primary antialiased">
 
-<div class="header">
-    <div class="logo">🏫 民大二手交易平台</div>
-    <div class="nav">
-        <a href="${pageContext.request.contextPath}/index.jsp">首页</a>
-        <a href="${pageContext.request.contextPath}/pickup-locations.jsp">&#128205; 自提点</a>
-        <a href="${pageContext.request.contextPath}/product-list">商品列表</a>
-        <% if (loginUser != null) { %>
-            <a href="${pageContext.request.contextPath}/my-favorites">我的收藏</a>
-            <a href="${pageContext.request.contextPath}/messages">私信</a>
-            <a href="${pageContext.request.contextPath}/my-products">我的商品</a>
-            <a href="${pageContext.request.contextPath}/orders">我的订单</a>
-            <a href="${pageContext.request.contextPath}/notifications" style="position:relative;">
-                &#128276; 通知
-                <% if (unreadNotifyCount > 0) { %>
-                <span style="position:absolute;top:-6px;right:-10px;background:#ff4d4f;color:#fff;border-radius:10px;padding:1px 6px;font-size:11px;line-height:16px;min-width:18px;text-align:center;"><%= unreadNotifyCount %></span>
-                <% } %>
+<!-- Nav -->
+<nav class="fixed top-4 left-4 right-4 z-50 animate-up">
+    <div class="bg-surface-raised/95 backdrop-blur-xl rounded-hero border border-stroke shadow-soft">
+        <div class="max-w-7xl mx-auto px-5 h-14 flex items-center justify-between">
+            <a href="${pageContext.request.contextPath}/index.jsp" class="flex items-center gap-3 group cursor-pointer">
+                <div class="w-9 h-9 bg-brand-500 rounded-soft flex items-center justify-center shadow-glow">
+                    <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-display font-bold text-ink-primary text-sm tracking-tight">民大二手</span>
+                    <span class="text-xs text-ink-muted -mt-0.5">让闲置流通</span>
+                </div>
             </a>
-        <% } else { %>
-            <a href="${pageContext.request.contextPath}/login">登录</a>
-        <% } %>
-    </div>
-</div>
-
-<div class="container">
-    <div class="back-bar">
-        <a href="${pageContext.request.contextPath}/product-list">← 返回商品列表</a>
-    </div>
-
-    <% if (product == null) { %>
-        <div class="empty-block">商品不存在或已下架。</div>
-    <% } else {
-        String cover = product.getCoverImageUrl();
-    %>
-
-    <div class="detail-card">
-        <div class="detail-main">
-            <div class="gallery-box">
-                <div class="main-image-wrap">
-                    <% if (cover != null && !"".equals(cover)) { %>
-                        <img id="mainPreviewImage" src="<%= cover %>" alt="商品主图"
-                             class="main-image" onclick="openImagePreview(this.src)">
-                    <% } else if (detailImages != null && !detailImages.isEmpty()) { %>
-                        <img id="mainPreviewImage" src="<%= detailImages.get(0) %>" alt="商品主图"
-                             class="main-image" onclick="openImagePreview(this.src)">
-                    <% } else { %>
-                        <div style="height:440px;display:flex;align-items:center;justify-content:center;color:#999;">暂无图片</div>
+            <div class="hidden md:flex items-center gap-1 flex-wrap">
+                <a href="${pageContext.request.contextPath}/index.jsp" class="px-3 py-2 rounded-lg text-sm font-medium text-ink-secondary hover:text-ink-primary hover:bg-surface-muted transition-colors cursor-pointer">首页</a>
+                <a href="${pageContext.request.contextPath}/pickup-locations.jsp" class="px-3 py-2 rounded-lg text-sm font-medium text-ink-secondary hover:text-ink-primary hover:bg-surface-muted transition-colors cursor-pointer">自提点</a>
+                <a href="${pageContext.request.contextPath}/product-list" class="px-3 py-2 rounded-lg text-sm font-medium text-brand-600 bg-brand-50 transition-colors cursor-pointer">浏览商品</a>
+                <% if (loginUser != null) { %>
+                <a href="${pageContext.request.contextPath}/my-favorites" class="px-3 py-2 rounded-lg text-sm font-medium text-ink-secondary hover:text-ink-primary hover:bg-surface-muted transition-colors cursor-pointer">我的收藏</a>
+                <a href="${pageContext.request.contextPath}/messages" class="px-3 py-2 rounded-lg text-sm font-medium text-ink-secondary hover:text-ink-primary hover:bg-surface-muted transition-colors cursor-pointer">私信</a>
+                <a href="${pageContext.request.contextPath}/my-products" class="px-3 py-2 rounded-lg text-sm font-medium text-ink-secondary hover:text-ink-primary hover:bg-surface-muted transition-colors cursor-pointer">我的商品</a>
+                <a href="${pageContext.request.contextPath}/orders" class="px-3 py-2 rounded-lg text-sm font-medium text-ink-secondary hover:text-ink-primary hover:bg-surface-muted transition-colors cursor-pointer">我的订单</a>
+                <a href="${pageContext.request.contextPath}/notifications" class="px-3 py-2 rounded-lg text-sm font-medium text-ink-secondary hover:text-ink-primary hover:bg-surface-muted transition-colors cursor-pointer relative">
+                    通知
+                    <% if (unreadNotifyCount > 0) { %>
+                    <span class="notif-badge absolute -top-0.5 -right-0.5"><%= unreadNotifyCount %></span>
                     <% } %>
-                </div>
-
-                <div class="thumb-list">
-                    <% if (cover != null && !"".equals(cover)) { %>
-                        <button type="button" class="thumb-item active" onclick="changeMainImage('<%= cover %>', this)">
-                            <img src="<%= cover %>" alt="封面图">
-                        </button>
-                    <% } %>
-                    <% if (detailImages != null && !detailImages.isEmpty()) {
-                           for (String img : detailImages) { %>
-                        <button type="button" class="thumb-item" onclick="changeMainImage('<%= img %>', this)">
-                            <img src="<%= img %>" alt="详情图">
-                        </button>
-                    <%     } } %>
-                    <% if ((cover == null || "".equals(cover)) && (detailImages == null || detailImages.isEmpty())) { %>
-                        <div class="thumb-empty">暂无图</div>
-                    <% } %>
-                </div>
+                </a>
+                <% } %>
             </div>
-
-            <div class="info-box">
-                <h1 class="title">
-                    <%= product.getTitle() %>
-                    <% if (isSold) { %><span class="sold-badge">已售出</span><% } %>
-                </h1>
-
-                <div class="price-row">
-                    <div class="price-now">¥ <%= product.getPrice() %></div>
-                    <% if (product.getOriginalPrice() != null) { %>
-                        <div class="price-old">原价：¥ <%= product.getOriginalPrice() %></div>
-                    <% } %>
-                    <% if (isSold) { %>
-                        <div class="sold-tip">该商品已售出，您可以浏览其他商品或联系卖家了解更多。</div>
-                    <% } %>
-                </div>
-
-                <div class="meta-panel">
-                    <%
-                        String detailConditionText = "未填写";
-                        if (product.getConditionLevel() != null) {
-                            switch (product.getConditionLevel()) {
-                                case "NEW": detailConditionText = "全新"; break;
-                                case "NINETY_NEW": detailConditionText = "九成新"; break;
-                                case "EIGHTY_NEW": detailConditionText = "八成新"; break;
-                                case "SEVENTY_NEW": detailConditionText = "七成新及以下"; break;
-                                default: detailConditionText = product.getConditionLevel();
-                            }
-                        }
-                    %>
-                    <div class="meta-item"><div class="meta-label">商品成色</div><div class="meta-value"><%= detailConditionText %></div></div>
-                    <div class="meta-item"><div class="meta-label">商品分类</div><div class="meta-value"><%= product.getCategoryName() != null ? product.getCategoryName() : "未分类" %></div></div>
-                    <div class="meta-item"><div class="meta-label">卖家</div><div class="meta-value"><%= product.getSellerName() != null ? product.getSellerName() : "未知卖家" %></div></div>
-                    <div class="meta-item"><div class="meta-label">浏览量</div><div class="meta-value"><%= product.getViewCount() %></div></div>
-                    <div class="meta-item">
-                        <div class="meta-label">收藏量</div>
-                        <div class="meta-value" id="favCountDisplay"><%= product.getFavoriteCount() %></div>
-                    </div>
-                    <div class="meta-item"><div class="meta-label">发布时间</div><div class="meta-value"><%= product.getCreatedAt() != null ? new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm").format(product.getCreatedAt()) : "暂无" %></div></div>
-                </div>
-
-                <div class="btn-row">
-                    <a href="${pageContext.request.contextPath}/product-list" class="btn btn-default">返回列表</a>
-
-                    <%-- 收藏按钮（自己的商品不显示） --%>
-                    <% if (loginUser != null && !isOwner) { %>
-                        <button id="favBtn"
-                                class="btn btn-fav <%= isFavorited ? "active" : "" %>"
-                                onclick="toggleFavorite(<%= product.getProductId() %>)">
-                            <span class="fav-icon"><%= isFavorited ? "♥" : "♡" %></span>
-                            <span id="favBtnText"><%= isFavorited ? "已收藏" : "收藏" %></span>
-                        </button>
-                    <% } else if (loginUser == null) { %>
-                        <a href="${pageContext.request.contextPath}/login" class="btn btn-fav">
-                            <span class="fav-icon">♡</span> 登录后收藏
-                        </a>
-                    <% } %>
-
-                    <%-- 发起交易按钮：非商品本人、已登录、且商品未售出 --%>
-                    <% if (loginUser == null) { %>
-                        <a href="${pageContext.request.contextPath}/login" class="btn btn-order">🛒 登录后发起交易</a>
-                    <% } else if (!isOwner && !isSold) { %>
-                        <form action="${pageContext.request.contextPath}/orders" method="post"
-                              style="display:inline-block;margin:0;"
-                              onsubmit="return confirm('确定要向卖家发起交易请求吗？');">
-                            <input type="hidden" name="action" value="create">
-                            <input type="hidden" name="productId" value="<%= product.getProductId() %>">
-                            <button type="submit" class="btn btn-order">🛒 发起交易</button>
-                        </form>
-                    <% } %>
-
-                    <%-- 联系卖家 / 编辑商品 --%>
-                    <% if (loginUser == null) { %>
-                        <a href="${pageContext.request.contextPath}/login" class="btn btn-message">💬 登录后联系卖家</a>
-                    <% } else if (isOwner) { %>
-                        <a href="${pageContext.request.contextPath}/edit-product?id=<%= product.getProductId() %>" class="btn btn-message">✏️ 编辑商品</a>
-                    <% } else { %>
-                        <a href="${pageContext.request.contextPath}/messages?with=<%= product.getSellerId() %>&productId=<%= product.getProductId() %>" class="btn btn-message">💬 联系卖家</a>
-                    <% } %>
-
-                    <% if (canDelete) { %>
-                        <form action="${pageContext.request.contextPath}/delete-product"
-                              method="post" class="delete-form"
-                              onsubmit="return confirm('确定要删除这个商品吗？');">
-                            <input type="hidden" name="productId" value="<%= product.getProductId() %>">
-                            <button type="submit" class="delete-btn">删除商品</button>
-                        </form>
-                    <% } %>
-                </div>
+            <div class="flex items-center gap-3">
+                <% if (loginUser != null) { %>
+                    <a href="${pageContext.request.contextPath}/publish-product" class="px-3 py-2 text-sm font-medium bg-gradient-to-r from-brand-500 to-brand-600 text-white rounded-lg hover:from-brand-600 hover:to-brand-700 transition-all btn-press shadow-sm shadow-brand-500/20 flex items-center gap-1">发布商品</a>
+                    <a href="${pageContext.request.contextPath}/logout" class="text-sm text-ink-muted hover:text-red-500 transition-colors px-2 py-1.5 cursor-pointer">退出</a>
+                <% } else { %>
+                    <a href="${pageContext.request.contextPath}/login" class="text-sm text-ink-muted hover:text-ink-primary transition-colors px-2 py-1.5 cursor-pointer">登录</a>
+                <% } %>
             </div>
         </div>
     </div>
+</nav>
 
-    <%-- 举报此商品（登录用户可见，卖家本人不可见） --%>
-    <% if (loginUser != null && !isOwner && !isSold) { %>
-    <div class="desc-section" style="margin-top:22px;">
-        <h2 class="section-title" style="color:#ff4d4f;">举报此商品</h2>
-        <div class="section-body">
-            <form action="${pageContext.request.contextPath}/report" method="post" style="margin:0;"
-                  onsubmit="return confirm('确定要举报该商品吗？请确认举报内容属实。');">
-                <input type="hidden" name="action" value="submit">
-                <input type="hidden" name="productId" value="<%= product.getProductId() %>">
-                <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;">
-                    <textarea name="reason" rows="3" style="flex:1;min-width:220px;padding:10px 12px;border:1px solid #d9d9d9;border-radius:8px;font-size:14px;resize:vertical;"
-                              placeholder="请描述举报原因，如：虚假信息、违禁品、欺诈行为等" required></textarea>
-                    <button type="submit" style="padding:10px 24px;background:#ff4d4f;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;white-space:nowrap;">
-                        &#128276; 提交举报
-                    </button>
+<!-- Main content -->
+<main class="pt-24 pb-16 px-4">
+    <div class="max-w-6xl mx-auto space-y-6">
+
+        <!-- Back link -->
+        <section class="animate-up">
+            <a href="${pageContext.request.contextPath}/product-list" class="inline-flex items-center gap-2 text-sm text-ink-muted hover:text-brand-600 cursor-pointer transition-colors">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                返回商品列表
+            </a>
+        </section>
+
+        <% if (product == null) { %>
+        <!-- Empty state -->
+        <section class="animate-up">
+            <div class="bg-surface-raised rounded-hero border border-stroke shadow-card p-16 text-center">
+                <div class="mx-auto mb-4 w-16 h-16 bg-stone-100 rounded-2xl flex items-center justify-center">
+                    <svg class="w-8 h-8 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 </div>
-            </form>
-            <div style="margin-top:10px;font-size:12px;color:#999;">
-                &#9432; 举报后管理员将尽快审核处理。请确保举报内容真实有效，恶意举报可能导致账号受限。
+                <h3 class="font-display font-bold text-lg text-ink-primary mb-2">商品不存在</h3>
+                <p class="text-ink-muted text-sm">该商品可能已下架或不存在。</p>
+                <a href="${pageContext.request.contextPath}/product-list" class="inline-flex items-center gap-2 mt-4 px-5 py-2.5 bg-brand-500 text-white font-semibold rounded-soft hover:bg-brand-600 transition-all btn-press">浏览其他商品</a>
             </div>
-        </div>
-    </div>
-    <% } %>
+        </section>
+        <% } else {
+            String cover = product.getCoverImageUrl();
 
-    <%-- 多图轮播（image_urls 非空时展示） --%>
-    <%
-        String imageUrls = product.getImageUrls();
-        if (imageUrls != null && !imageUrls.trim().isEmpty()) {
-            String[] urls = imageUrls.split(",");
-            // 构建轮播图片列表：封面图 + image_urls
-            java.util.List<String> carouselImages = new java.util.ArrayList<>();
-            if (product.getCoverImageUrl() != null && !product.getCoverImageUrl().isEmpty()) {
-                carouselImages.add(product.getCoverImageUrl());
-            }
-            for (String url : urls) {
-                String trimmed = url.trim();
-                if (!trimmed.isEmpty()) {
-                    carouselImages.add(trimmed);
+            String detailConditionText = "未填写";
+            if (product.getConditionLevel() != null) {
+                switch (product.getConditionLevel()) {
+                    case "NEW": detailConditionText = "全新"; break;
+                    case "NINETY_NEW": detailConditionText = "九成新"; break;
+                    case "EIGHTY_NEW": detailConditionText = "八成新"; break;
+                    case "SEVENTY_NEW": detailConditionText = "七成新及以下"; break;
+                    default: detailConditionText = product.getConditionLevel();
                 }
             }
-            if (!carouselImages.isEmpty()) {
-    %>
-    <div class="images-section">
-        <h2 class="section-title">商品图片轮播</h2>
-        <div class="section-body">
-            <div id="productCarousel" style="position:relative;max-width:720px;margin:0 auto;overflow:hidden;border-radius:12px;background:#f0f2f5;">
-                <div style="display:flex;transition:transform 0.45s ease-in-out;" id="carouselTrack">
-                    <% for (String img : carouselImages) { %>
-                        <div style="min-width:100%;display:flex;align-items:center;justify-content:center;">
-                            <img src="<%= img %>" alt="商品图片" style="max-width:100%;max-height:480px;object-fit:contain;cursor:zoom-in;" onclick="openImagePreview('<%= img %>')">
+        %>
+
+        <!-- Product detail main section -->
+        <section class="animate-up" style="animation-delay: 0.1s;">
+            <div class="bg-surface-raised rounded-hero border border-stroke shadow-card overflow-hidden">
+                <div class="flex flex-col lg:flex-row gap-8 p-8">
+
+                    <!-- Left: Image area -->
+                    <div class="lg:w-1/2 space-y-4">
+                        <!-- Main image -->
+                        <div class="aspect-[4/3] bg-gradient-to-br from-slate-100 to-slate-50 rounded-card overflow-hidden relative">
+                            <% if (cover != null && !"".equals(cover)) { %>
+                                <img id="mainImage" src="<%= cover %>" alt="商品主图" class="w-full h-full object-cover img-zoom cursor-zoom-in" onclick="openImagePreview('<%= cover %>')">
+                            <% } else if (detailImages != null && !detailImages.isEmpty()) { %>
+                                <img id="mainImage" src="<%= detailImages.get(0) %>" alt="商品主图" class="w-full h-full object-cover img-zoom cursor-zoom-in" onclick="openImagePreview('<%= detailImages.get(0) %>')">
+                            <% } else { %>
+                                <div class="w-full h-full flex items-center justify-center text-ink-faint">
+                                    <svg class="w-16 h-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                </div>
+                            <% } %>
+                            <!-- Sold badge -->
+                            <% if (isSold) { %>
+                            <div class="absolute top-4 right-4 px-4 py-2 bg-slate-600 text-white font-semibold rounded-lg shadow-raised">已售出</div>
+                            <% } %>
                         </div>
+
+                        <!-- Thumbnails -->
+                        <div class="flex gap-3 flex-wrap">
+                            <% if (cover != null && !"".equals(cover)) { %>
+                                <button class="w-20 h-20 rounded-soft overflow-hidden border-2 thumb-active cursor-pointer transition-all hover:border-brand-400" onclick="changeMainImage('<%= cover %>', this)">
+                                    <img src="<%= cover %>" alt="封面图" class="w-full h-full object-cover">
+                                </button>
+                            <% } %>
+                            <% if (detailImages != null && !detailImages.isEmpty()) {
+                                   for (String img : detailImages) { %>
+                                <button class="w-20 h-20 rounded-soft overflow-hidden border-2 border-stroke cursor-pointer transition-all hover:border-brand-400" onclick="changeMainImage('<%= img %>', this)">
+                                    <img src="<%= img %>" alt="详情图" class="w-full h-full object-cover">
+                                </button>
+                            <%     }
+                               } %>
+                            <% if ((cover == null || "".equals(cover)) && (detailImages == null || detailImages.isEmpty())) { %>
+                                <div class="w-20 h-20 rounded-soft bg-stone-100 flex items-center justify-center text-ink-faint text-xs">暂无图片</div>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <!-- Right: Info area -->
+                    <div class="lg:w-1/2 space-y-6">
+                        <!-- Title -->
+                        <div>
+                            <div class="flex items-center gap-3 mb-2 flex-wrap">
+                                <h1 class="font-display font-bold text-2xl lg:text-3xl text-ink-primary"><%= product.getTitle() %></h1>
+                                <% if (isSold) { %>
+                                <span class="px-3 py-1 bg-slate-200 text-slate-600 text-sm font-semibold rounded-lg">已售出</span>
+                                <% } %>
+                            </div>
+                        </div>
+
+                        <!-- Price -->
+                        <div class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-card border border-amber-200 p-5">
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-3xl font-bold text-amber-700">¥<%= product.getPrice() %></span>
+                                <% if (product.getOriginalPrice() != null) { %>
+                                <span class="text-lg text-ink-faint line-through">原价 ¥<%= product.getOriginalPrice() %></span>
+                                <% } %>
+                            </div>
+                            <% if (isSold) { %>
+                            <p class="text-sm text-ink-muted mt-3">该商品已售出，您可以浏览其他商品或联系卖家了解更多。</p>
+                            <% } %>
+                        </div>
+
+                        <!-- Meta panel -->
+                        <div class="bg-surface-muted rounded-card border border-stroke-subtle divide-y divide-stroke">
+                            <div class="flex items-center py-4 px-5">
+                                <span class="w-24 text-sm text-ink-muted">商品成色</span>
+                                <span class="text-sm font-semibold text-ink-primary"><%= detailConditionText %></span>
+                            </div>
+                            <div class="flex items-center py-4 px-5">
+                                <span class="w-24 text-sm text-ink-muted">商品分类</span>
+                                <span class="text-sm font-semibold text-ink-primary"><%= product.getCategoryName() != null ? product.getCategoryName() : "未分类" %></span>
+                            </div>
+                            <div class="flex items-center py-4 px-5">
+                                <span class="w-24 text-sm text-ink-muted">卖家</span>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 bg-brand-100 rounded-full flex items-center justify-center text-brand-600 font-bold text-xs"><%= product.getSellerName() != null ? product.getSellerName().substring(0, Math.min(1, product.getSellerName().length())) : "?" %></div>
+                                    <span class="text-sm font-semibold text-ink-primary"><%= product.getSellerName() != null ? product.getSellerName() : "未知卖家" %></span>
+                                </div>
+                            </div>
+                            <div class="flex items-center py-4 px-5">
+                                <span class="w-24 text-sm text-ink-muted">浏览量</span>
+                                <span class="text-sm font-semibold text-ink-primary"><%= product.getViewCount() %> 次</span>
+                            </div>
+                            <div class="flex items-center py-4 px-5">
+                                <span class="w-24 text-sm text-ink-muted">收藏量</span>
+                                <span class="text-sm font-semibold text-ink-primary" id="favCountDisplay"><%= product.getFavoriteCount() %> 人</span>
+                            </div>
+                            <div class="flex items-center py-4 px-5">
+                                <span class="w-24 text-sm text-ink-muted">发布时间</span>
+                                <span class="text-sm font-semibold text-ink-primary"><%= product.getCreatedAt() != null ? new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm").format(product.getCreatedAt()) : "暂无" %></span>
+                            </div>
+                        </div>
+
+                        <!-- Action buttons -->
+                        <div class="flex flex-wrap gap-3">
+                            <a href="${pageContext.request.contextPath}/product-list" class="btn-press inline-flex items-center gap-2 px-5 py-3 bg-surface-raised text-ink-secondary font-semibold rounded-soft border border-stroke cursor-pointer hover:border-brand-400 hover:text-brand-600">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                                返回列表
+                            </a>
+
+                            <%-- Favorite button (not owner's own product) --%>
+                            <% if (loginUser != null && !isOwner) { %>
+                                <button id="favBtn"
+                                        class="btn-press inline-flex items-center gap-2 px-5 py-3 <%= isFavorited ? "fav-btn-active" : "bg-surface-raised text-ink-muted border border-stroke hover:border-rose-300 hover:text-rose-500" %> font-semibold rounded-soft cursor-pointer"
+                                        onclick="toggleFavorite(<%= product.getProductId() %>)">
+                                    <svg id="favIcon" class="w-4 h-4" viewBox="0 0 24 24" <%= isFavorited ? "fill=" : "" %>"currentColor" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                                    <span id="favBtnText"><%= isFavorited ? "已收藏" : "收藏" %></span>
+                                </button>
+                            <% } else if (loginUser == null) { %>
+                                <a href="${pageContext.request.contextPath}/login" class="btn-press inline-flex items-center gap-2 px-5 py-3 bg-surface-raised text-ink-muted font-semibold rounded-soft border border-stroke cursor-pointer hover:border-rose-300 hover:text-rose-500">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                                    登录后收藏
+                                </a>
+                            <% } %>
+
+                            <%-- Initiate transaction button: not owner, logged in, not sold --%>
+                            <% if (loginUser == null) { %>
+                                <a href="${pageContext.request.contextPath}/login" class="btn-press inline-flex items-center gap-2 px-5 py-3 bg-brand-500 text-white font-semibold rounded-soft shadow-soft cursor-pointer hover:bg-brand-600">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                                    登录后发起交易
+                                </a>
+                            <% } else if (!isOwner && !isSold) { %>
+                                <form action="${pageContext.request.contextPath}/orders" method="post" style="display:inline;margin:0;"
+                                      onsubmit="return confirm('确定要向卖家发起交易请求吗？');">
+                                    <input type="hidden" name="action" value="create">
+                                    <input type="hidden" name="productId" value="<%= product.getProductId() %>">
+                                    <button type="submit" class="btn-press inline-flex items-center gap-2 px-5 py-3 bg-brand-500 text-white font-semibold rounded-soft shadow-soft cursor-pointer hover:bg-brand-600">
+                                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                                        发起交易
+                                    </button>
+                                </form>
+                            <% } %>
+
+                            <%-- Contact seller / Edit product --%>
+                            <% if (loginUser == null) { %>
+                                <a href="${pageContext.request.contextPath}/login" class="btn-press inline-flex items-center gap-2 px-5 py-3 bg-blue-50 text-blue-600 font-semibold rounded-soft border border-blue-200 cursor-pointer hover:bg-blue-100">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                    登录后联系卖家
+                                </a>
+                            <% } else if (isOwner) { %>
+                                <a href="${pageContext.request.contextPath}/edit-product?id=<%= product.getProductId() %>" class="btn-press inline-flex items-center gap-2 px-5 py-3 bg-blue-50 text-blue-600 font-semibold rounded-soft border border-blue-200 cursor-pointer hover:bg-blue-100">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                    编辑商品
+                                </a>
+                            <% } else { %>
+                                <a href="${pageContext.request.contextPath}/messages?with=<%= product.getSellerId() %>&productId=<%= product.getProductId() %>" class="btn-press inline-flex items-center gap-2 px-5 py-3 bg-blue-50 text-blue-600 font-semibold rounded-soft border border-blue-200 cursor-pointer hover:bg-blue-100">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                    联系卖家
+                                </a>
+                            <% } %>
+
+                            <%-- Delete button --%>
+                            <% if (canDelete) { %>
+                                <form action="${pageContext.request.contextPath}/delete-product"
+                                      method="post" style="display:inline;margin:0;"
+                                      onsubmit="return confirm('确定要删除这个商品吗？');">
+                                    <input type="hidden" name="productId" value="<%= product.getProductId() %>">
+                                    <button type="submit" class="btn-press inline-flex items-center gap-2 px-5 py-3 bg-rose-50 text-rose-600 font-semibold rounded-soft border border-rose-200 cursor-pointer hover:bg-rose-100">
+                                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                        删除商品
+                                    </button>
+                                </form>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <%-- Report section (logged in, not owner, not sold) --%>
+        <% if (loginUser != null && !isOwner && !isSold) { %>
+        <section class="animate-fade" style="animation-delay: 0.25s;">
+            <div class="bg-rose-50 rounded-card border border-rose-200 p-6">
+                <h2 class="font-display font-bold text-lg text-rose-700 mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    举报此商品
+                </h2>
+                <form action="${pageContext.request.contextPath}/report" method="post"
+                      onsubmit="return confirm('确定要举报该商品吗？请确认举报内容属实。');">
+                    <input type="hidden" name="action" value="submit">
+                    <input type="hidden" name="productId" value="<%= product.getProductId() %>">
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <textarea name="reason" rows="3" required class="flex-1 px-4 py-3 bg-surface-raised border border-rose-200 rounded-soft text-sm resize-none focus:outline-none focus:border-rose-400" placeholder="请描述举报原因，如：虚假信息、违禁品、欺诈行为等"></textarea>
+                        <button type="submit" class="btn-press px-6 py-3 bg-rose-500 text-white font-semibold rounded-soft cursor-pointer hover:bg-rose-600 self-start md:self-end">提交举报</button>
+                    </div>
+                </form>
+                <p class="text-xs text-ink-muted mt-3 flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    举报后管理员将尽快审核处理。请确保举报内容真实有效，恶意举报可能导致账号受限。
+                </p>
+            </div>
+        </section>
+        <% } %>
+
+        <%-- Carousel from imageUrls --%>
+        <%
+            String imageUrls = product.getImageUrls();
+            if (imageUrls != null && !imageUrls.trim().isEmpty()) {
+                String[] urls = imageUrls.split(",");
+                java.util.List<String> carouselImages = new java.util.ArrayList<>();
+                if (product.getCoverImageUrl() != null && !product.getCoverImageUrl().isEmpty()) {
+                    carouselImages.add(product.getCoverImageUrl());
+                }
+                for (String url : urls) {
+                    String trimmed = url.trim();
+                    if (!trimmed.isEmpty()) {
+                        carouselImages.add(trimmed);
+                    }
+                }
+                if (!carouselImages.isEmpty()) {
+        %>
+        <section class="animate-fade" style="animation-delay: 0.2s;">
+            <div class="bg-surface-raised rounded-card border border-stroke shadow-soft p-6">
+                <h2 class="font-display font-bold text-lg text-ink-primary mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-brand-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    商品图片轮播
+                </h2>
+                <div class="relative overflow-hidden rounded-soft" id="carousel">
+                    <div class="flex transition-transform duration-400" id="carouselTrack" style="transform: translateX(-0%)">
+                        <% for (String img : carouselImages) { %>
+                        <div class="w-full flex-shrink-0">
+                            <img src="<%= img %>" alt="商品图片" class="w-full h-48 object-cover cursor-zoom-in" onclick="openImagePreview('<%= img %>')">
+                        </div>
+                        <% } %>
+                    </div>
+                    <% if (carouselImages.size() > 1) { %>
+                    <button class="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/40 text-white rounded-full flex items-center justify-center hover:bg-black/60 cursor-pointer" onclick="slideCarousel(-1)">&lsaquo;</button>
+                    <button class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/40 text-white rounded-full flex items-center justify-center hover:bg-black/60 cursor-pointer" onclick="slideCarousel(1)">&rsaquo;</button>
+                    <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+                        <% for (int idx = 0; idx < carouselImages.size(); idx++) { %>
+                        <span class="<%= idx == 0 ? "carousel-dot-active " : "" %>w-2.5 h-2.5 bg-white/50 rounded-full cursor-pointer" onclick="goToSlide(<%= idx %>)"></span>
+                        <% } %>
+                    </div>
                     <% } %>
                 </div>
-                <% if (carouselImages.size() > 1) { %>
-                <button onclick="slideCarousel(-1)" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.45);color:#fff;border:none;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;line-height:40px;">&#8249;</button>
-                <button onclick="slideCarousel(1)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.45);color:#fff;border:none;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;line-height:40px;">&#8250;</button>
-                <div style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:8px;">
-                    <% for (int idx = 0; idx < carouselImages.size(); idx++) { %>
-                        <span class="carousel-dot" data-index="<%= idx %>" style="width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.5);cursor:pointer;<%= idx==0?"background:#fff;":"" %>" onclick="goToSlide(<%= idx %>)"></span>
+            </div>
+        </section>
+        <%  }
+        } %>
+
+        <%-- Description --%>
+        <section class="animate-fade" style="animation-delay: 0.15s;">
+            <div class="bg-surface-raised rounded-card border border-stroke shadow-soft p-6">
+                <h2 class="font-display font-bold text-lg text-ink-primary mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-brand-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    商品描述
+                </h2>
+                <p class="text-sm text-ink-secondary leading-relaxed whitespace-pre-wrap">
+                    <%= product.getDescription() != null && !"".equals(product.getDescription().trim())
+                            ? product.getDescription() : "卖家暂时没有填写商品描述。" %>
+                </p>
+            </div>
+        </section>
+
+        <%-- Detail images --%>
+        <section class="animate-fade" style="animation-delay: 0.2s;">
+            <div class="bg-surface-raised rounded-card border border-stroke shadow-soft p-6">
+                <h2 class="font-display font-bold text-lg text-ink-primary mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-brand-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    详情图片
+                </h2>
+                <% if (detailImages != null && !detailImages.isEmpty()) { %>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <% for (String img : detailImages) { %>
+                    <div class="aspect-square bg-gradient-to-br from-slate-100 to-slate-50 rounded-soft overflow-hidden">
+                        <img src="<%= img %>" alt="商品详情图" class="w-full h-full object-cover img-zoom cursor-zoom-in" onclick="openImagePreview('<%= img %>')">
+                    </div>
                     <% } %>
                 </div>
+                <% } else { %>
+                <p class="text-sm text-ink-muted">暂无详情图片。</p>
                 <% } %>
             </div>
-        </div>
+        </section>
+
+        <% } %>
+
     </div>
-    <script>
-    var currentSlide = 0;
-    var totalSlides = <%= carouselImages.size() %>;
-    function slideCarousel(dir) {
-        currentSlide = (currentSlide + dir + totalSlides) % totalSlides;
-        updateSlide();
-    }
-    function goToSlide(idx) {
-        currentSlide = idx;
-        updateSlide();
-    }
-    function updateSlide() {
-        document.getElementById('carouselTrack').style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
-        var dots = document.querySelectorAll('.carousel-dot');
-        dots.forEach(function(d, i) { d.style.background = i === currentSlide ? '#fff' : 'rgba(255,255,255,0.5)'; });
-    }
-    </script>
-    <%  }
-    } %>
+</main>
 
-    <div class="desc-section">
-        <h2 class="section-title">商品描述</h2>
-        <div class="section-body">
-            <div class="description">
-                <%= product.getDescription() != null && !"".equals(product.getDescription().trim())
-                        ? product.getDescription() : "卖家暂时没有填写商品描述。" %>
-            </div>
-        </div>
-    </div>
-
-    <div class="images-section">
-        <h2 class="section-title">详情图片</h2>
-        <div class="section-body">
-            <% if (detailImages != null && !detailImages.isEmpty()) { %>
-                <div class="detail-images">
-                    <% for (String img : detailImages) { %>
-                        <div class="detail-image-card">
-                            <img src="<%= img %>" alt="商品详情图" class="detail-image" onclick="openImagePreview('<%= img %>')">
-                        </div>
-                    <% } %>
-                </div>
-            <% } else { %>
-                <div style="color:#999;">暂无详情图片。</div>
-            <% } %>
-        </div>
-    </div>
-
-    <% } %>
-</div>
-
-<div id="imagePreviewMask" class="image-preview-mask" onclick="closeImagePreview()">
-    <span class="image-preview-close" onclick="closeImagePreview(event)">&#215;</span>
-    <img id="imagePreviewBig" class="image-preview-big" src="" alt="大图预览">
+<!-- Image preview modal -->
+<div id="imageModal" class="fixed inset-0 bg-black/80 z-50 items-center justify-center hidden">
+    <button class="absolute top-6 right-6 text-white text-3xl cursor-pointer hover:text-rose-300" onclick="closeModal()">&times;</button>
+    <img id="modalImage" src="" class="max-w-[92vw] max-h-[88vh] rounded-card shadow-raised">
 </div>
 
 <script>
 /* ====================================================
-   Bug 1 修复：改用 URLSearchParams + 显式 Content-Type
-   原因：FormData 发送时 content-type 为 multipart/form-data，
-         Servlet 的 request.getParameter() 无法读取，导致返回"参数错误"
+   Bug fix: Use URLSearchParams + explicit Content-Type
+   Reason: FormData sends content-type as multipart/form-data,
+           Servlet request.getParameter() cannot read it
    ==================================================== */
 function toggleFavorite(productId) {
     var btn = document.getElementById('favBtn');
-    var icon = btn.querySelector('.fav-icon');
+    var icon = document.getElementById('favIcon');
     var text = document.getElementById('favBtnText');
     var countEl = document.getElementById('favCountDisplay');
     btn.disabled = true;
@@ -454,19 +508,16 @@ function toggleFavorite(productId) {
         }
         if (data.success) {
             if (data.favorited) {
-                btn.classList.add('active');
-                icon.textContent = '♥';
+                btn.className = 'btn-press inline-flex items-center gap-2 px-5 py-3 fav-btn-active font-semibold rounded-soft cursor-pointer';
+                icon.setAttribute('fill', 'currentColor');
                 text.textContent = '已收藏';
-                icon.style.animation = 'none';
-                icon.offsetWidth;
-                icon.style.animation = '';
             } else {
-                btn.classList.remove('active');
-                icon.textContent = '♡';
+                btn.className = 'btn-press inline-flex items-center gap-2 px-5 py-3 bg-surface-raised text-ink-muted border border-stroke hover:border-rose-300 hover:text-rose-500 font-semibold rounded-soft cursor-pointer';
+                icon.removeAttribute('fill');
                 text.textContent = '收藏';
             }
             if (countEl && data.count !== undefined) {
-                countEl.textContent = data.count;
+                countEl.textContent = data.count + ' 人';
             }
         } else {
             alert(data.msg || '操作失败');
@@ -480,21 +531,46 @@ function toggleFavorite(productId) {
 }
 
 function changeMainImage(src, btn) {
-    var mainImg = document.getElementById('mainPreviewImage');
+    var mainImg = document.getElementById('mainImage');
     if (mainImg) mainImg.src = src;
-    document.querySelectorAll('.thumb-item').forEach(function(t){ t.classList.remove('active'); });
-    if (btn) btn.classList.add('active');
+    document.querySelectorAll('.thumb-active').forEach(function(t){ t.classList.remove('thumb-active'); });
+    if (btn) btn.classList.add('thumb-active');
 }
+
+/* Carousel */
+var currentSlide = 0;
+var totalSlides = document.querySelectorAll('#carouselTrack .w-full').length;
+function slideCarousel(dir) {
+    if (totalSlides === 0) return;
+    currentSlide = (currentSlide + dir + totalSlides) % totalSlides;
+    updateCarousel();
+}
+function goToSlide(index) {
+    currentSlide = index;
+    updateCarousel();
+}
+function updateCarousel() {
+    var track = document.getElementById('carouselTrack');
+    if (track) track.style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
+    var dots = document.querySelectorAll('#carousel .rounded-full');
+    dots.forEach(function(d, i) {
+        d.classList.toggle('carousel-dot-active', i === currentSlide);
+        d.style.background = i === currentSlide ? 'white' : 'rgba(255,255,255,0.5)';
+    });
+}
+
+/* Image preview modal */
 function openImagePreview(src) {
-    document.getElementById('imagePreviewBig').src = src;
-    document.getElementById('imagePreviewMask').classList.add('show');
+    document.getElementById('modalImage').src = src;
+    document.getElementById('imageModal').classList.remove('hidden');
+    document.getElementById('imageModal').classList.add('flex');
 }
-function closeImagePreview(event) {
-    if (event) event.stopPropagation();
-    document.getElementById('imagePreviewMask').classList.remove('show');
-    document.getElementById('imagePreviewBig').src = '';
+function closeModal() {
+    document.getElementById('imageModal').classList.add('hidden');
+    document.getElementById('imageModal').classList.remove('flex');
+    document.getElementById('modalImage').src = '';
 }
-document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeImagePreview(); });
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeModal(); });
 </script>
 
 </body>

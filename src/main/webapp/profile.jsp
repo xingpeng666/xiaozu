@@ -10,198 +10,376 @@
     String uNickname = (String) request.getAttribute("u_nickname"); if(uNickname==null) uNickname="";
     String uPhone    = (String) request.getAttribute("u_phone");    if(uPhone==null) uPhone="";
     String uEmail    = (String) request.getAttribute("u_email");    if(uEmail==null) uEmail="";
+
+    String firstNameChar = uRealName.isEmpty() ? "?" : uRealName.substring(0, 1);
 %>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>个人信息 — 民大二手交易平台</title>
+    <title>个人信息 - 民大二手交易平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d' },
+                        accent: { DEFAULT: '#f97316', hover: '#ea580c' },
+                        surface: { DEFAULT: '#fafaf9', raised: '#ffffff' },
+                        ink: { primary: '#1c1917', secondary: '#44403c', muted: '#78716c', faint: '#a8a29e' }
+                    },
+                    fontFamily: {
+                        display: ['Outfit', 'sans-serif'],
+                        body: ['Noto Sans SC', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        :root {
-            --bg:         #f4f3ef;
-            --surface:    #ffffff;
-            --border:     rgba(0,0,0,0.09);
-            --text:       #1a1a1a;
-            --text-muted: #737373;
-            --primary:    #0b6e63;
-            --primary-h:  #085c52;
-            --primary-hl: #d0eae7;
-            --warn:       #d97706;
-            --warn-hl:    #fef3c7;
-            --error-bg:   #fff1f0;
-            --error-bd:   #ffc5c5;
-            --error-tx:   #b91c1c;
-            --success-bg: #f0fdf4;
-            --success-bd: #bbf7d0;
-            --success-tx: #15803d;
-            --radius:     12px;
-            --font:       'Plus Jakarta Sans','PingFang SC','Microsoft YaHei',sans-serif;
-            --shadow:     0 2px 12px rgba(0,0,0,0.06);
-        }
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { -webkit-font-smoothing: antialiased; }
-        body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100dvh; }
+        .hover-lift { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease; }
+        .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        .btn-press { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+        .btn-press:active { transform: scale(0.97); }
+        .input-glow:focus { outline: none; box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15), 0 4px 12px rgba(0,0,0,0.08); }
 
-        .nav {
-            height: 56px; background: var(--surface);
-            border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 28px; position: sticky; top: 0; z-index: 100;
+        .gradient-border {
+            position: relative;
+            background: white;
         }
-        .nav-brand {
-            display: flex; align-items: center; gap: 9px;
-            font-size: 16px; font-weight: 700; color: var(--primary); text-decoration: none;
+        .gradient-border::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            padding: 2px;
+            border-radius: inherit;
+            background: linear-gradient(135deg, #22c55e, #4ade80, #f97316);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
         }
-        .nav-links { display: flex; align-items: center; gap: 4px; }
-        .nav-links a {
-            font-size: 13.5px; font-weight: 500; color: var(--text-muted);
-            text-decoration: none; padding: 6px 11px; border-radius: 7px;
-            transition: background 0.15s, color 0.15s;
-        }
-        .nav-links a:hover { background: var(--primary-hl); color: var(--primary); }
-        .nav-links a.active { background: var(--primary-hl); color: var(--primary); }
-        .nav-links .btn-logout { margin-left: 6px; padding: 6px 14px; background: var(--primary); color: #fff; border-radius: 7px; }
-        .nav-links .btn-logout:hover { background: var(--primary-h); color: #fff; }
 
-        .container { max-width: 600px; margin: 36px auto; padding: 0 16px 48px; }
-        .page-header { margin-bottom: 28px; }
-        .page-header h1 { font-size: 22px; font-weight: 700; }
+        .input-float:focus + .label-float,
+        .input-float:not(:placeholder-shown) + .label-float {
+            transform: translateY(-28px) scale(0.85);
+            color: #22c55e;
+        }
+        .label-float {
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform-origin: left center;
+        }
 
-        .alert {
-            padding: 11px 14px; border-radius: 8px; font-size: 13.5px;
-            margin-bottom: 18px; display: flex; align-items: flex-start; gap: 8px; line-height: 1.5;
+        .card-enter {
+            animation: cardSlideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        .alert-error   { background: var(--error-bg);   border: 1px solid var(--error-bd);   color: var(--error-tx); }
-        .alert-success { background: var(--success-bg); border: 1px solid var(--success-bd); color: var(--success-tx); }
+        @keyframes cardSlideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-        .card {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px;
+        .strength-bar {
+            transition: all 0.3s ease;
         }
-        .card-header {
-            padding: 14px 20px; border-bottom: 1px solid var(--border);
-            font-size: 14px; font-weight: 700; color: var(--text);
-        }
-        .card-body { padding: 20px; }
 
-        .form-group { margin-bottom: 18px; }
-        .form-group label {
-            display: block; font-size: 13px; font-weight: 600;
-            color: var(--text); margin-bottom: 7px;
+        @media (prefers-reduced-motion: reduce) {
+            .hover-lift, .btn-press, .card-enter { animation: none; transition: none; }
+            .hover-lift:hover { transform: none; }
+            .btn-press:active { transform: none; }
         }
-        .form-group input {
-            width: 100%; padding: 10px 13px;
-            border: 1.5px solid var(--border); border-radius: 9px;
-            font-size: 14px; font-family: var(--font);
-            background: #fafafa; color: var(--text); outline: none;
-            transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
-        }
-        .form-group input:focus {
-            border-color: var(--primary); background: #fff;
-            box-shadow: 0 0 0 3px rgba(11,110,99,0.1);
-        }
-        .form-group input:disabled { background: #f0f0ee; color: var(--text-muted); cursor: not-allowed; }
-        .form-group input::placeholder { color: #b0b0b0; }
-
-        .btn {
-            padding: 10px 22px; border-radius: 8px; font-size: 14px; font-weight: 600;
-            font-family: var(--font); cursor: pointer; border: none; transition: all 0.15s;
-        }
-        .btn-primary { background: var(--primary); color: #fff; }
-        .btn-primary:hover { background: var(--primary-h); }
-        .btn-warn { background: var(--warn); color: #fff; }
-        .btn-warn:hover { background: #b45309; }
     </style>
 </head>
-<body>
+<body class="font-body min-h-screen bg-gradient-to-br from-stone-50 via-brand-50/30 to-stone-100">
 
-<nav class="nav">
-    <a class="nav-brand" href="<%=request.getContextPath()%>/index.jsp">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-            <line x1="3" y1="6" x2="21" y2="6"/>
-            <path d="M16 10a4 4 0 0 1-8 0"/>
-        </svg>
-        民大二手交易平台
-    </a>
-    <div class="nav-links">
-        <a href="<%=request.getContextPath()%>/index.jsp">首页</a>
-        <a href="<%=request.getContextPath()%>/orders?type=buy">我的订单</a>
-        <a href="<%=request.getContextPath()%>/my-reviews">我的评价</a>
-        <a href="<%=request.getContextPath()%>/profile" class="active">个人信息</a>
-        <a href="<%=request.getContextPath()%>/logout" class="btn-logout">退出</a>
-    </div>
-</nav>
+<jsp:include page="/common/header.jsp">
+    <jsp:param name="active" value=""/>
+</jsp:include>
 
-<div class="container">
-    <div class="page-header">
-        <h1>个人信息</h1>
+<!-- 主内容 -->
+<main class="max-w-2xl mx-auto px-4 py-8">
+    <!-- 页面标题 -->
+    <div class="mb-8">
+        <h1 class="font-display text-3xl font-bold text-ink-primary">个人信息</h1>
+        <p class="text-ink-muted mt-1">管理你的账户设置和偏好</p>
     </div>
 
+    <!-- 错误/成功提示 -->
     <% if(errMsg!=null){ %>
-    <div class="alert alert-error"><span>✕</span><span><%=errMsg%></span></div>
+    <div class="mb-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex items-center gap-3">
+        <svg class="w-5 h-5 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+        </svg>
+        <span class="text-red-700 text-sm"><%=errMsg%></span>
+    </div>
     <% } %>
     <% if(sucMsg!=null){ %>
-    <div class="alert alert-success"><span>✓</span><span><%=sucMsg%></span></div>
+    <div class="mb-4 bg-brand-50 border border-brand-200 rounded-lg px-4 py-3 flex items-center gap-3">
+        <svg class="w-5 h-5 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        <span class="text-brand-700 text-sm"><%=sucMsg%></span>
+    </div>
     <% } %>
 
-    <div class="card">
-        <div class="card-header">基本资料</div>
-        <div class="card-body">
-            <form method="post" action="<%=request.getContextPath()%>/profile">
-                <div class="form-group">
-                    <label>学号 / 工号</label>
-                    <input type="text" value="<%=uNo%>" disabled>
+    <!-- 用户头像卡片 -->
+    <div class="card-enter bg-gradient-to-r from-brand-500 to-brand-600 rounded-2xl p-6 mb-6 text-white relative overflow-hidden">
+        <!-- 装饰图案 -->
+        <div class="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+        <div class="absolute right-20 bottom-0 w-20 h-20 bg-white/5 rounded-full translate-y-1/2"></div>
+
+        <div class="flex items-center gap-4 relative z-10">
+            <!-- 头像 -->
+            <div class="relative">
+                <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-2xl font-display font-bold border-2 border-white/30">
+                    <%= firstNameChar %>
                 </div>
-                <div class="form-group">
-                    <label>真实姓名</label>
-                    <input type="text" value="<%=uRealName%>" disabled>
+                <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-accent rounded-full flex items-center justify-center border-2 border-white">
+                    <svg class="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
                 </div>
-                <div class="form-group">
-                    <label>昵称</label>
-                    <input type="text" name="nickname" value="<%=uNickname%>" maxlength="30" placeholder="设置昵称（选填）">
+            </div>
+            <div>
+                <h2 class="font-display text-xl font-bold"><%= uRealName %></h2>
+                <p class="text-white/80 text-sm">学号/工号: <%= uNo %></p>
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="px-2 py-0.5 bg-white/20 rounded-full text-xs">已认证</span>
+                    <span class="px-2 py-0.5 bg-white/20 rounded-full text-xs">信用良好</span>
                 </div>
-                <div class="form-group">
-                    <label>手机号</label>
-                    <input type="tel" name="phone" value="<%=uPhone%>" maxlength="20" placeholder="联系手机（选填）">
+            </div>
+        </div>
+
+        <!-- 统计数据 -->
+        <div class="flex gap-6 mt-6 pt-4 border-t border-white/20 relative z-10">
+            <div class="text-center">
+                <p class="font-display text-2xl font-bold"><%= request.getAttribute("productCount") != null ? request.getAttribute("productCount") : "0" %></p>
+                <p class="text-white/70 text-xs">在售商品</p>
+            </div>
+            <div class="text-center">
+                <p class="font-display text-2xl font-bold"><%= request.getAttribute("soldCount") != null ? request.getAttribute("soldCount") : "0" %></p>
+                <p class="text-white/70 text-xs">已售出</p>
+            </div>
+            <div class="text-center">
+                <p class="font-display text-2xl font-bold"><%= request.getAttribute("userRating") != null ? request.getAttribute("userRating") : "-" %></p>
+                <p class="text-white/70 text-xs">用户评分</p>
+            </div>
+            <div class="text-center">
+                <p class="font-display text-2xl font-bold"><%= request.getAttribute("likeCount") != null ? request.getAttribute("likeCount") : "0" %></p>
+                <p class="text-white/70 text-xs">获赞数</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 基本资料卡片 -->
+    <div class="gradient-border rounded-2xl overflow-hidden mb-6 hover-lift">
+        <div class="bg-surface-raised">
+            <div class="px-6 py-4 border-b border-stone-100 bg-gradient-to-r from-brand-50/50 to-transparent">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-4 h-4 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </div>
+                    <h2 class="font-display font-semibold text-ink-primary">基本资料</h2>
                 </div>
-                <div class="form-group">
-                    <label>邮笱</label>
-                    <input type="email" name="email" value="<%=uEmail%>" maxlength="100" placeholder="联系邮笱（选填）">
+            </div>
+            <form method="post" action="<%=request.getContextPath()%>/profile" class="p-6 space-y-5">
+                <!-- 学号/工号 -->
+                <div>
+                    <label class="block text-sm font-medium text-ink-primary mb-2">学号 / 工号</label>
+                    <div class="relative">
+                        <input type="text" value="<%=uNo%>" disabled class="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl text-ink-muted cursor-not-allowed">
+                        <div class="absolute right-3 top-1/2 -translate-y-1/2">
+                            <svg class="w-4 h-4 text-ink-faint" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </div>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-primary">保存基本资料</button>
+
+                <!-- 真实姓名 -->
+                <div>
+                    <label class="block text-sm font-medium text-ink-primary mb-2">真实姓名</label>
+                    <div class="relative">
+                        <input type="text" value="<%=uRealName%>" disabled class="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl text-ink-muted cursor-not-allowed">
+                        <div class="absolute right-3 top-1/2 -translate-y-1/2">
+                            <svg class="w-4 h-4 text-ink-faint" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 昵称 -->
+                <div class="relative pt-4">
+                    <input type="text" id="nickname" name="nickname" value="<%=uNickname%>" maxlength="30" placeholder=" " class="input-float w-full px-4 py-3 bg-surface-DEFAULT border border-stone-200 rounded-xl text-ink-primary placeholder:text-ink-faint input-glow focus:border-brand-500 transition-all">
+                    <label for="nickname" class="label-float absolute left-4 top-4 text-ink-muted pointer-events-none">昵称（选填）</label>
+                </div>
+
+                <!-- 手机号 -->
+                <div>
+                    <label class="block text-sm font-medium text-ink-primary mb-2">手机号</label>
+                    <input type="tel" name="phone" value="<%=uPhone%>" maxlength="20" placeholder="联系手机（选填）" class="w-full px-4 py-3 bg-surface-DEFAULT border border-stone-200 rounded-xl text-ink-primary placeholder:text-ink-faint input-glow focus:border-brand-500 transition-all">
+                </div>
+
+                <!-- 邮箱 -->
+                <div class="relative pt-4">
+                    <input type="email" id="email" name="email" value="<%=uEmail%>" maxlength="100" placeholder=" " class="input-float w-full px-4 py-3 bg-surface-DEFAULT border border-stone-200 rounded-xl text-ink-primary placeholder:text-ink-faint input-glow focus:border-brand-500 transition-all">
+                    <label for="email" class="label-float absolute left-4 top-4 text-ink-muted pointer-events-none">邮箱（选填）</label>
+                </div>
+
+                <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-display font-semibold rounded-xl btn-press transition-all shadow-lg shadow-brand-500/25 flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                        <polyline points="17 21 17 13 7 13 7 21"/>
+                        <polyline points="7 3 7 8 15 8"/>
+                    </svg>
+                    保存基本资料
+                </button>
             </form>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-header">修改密码（不修改则留空）</div>
-        <div class="card-body">
-            <form method="post" action="<%=request.getContextPath()%>/profile">
+    <!-- 修改密码卡片 -->
+    <div class="gradient-border rounded-2xl overflow-hidden hover-lift">
+        <div class="bg-surface-raised">
+            <div class="px-6 py-4 border-b border-stone-100 bg-gradient-to-r from-orange-50/50 to-transparent">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-4 h-4 text-orange-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="font-display font-semibold text-ink-primary">修改密码</h2>
+                        <p class="text-xs text-ink-muted">不修改则留空</p>
+                    </div>
+                </div>
+            </div>
+            <form method="post" action="<%=request.getContextPath()%>/profile" class="p-6 space-y-5">
                 <input type="hidden" name="nickname" value="<%=uNickname%>">
                 <input type="hidden" name="phone"    value="<%=uPhone%>">
                 <input type="hidden" name="email"    value="<%=uEmail%>">
-                <div class="form-group">
-                    <label>当前密码</label>
-                    <input type="password" name="oldPassword" placeholder="输入当前密码">
+
+                <!-- 当前密码 -->
+                <div class="relative pt-4">
+                    <input type="password" id="oldPassword" name="oldPassword" placeholder=" " class="input-float w-full px-4 py-3 bg-surface-DEFAULT border border-stone-200 rounded-xl text-ink-primary placeholder:text-ink-faint input-glow focus:border-brand-500 transition-all pr-10">
+                    <label for="oldPassword" class="label-float absolute left-4 top-4 text-ink-muted pointer-events-none">当前密码</label>
+                    <button type="button" onclick="togglePassword('oldPassword')" class="absolute right-3 top-4 text-ink-faint hover:text-ink-muted transition-colors">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </button>
                 </div>
-                <div class="form-group">
-                    <label>新密码</label>
-                    <input type="password" name="newPassword" placeholder="6-16 位字母/数字">
+
+                <!-- 新密码 -->
+                <div>
+                    <div class="relative pt-4">
+                        <input type="password" id="newPassword" name="newPassword" placeholder=" " class="input-float w-full px-4 py-3 bg-surface-DEFAULT border border-stone-200 rounded-xl text-ink-primary placeholder:text-ink-faint input-glow focus:border-brand-500 transition-all pr-10" oninput="checkPasswordStrength(this.value)">
+                        <label for="newPassword" class="label-float absolute left-4 top-4 text-ink-muted pointer-events-none">新密码</label>
+                        <button type="button" onclick="togglePassword('newPassword')" class="absolute right-3 top-4 text-ink-faint hover:text-ink-muted transition-colors">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <!-- 密码强度指示器 -->
+                    <div class="flex gap-1 mt-3">
+                        <div id="strength-1" class="strength-bar h-1.5 flex-1 rounded-full bg-stone-200"></div>
+                        <div id="strength-2" class="strength-bar h-1.5 flex-1 rounded-full bg-stone-200"></div>
+                        <div id="strength-3" class="strength-bar h-1.5 flex-1 rounded-full bg-stone-200"></div>
+                        <div id="strength-4" class="strength-bar h-1.5 flex-1 rounded-full bg-stone-200"></div>
+                    </div>
+                    <p id="strength-text" class="text-xs text-ink-faint mt-1.5">请输入新密码</p>
                 </div>
-                <div class="form-group">
-                    <label>确认新密码</label>
-                    <input type="password" name="confirmPassword" placeholder="再次输入新密码">
+
+                <!-- 确认新密码 -->
+                <div class="relative pt-4">
+                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder=" " class="input-float w-full px-4 py-3 bg-surface-DEFAULT border border-stone-200 rounded-xl text-ink-primary placeholder:text-ink-faint input-glow focus:border-brand-500 transition-all pr-10">
+                    <label for="confirmPassword" class="label-float absolute left-4 top-4 text-ink-muted pointer-events-none">确认新密码</label>
+                    <button type="button" onclick="togglePassword('confirmPassword')" class="absolute right-3 top-4 text-ink-faint hover:text-ink-muted transition-colors">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </button>
                 </div>
-                <button type="submit" class="btn btn-warn">修改密码</button>
+
+                <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-display font-semibold rounded-xl btn-press transition-all shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    修改密码
+                </button>
             </form>
         </div>
     </div>
-</div>
+
+    <!-- 账户安全提示 -->
+    <div class="mt-6 p-4 bg-brand-50/50 border border-brand-200/50 rounded-xl">
+        <div class="flex items-start gap-3">
+            <div class="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-sm font-medium text-brand-700">账户安全提示</h3>
+                <p class="text-xs text-brand-600/80 mt-1">建议定期修改密码，使用字母、数字和符号的组合以提高账户安全性。</p>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+function togglePassword(id) {
+    var input = document.getElementById(id);
+    input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+function checkPasswordStrength(password) {
+    var strength = 0;
+    if (password.length >= 6) strength++;
+    if (password.length >= 10) strength++;
+    if (/[A-Z]/.test(password) && /[a-z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[^A-Za-z0-9]/.test(password)) strength++;
+
+    var bars = ['strength-1', 'strength-2', 'strength-3', 'strength-4'];
+    var colors = ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-brand-400'];
+    var texts = ['弱', '一般', '中等', '强'];
+    var textColors = ['text-red-600', 'text-orange-600', 'text-yellow-600', 'text-brand-600'];
+
+    var level = Math.min(Math.floor(strength * 0.8), 4);
+
+    bars.forEach(function(bar, i) {
+        var el = document.getElementById(bar);
+        el.className = 'strength-bar h-1.5 flex-1 rounded-full ' + (i < level ? colors[level - 1] : 'bg-stone-200');
+    });
+
+    var textEl = document.getElementById('strength-text');
+    if (password.length === 0) {
+        textEl.textContent = '请输入新密码';
+        textEl.className = 'text-xs text-ink-faint mt-1.5';
+    } else {
+        textEl.textContent = '密码强度: ' + (texts[level - 1] || '弱');
+        textEl.className = 'text-xs mt-1.5 ' + (textColors[level - 1] || 'text-red-600');
+    }
+}
+</script>
 
 </body>
 </html>

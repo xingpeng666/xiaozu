@@ -22,122 +22,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理统计面板 — 民大二手交易平台</title>
+    <title>管理统计面板 - 民大二手交易平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg:#f4f3ef;--surface:#fff;--border:rgba(0,0,0,0.09);--text:#1a1a1a;--muted:#737373;
-            --primary:#0b6e63;--primary-h:#085c52;--primary-hl:#d0eae7;
-            --success-bg:#f0fdf4;--success-bd:#bbf7d0;--success-tx:#15803d;
-            --error-bg:#fff1f0;--error-bd:#ffc5c5;--error-tx:#b91c1c;
-            --radius:12px;--font:'Plus Jakarta Sans','PingFang SC','Microsoft YaHei',sans-serif;
-            --shadow:0 2px 12px rgba(0,0,0,0.06);
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d' },
+                        accent: { DEFAULT: '#f97316', hover: '#ea580c' },
+                        surface: { DEFAULT: '#fafaf9', raised: '#ffffff' },
+                        ink: { primary: '#1c1917', secondary: '#44403c', muted: '#78716c', faint: '#a8a29e' }
+                    },
+                    fontFamily: {
+                        display: ['Outfit', 'sans-serif'],
+                        body: ['Noto Sans SC', 'sans-serif']
+                    }
+                }
+            }
         }
-        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        html{-webkit-font-smoothing:antialiased}
-        body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100dvh}
-        .nav{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:100}
-        .nav-brand{display:flex;align-items:center;gap:9px;font-size:16px;font-weight:700;color:var(--primary);text-decoration:none}
-        .nav-links{display:flex;align-items:center;gap:4px}
-        .nav-links a{font-size:13.5px;font-weight:500;color:var(--muted);text-decoration:none;padding:6px 11px;border-radius:7px;transition:background .15s,color .15s}
-        .nav-links a:hover{background:var(--primary-hl);color:var(--primary)}
-        .nav-links a.active{background:var(--primary-hl);color:var(--primary)}
-        .nav-links .btn-logout{margin-left:6px;padding:6px 14px;background:var(--primary);color:#fff;border-radius:7px}
-        .nav-links .btn-logout:hover{background:var(--primary-h);color:#fff}
-        .container{max-width:1200px;margin:36px auto;padding:0 16px 48px}
-        .page-header{margin-bottom:24px}
-        .page-header h1{font-size:22px;font-weight:700}
-        .alert{padding:11px 14px;border-radius:8px;font-size:13.5px;margin-bottom:18px}
-        .alert-success{background:var(--success-bg);border:1px solid var(--success-bd);color:var(--success-tx)}
-        .alert-error{background:var(--error-bg);border:1px solid var(--error-bd);color:var(--error-tx)}
-        .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
-        .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 18px;box-shadow:var(--shadow)}
-        .stat-label{font-size:12.5px;color:var(--muted);margin-bottom:8px}
-        .stat-value{font-size:28px;font-weight:700;color:var(--primary)}
-        .stat-sub{font-size:12px;color:var(--muted);margin-top:5px}
-        .stat-card.c2 .stat-value{color:#059669}
-        .stat-card.c3 .stat-value{color:#d97706}
-        .stat-card.c4 .stat-value{color:#7c3aed}
-        .table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;box-shadow:var(--shadow);margin-bottom:22px}
-        .table-card h3{font-size:16px;font-weight:700;margin-bottom:16px}
-        table{width:100%;border-collapse:collapse}
-        th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--border);font-size:13.5px}
-        th{background:#fafaf9;font-weight:600;color:var(--muted)}
-        tr:last-child td{border-bottom:none}
-        tr:hover td{background:#f9f9f7}
-        .quick-links{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
-        .quick-links a{display:inline-block;padding:9px 18px;border-radius:8px;text-decoration:none;font-size:13.5px;font-weight:600;background:var(--primary);color:#fff;transition:background .15s}
-        .quick-links a:hover{background:var(--primary-h)}
-        .quick-links a.sec{background:var(--primary-hl);color:var(--primary)}
-        .quick-links a.sec:hover{background:#b8e0db}
-        @media(max-width:900px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
-        @media(max-width:500px){.stats-grid{grid-template-columns:1fr}}
+    </script>
+    <style>
+        .hover-lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+        .btn-press { transition: transform 0.1s ease; }
+        .btn-press:active { transform: scale(0.97); }
+        @media (prefers-reduced-motion: reduce) {
+            .hover-lift, .btn-press { transition: none; }
+            .hover-lift:hover { transform: none; }
+            .btn-press:active { transform: none; }
+        }
     </style>
 </head>
-<body>
-<nav class="nav">
-    <a class="nav-brand" href="${pageContext.request.contextPath}/index.jsp">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-        民大二手 · 管理后台
-    </a>
-    <div class="nav-links">
-        <a href="${pageContext.request.contextPath}/admin/dashboard" class="active">统计面板</a>
-        <a href="${pageContext.request.contextPath}/admin/user-review">用户审核</a>
-        <a href="${pageContext.request.contextPath}/admin/products">商品审核</a>
-        <a href="${pageContext.request.contextPath}/index.jsp">前台首页</a>
-        <a href="${pageContext.request.contextPath}/logout" class="btn-logout">退出</a>
-    </div>
-</nav>
-<div class="container">
-    <div class="page-header"><h1>📊 数据统计面板</h1></div>
-    <% if (successMsg != null) { %><div class="alert alert-success">✓ <%= successMsg %></div><% } %>
-    <% if (errorMsg != null) { %><div class="alert alert-error">✕ <%= errorMsg %></div><% } %>
+<body class="font-body min-h-screen bg-surface-DEFAULT">
 
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-label">👥 平台总用户数</div>
-            <div class="stat-value"><%= totalUsers %></div>
-            <div class="stat-sub">今日新增 <%= todayNewUsers %> 人</div>
+<jsp:include page="/common/header.jsp">
+    <jsp:param name="active" value="dashboard"/>
+    <jsp:param name="isAdmin" value="true"/>
+</jsp:include>
+
+<!-- 主内容 -->
+<main class="max-w-6xl mx-auto px-4 py-8">
+    <h1 class="font-display text-2xl font-bold text-ink-primary mb-6">数据统计面板</h1>
+
+    <% if (successMsg != null) { %>
+    <div class="flex items-center gap-2 px-4 py-3 bg-brand-50 border border-brand-200 rounded-xl text-brand-700 text-sm mb-6">
+        <svg class="w-5 h-5 text-brand-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <span><%= successMsg %></span>
+    </div>
+    <% } %>
+    <% if (errorMsg != null) { %>
+    <div class="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm mb-6">
+        <svg class="w-5 h-5 text-red-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        <span><%= errorMsg %></span>
+    </div>
+    <% } %>
+
+    <!-- 统计卡片 -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <!-- 用户数 -->
+        <div class="bg-surface-raised border border-stone-200 rounded-2xl p-5 hover-lift">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                </div>
+                <span class="text-sm text-ink-muted">平台总用户数</span>
+            </div>
+            <div class="font-display text-3xl font-bold text-brand-600"><%= totalUsers %></div>
+            <div class="text-xs text-ink-muted mt-1">今日新增 <span class="text-brand-500 font-medium"><%= todayNewUsers %></span> 人</div>
         </div>
-        <div class="stat-card c2">
-            <div class="stat-label">📦 在售商品数</div>
-            <div class="stat-value"><%= onSaleProducts %></div>
+
+        <!-- 在售商品 -->
+        <div class="bg-surface-raised border border-stone-200 rounded-2xl p-5 hover-lift">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <path d="M16 10a4 4 0 0 1-8 0"/>
+                    </svg>
+                </div>
+                <span class="text-sm text-ink-muted">在售商品数</span>
+            </div>
+            <div class="font-display text-3xl font-bold text-emerald-600"><%= onSaleProducts %></div>
         </div>
-        <div class="stat-card c3">
-            <div class="stat-label">📝 待审核商品</div>
-            <div class="stat-value"><%= pendingProducts %></div>
+
+        <!-- 待审核 -->
+        <div class="bg-surface-raised border border-stone-200 rounded-2xl p-5 hover-lift">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-orange-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                </div>
+                <span class="text-sm text-ink-muted">待审核商品</span>
+            </div>
+            <div class="font-display text-3xl font-bold text-orange-600"><%= pendingProducts %></div>
         </div>
-        <div class="stat-card c4">
-            <div class="stat-label">💰 总交易金额</div>
-            <div class="stat-value">&yen;<%= String.format("%.2f", totalAmount) %></div>
-            <div class="stat-sub"><%= totalOrders %> 笔订单，已完成 <%= completedOrders %> 笔</div>
+
+        <!-- 交易金额 -->
+        <div class="bg-surface-raised border border-stone-200 rounded-2xl p-5 hover-lift">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="1" x2="12" y2="23"/>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                    </svg>
+                </div>
+                <span class="text-sm text-ink-muted">总交易金额</span>
+            </div>
+            <div class="font-display text-3xl font-bold text-purple-600">&yen;<%= String.format("%.2f", totalAmount) %></div>
+            <div class="text-xs text-ink-muted mt-1"><%= totalOrders %> 笔订单，已完成 <%= completedOrders %> 笔</div>
         </div>
     </div>
 
-    <div class="table-card">
-        <h3>📈 近 7 天订单趋势</h3>
-        <table>
-            <thead><tr><th>日期</th><th>订单数</th></tr></thead>
-            <tbody>
-                <% if (dailyOrders.isEmpty()) { %>
-                <tr><td colspan="2" style="text-align:center;color:var(--muted);">暂无数据</td></tr>
-                <% } else { for (Map<String, Object> row : dailyOrders) { %>
-                <tr>
-                    <td><%= row.get("orderDate") %></td>
-                    <td><strong><%= row.get("orderCount") %></strong> 笔</td>
-                </tr>
-                <% } } %>
-            </tbody>
-        </table>
+    <!-- 订单趋势表格 -->
+    <div class="bg-surface-raised border border-stone-200 rounded-2xl p-6 mb-6 hover-lift">
+        <h3 class="font-display font-semibold text-ink-primary mb-4 flex items-center gap-2">
+            <svg class="w-5 h-5 text-brand-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+            近 7 天订单趋势
+        </h3>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b border-stone-200">
+                        <th class="text-left py-3 px-4 text-sm font-medium text-ink-muted bg-stone-50 rounded-tl-lg">日期</th>
+                        <th class="text-left py-3 px-4 text-sm font-medium text-ink-muted bg-stone-50 rounded-tr-lg">订单数</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (dailyOrders.isEmpty()) { %>
+                    <tr>
+                        <td colspan="2" class="py-8 text-center text-sm text-ink-muted">暂无数据</td>
+                    </tr>
+                    <% } else {
+                        for (Map<String, Object> row : dailyOrders) { %>
+                    <tr class="border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                        <td class="py-3 px-4 text-sm text-ink-primary"><%= row.get("orderDate") %></td>
+                        <td class="py-3 px-4 text-sm font-semibold text-ink-primary"><%= row.get("orderCount") %> 笔</td>
+                    </tr>
+                    <% } } %>
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <div class="quick-links">
-        <a href="${pageContext.request.contextPath}/admin/user-review">👤 用户审核管理</a>
-        <a href="${pageContext.request.contextPath}/admin/products">🔍 商品审核管理</a>
-        <a class="sec" href="${pageContext.request.contextPath}/report">🔔 举报管理</a>
+    <!-- 快捷入口 -->
+    <div class="flex flex-wrap gap-3">
+        <a href="${pageContext.request.contextPath}/admin/user-review" class="inline-flex items-center gap-2 px-5 py-3 bg-brand-500 text-white font-medium rounded-lg hover:bg-brand-600 transition-colors btn-press">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+            </svg>
+            用户审核管理
+        </a>
+        <a href="${pageContext.request.contextPath}/admin/products" class="inline-flex items-center gap-2 px-5 py-3 bg-brand-500 text-white font-medium rounded-lg hover:bg-brand-600 transition-colors btn-press">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            商品审核管理
+        </a>
+        <a href="${pageContext.request.contextPath}/report" class="inline-flex items-center gap-2 px-5 py-3 bg-brand-50 text-brand-600 font-medium rounded-lg hover:bg-brand-100 transition-colors">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            举报管理
+        </a>
     </div>
-</div>
+</main>
+
 </body>
 </html>

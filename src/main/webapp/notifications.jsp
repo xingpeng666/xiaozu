@@ -13,195 +13,206 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>消息通知 — 民大二手交易平台</title>
+    <title>消息通知 - 民大二手交易平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d' },
+                        accent: { DEFAULT: '#f97316', hover: '#ea580c' },
+                        surface: { DEFAULT: '#fafaf9', raised: '#ffffff' },
+                        ink: { primary: '#1c1917', secondary: '#44403c', muted: '#78716c', faint: '#a8a29e' }
+                    },
+                    fontFamily: {
+                        display: ['Outfit', 'sans-serif'],
+                        body: ['Noto Sans SC', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        :root {
-            --bg:         #f4f3ef;
-            --surface:    #ffffff;
-            --border:     rgba(0,0,0,0.09);
-            --text:       #1a1a1a;
-            --text-muted: #737373;
-            --primary:    #0b6e63;
-            --primary-h:  #085c52;
-            --primary-hl: #d0eae7;
-            --error-bg:   #fff1f0;
-            --error-bd:   #ffc5c5;
-            --error-tx:   #b91c1c;
-            --radius:     12px;
-            --font:       'Plus Jakarta Sans','PingFang SC','Microsoft YaHei',sans-serif;
-            --shadow:     0 2px 12px rgba(0,0,0,0.06);
-        }
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { -webkit-font-smoothing: antialiased; }
-        body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100dvh; }
+        .hover-lift { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease; }
+        .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); }
+        .btn-press { transition: transform 0.15s ease; }
+        .btn-press:active { transform: scale(0.97); }
 
-        .nav {
-            height: 56px; background: var(--surface);
-            border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 28px; position: sticky; top: 0; z-index: 100;
+        /* 通知入场动画 */
+        .notification-enter {
+            animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        .nav-brand {
-            display: flex; align-items: center; gap: 9px;
-            font-size: 16px; font-weight: 700; color: var(--primary); text-decoration: none;
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
         }
-        .nav-brand svg { color: var(--primary); }
-        .nav-links { display: flex; align-items: center; gap: 4px; }
-        .nav-links a {
-            font-size: 13.5px; font-weight: 500; color: var(--text-muted);
-            text-decoration: none; padding: 6px 11px; border-radius: 7px;
-            transition: background 0.15s, color 0.15s;
-        }
-        .nav-links a:hover { background: var(--primary-hl); color: var(--primary); }
-        .nav-links a.active { background: var(--primary-hl); color: var(--primary); }
-        .nav-links .btn-logout {
-            margin-left: 6px; padding: 6px 14px;
-            background: var(--primary); color: #fff; border-radius: 7px;
-        }
-        .nav-links .btn-logout:hover { background: var(--primary-h); color: #fff; }
 
-        .container { max-width: 700px; margin: 36px auto; padding: 0 16px 48px; }
-        .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
-        .page-header h1 { font-size: 22px; font-weight: 700; }
-        .page-header .meta { font-size: 13.5px; color: var(--text-muted); margin-top: 4px; }
+        /* 未读指示器脉冲 */
+        .unread-pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+        }
 
-        .alert {
-            padding: 11px 14px; border-radius: 8px; font-size: 13.5px;
-            margin-bottom: 18px; display: flex; align-items: flex-start; gap: 8px; line-height: 1.5;
+        /* 删除按钮滑入 */
+        .notification-card:hover .delete-btn {
+            opacity: 1;
+            transform: translateX(0);
         }
-        .alert-error { background: var(--error-bg); border: 1px solid var(--error-bd); color: var(--error-tx); }
+        .delete-btn {
+            opacity: 0;
+            transform: translateX(10px);
+            transition: all 0.2s ease;
+        }
 
-        .btn {
-            padding: 8px 16px; border-radius: 8px; font-size: 13.5px; font-weight: 600;
-            font-family: var(--font); cursor: pointer; border: 1px solid var(--border);
-            background: var(--surface); color: var(--text-muted); transition: all 0.15s;
-            text-decoration: none;
+        @media (prefers-reduced-motion: reduce) {
+            .hover-lift, .btn-press, .notification-enter, .unread-pulse { animation: none; transition: none; }
+            .hover-lift:hover { transform: none; }
+            .btn-press:active { transform: none; }
+            .delete-btn { opacity: 1; transform: none; }
         }
-        .btn:hover { border-color: var(--primary); color: var(--primary); }
-        .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
-        .btn-primary:hover { background: var(--primary-h); color: #fff; }
-        .btn-danger { background: #fff1f1; color: #dc2626; border-color: #fecaca; }
-        .btn-danger:hover { background: #fee2e2; }
-        .btn-ghost { background: transparent; color: var(--text-muted); border-color: var(--border); }
-        .btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
-        .btn-sm { padding: 5px 12px; font-size: 12px; }
-
-        .notify-list { display: flex; flex-direction: column; gap: 8px; }
-        .notify-item {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 14px 18px;
-            display: flex; gap: 14px; align-items: flex-start;
-            box-shadow: var(--shadow);
-            transition: border-color 0.15s;
-        }
-        .notify-item.unread {
-            border-left: 3px solid var(--primary);
-            background: #f7fcfb;
-        }
-        .notify-dot {
-            width: 8px; height: 8px; border-radius: 50%;
-            background: var(--primary); margin-top: 6px; flex-shrink: 0;
-        }
-        .notify-dot-placeholder { width: 8px; flex-shrink: 0; }
-        .notify-content { flex: 1; font-size: 14px; line-height: 1.7; color: var(--text); }
-        .notify-time { font-size: 12px; color: var(--text-muted); margin-top: 5px; }
-        .notify-actions { flex-shrink: 0; }
-
-        .empty {
-            text-align: center; padding: 72px 20px;
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius); box-shadow: var(--shadow);
-        }
-        .empty-icon { font-size: 48px; margin-bottom: 14px; }
-        .empty p { font-size: 14.5px; color: var(--text-muted); }
     </style>
 </head>
-<body>
+<body class="font-body min-h-screen bg-gradient-to-br from-stone-50 via-brand-50/20 to-stone-100">
 
-<nav class="nav">
-    <a class="nav-brand" href="${pageContext.request.contextPath}/index.jsp">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-            <line x1="3" y1="6" x2="21" y2="6"/>
-            <path d="M16 10a4 4 0 0 1-8 0"/>
-        </svg>
-        民大二手交易平台
-    </a>
-    <div class="nav-links">
-        <a href="${pageContext.request.contextPath}/index.jsp">首页</a>
-        <a href="${pageContext.request.contextPath}/product-list">商品列表</a>
-        <a href="${pageContext.request.contextPath}/my-products">我的商品</a>
-        <a href="${pageContext.request.contextPath}/orders">我的订单</a>
-        <a href="${pageContext.request.contextPath}/messages">私信</a>
-        <a href="${pageContext.request.contextPath}/notifications" class="active">通知</a>
-        <a href="${pageContext.request.contextPath}/logout" class="btn-logout">退出</a>
-    </div>
-</nav>
+<jsp:include page="/common/header.jsp">
+    <jsp:param name="active" value="notifications"/>
+</jsp:include>
 
-<div class="container">
-    <div class="page-header">
+<!-- 主内容 -->
+<main class="max-w-2xl mx-auto px-4 py-8">
+    <!-- 标题区 -->
+    <div class="flex items-center justify-between mb-8">
         <div>
-            <h1>消息通知</h1>
-            <div class="meta">共 <%= notifyList.size() %> 条通知，<span style="color:var(--primary);font-weight:600;"><%= unreadCount %></span> 条未读</div>
+            <h1 class="font-display text-3xl font-bold text-ink-primary">消息通知</h1>
+            <p class="text-ink-muted mt-1">共 <span class="text-ink-primary font-medium"><%= notifyList.size() %></span> 条通知，<span class="text-brand-600 font-medium"><%= unreadCount %></span> 条未读</p>
         </div>
         <% if (unreadCount > 0) { %>
         <form action="${pageContext.request.contextPath}/notifications" method="post" style="margin:0;">
             <input type="hidden" name="action" value="readAll">
-            <button type="submit" class="btn btn-primary">全部标为已读</button>
+            <button type="submit" class="px-5 py-2.5 bg-gradient-to-r from-brand-500 to-brand-600 text-white text-sm font-medium rounded-xl hover:from-brand-600 hover:to-brand-700 transition-all btn-press shadow-lg shadow-brand-500/20 flex items-center gap-2">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                全部标为已读
+            </button>
         </form>
         <% } %>
     </div>
 
     <% if (errorMsg != null) { %>
-    <div class="alert alert-error"><span>✕</span><span><%= errorMsg %></span></div>
+    <div class="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm mb-6">
+        <svg class="w-5 h-5 text-red-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        <span><%= errorMsg %></span>
+    </div>
     <% } %>
 
     <% if (notifyList.isEmpty()) { %>
-    <div class="empty">
-        <div class="empty-icon">🔔</div>
-        <p>暂无通知</p>
+    <!-- 空状态 -->
+    <div class="bg-surface-raised border border-stone-200 rounded-2xl p-12 text-center">
+        <div class="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-stone-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+        </div>
+        <p class="text-ink-muted text-sm">暂无通知</p>
     </div>
     <% } else { %>
-    <div class="notify-list">
-        <% for (Map<String, Object> n : notifyList) {
-            boolean isRead = n.get("isRead") instanceof Boolean ? (Boolean) n.get("isRead") : false;
+    <!-- 通知列表 -->
+    <div class="space-y-3">
+        <% int animDelay = 0;
+           for (Map<String, Object> n : notifyList) {
+               boolean isRead = n.get("isRead") instanceof Boolean ? (Boolean) n.get("isRead") : false;
+               Object notifyId = n.get("notificationId");
+               String content = n.get("content") != null ? n.get("content").toString() : "";
+               String createdAt = n.get("createdAt") != null ? n.get("createdAt").toString() : "";
+               String borderColor = isRead ? "" : "border-l-brand-500";
+               String bgColor = isRead ? "opacity-70" : "";
+               String badgeBg = isRead ? "bg-stone-100" : "bg-brand-100";
+               String badgeText = isRead ? "text-ink-muted" : "text-brand-700";
+               String iconGradient = isRead ? "bg-stone-100" : "bg-gradient-to-br from-brand-400 to-brand-600";
+               String iconColor = isRead ? "text-ink-muted" : "text-white";
+               String dotVisible = isRead ? "hidden" : "";
+               String readBtnVisible = isRead ? "hidden" : "";
         %>
-        <div class="notify-item <%= isRead ? "read" : "unread" %>">
-            <% if (!isRead) { %><div class="notify-dot"></div><% } else { %><div class="notify-dot-placeholder"></div><% } %>
-            <div class="notify-content">
-                <%= n.get("content") %>
-                <div class="notify-time"><%= n.get("createdAt") %></div>
-            </div>
-            <div class="notify-actions">
-                <% if (!isRead) { %>
-                <form action="${pageContext.request.contextPath}/notifications" method="post" style="margin:0;display:inline;">
-                    <input type="hidden" name="action" value="read">
-                    <input type="hidden" name="notifyId" value="<%= n.get("notificationId") %>">
-                    <button type="submit" class="btn btn-sm">已读</button>
-                </form>
-                <% } %>
-                <form action="${pageContext.request.contextPath}/notifications" method="post" style="margin:0;display:inline;" onsubmit="return confirm('确定删除这条通知吗？');">
-                    <input type="hidden" name="action" value="delete">
-                    <input type="hidden" name="notifyId" value="<%= n.get("notificationId") %>">
-                    <button type="submit" class="btn btn-sm btn-danger">删除</button>
-                </form>
+        <div class="notification-card notification-enter bg-surface-raised border <%= isRead ? "" : "border-l-4 border-l-brand-500" %> border-stone-200 rounded-2xl p-5 hover-lift relative overflow-hidden group <%= isRead ? "opacity-70" : "" %>" style="animation-delay: <%= 0.05 * animDelay %>s">
+            <!-- 背景装饰 -->
+            <% if (!isRead) { %>
+            <div class="absolute right-0 top-0 w-24 h-24 bg-brand-50 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500"></div>
+            <% } %>
+
+            <div class="flex gap-4 relative z-10">
+                <div class="flex-shrink-0">
+                    <div class="w-10 h-10 <%= iconGradient %> rounded-xl flex items-center justify-center <%= isRead ? "" : "shadow-lg shadow-brand-500/20" %>">
+                        <svg class="w-5 h-5 <%= iconColor %>" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <% if (isRead) { %>
+                            <polyline points="20 6 9 17 4 12"/>
+                            <% } else { %>
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                            <% } %>
+                        </svg>
+                    </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="px-2 py-0.5 <%= badgeBg %> <%= badgeText %> text-xs font-medium rounded-full">通知</span>
+                        <% if (!isRead) { %>
+                        <div class="w-2 h-2 bg-brand-500 rounded-full unread-pulse"></div>
+                        <% } %>
+                    </div>
+                    <p class="text-sm <%= isRead ? "text-ink-secondary" : "text-ink-primary" %> leading-relaxed">
+                        <%= content %>
+                    </p>
+                    <p class="text-xs text-ink-faint mt-2 flex items-center gap-1">
+                        <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                        <%= createdAt %>
+                    </p>
+                </div>
+                <div class="flex gap-2 flex-shrink-0">
+                    <% if (!isRead) { %>
+                    <form action="${pageContext.request.contextPath}/notifications" method="post" style="margin:0;">
+                        <input type="hidden" name="action" value="read">
+                        <input type="hidden" name="notifyId" value="<%= notifyId %>">
+                        <button type="submit" class="px-3 py-1.5 bg-stone-100 text-ink-muted text-xs font-medium rounded-lg hover:bg-stone-200 transition-colors btn-press">已读</button>
+                    </form>
+                    <% } %>
+                    <form action="${pageContext.request.contextPath}/notifications" method="post" style="margin:0;" onsubmit="return confirm('确定删除这条通知吗？');" class="<%= isRead ? "" : "delete-btn" %>">
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="notifyId" value="<%= notifyId %>">
+                        <button type="submit" class="px-3 py-1.5 bg-red-50 text-red-600 text-xs font-medium rounded-lg hover:bg-red-100 transition-colors btn-press">删除</button>
+                    </form>
+                </div>
             </div>
         </div>
-        <% } %>
+        <% animDelay++; } %>
     </div>
-    <div style="text-align:center;margin-top:20px;">
+
+    <!-- 清空按钮 -->
+    <div class="text-center mt-8">
         <form action="${pageContext.request.contextPath}/notifications" method="post" style="margin:0;display:inline;" onsubmit="return confirm('确定清空所有已读通知吗？');">
             <input type="hidden" name="action" value="deleteRead">
-            <button type="submit" class="btn btn-ghost">清空所有已读通知</button>
+            <button type="submit" class="px-6 py-3 bg-transparent border-2 border-stone-200 text-ink-muted text-sm font-medium rounded-xl hover:border-stone-300 hover:text-ink-primary transition-all btn-press flex items-center gap-2 mx-auto">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+                清空所有已读通知
+            </button>
         </form>
     </div>
     <% } %>
-</div>
+</main>
 
 </body>
 </html>

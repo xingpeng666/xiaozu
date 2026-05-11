@@ -4,82 +4,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>错误 — 民大二手交易平台</title>
+    <title>错误 - 民大二手交易平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d' },
+                        surface: { DEFAULT: '#fafaf9', raised: '#ffffff' },
+                        ink: { primary: '#1c1917', muted: '#78716c' }
+                    },
+                    fontFamily: {
+                        display: ['Outfit', 'sans-serif'],
+                        body: ['Noto Sans SC', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        :root {
-            --bg:       #f4f3ef;
-            --surface:  #ffffff;
-            --border:   rgba(0,0,0,0.09);
-            --text:     #1a1a1a;
-            --muted:    #737373;
-            --primary:  #0b6e63;
-            --primary-h:#085c52;
-            --error-bg: #fff1f0;
-            --error-bd: #ffc5c5;
-            --error-tx: #b91c1c;
-            --radius:   12px;
-            --font:     'Plus Jakarta Sans','PingFang SC','Microsoft YaHei',sans-serif;
-            --shadow:   0 8px 32px rgba(0,0,0,0.08);
-        }
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { -webkit-font-smoothing: antialiased; }
-        body {
-            font-family: var(--font);
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100dvh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-        }
-        .card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            padding: 40px 36px;
-            max-width: 500px;
-            width: 100%;
-            text-align: center;
-        }
-        .icon { font-size: 48px; margin-bottom: 20px; }
-        .card h1 { font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--error-tx); }
-        .error-box {
-            background: var(--error-bg);
-            border: 1px solid var(--error-bd);
-            color: var(--error-tx);
-            padding: 13px 16px;
-            border-radius: 9px;
-            font-size: 14px;
-            line-height: 1.7;
-            text-align: left;
-            margin-bottom: 24px;
-        }
-        .btn-back {
-            display: inline-block;
-            padding: 10px 24px;
-            background: var(--primary);
-            color: #fff;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            font-family: var(--font);
-            text-decoration: none;
-            transition: background 0.15s;
-        }
-        .btn-back:hover { background: var(--primary-h); }
+        .btn-press { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+        .btn-press:active { transform: scale(0.97); }
     </style>
 </head>
-<body>
-    <div class="card">
-        <div class="icon">⚠️</div>
-        <h1>操作失败</h1>
-        <div class="error-box">${errorMsg}</div>
-        <a class="btn-back" href="javascript:history.back()">返回上一页</a>
+<body class="font-body min-h-screen bg-surface flex items-center justify-center p-6">
+    <div class="bg-surface-raised border border-stone-200 rounded-xl shadow-lg p-10 max-w-md w-full text-center">
+        <svg class="w-12 h-12 text-red-500 mx-auto mb-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <h1 class="font-display text-xl font-bold text-red-600 mb-3">操作失败</h1>
+        <div class="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 text-sm text-left mb-6">${errorMsg}</div>
+        <a href="javascript:history.back()" class="inline-block bg-brand-500 text-white px-6 py-2.5 rounded-lg hover:bg-brand-600 transition-colors btn-press font-medium text-sm">返回上一页</a>
     </div>
 </body>
 </html>

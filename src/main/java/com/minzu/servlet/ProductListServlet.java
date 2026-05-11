@@ -31,6 +31,7 @@ public class ProductListServlet extends HttpServlet {
 
         String keyword     = request.getParameter("keyword");
         String categoryIdStr = request.getParameter("categoryId");
+        String categoryName = request.getParameter("category");
         String tag          = request.getParameter("tag");
         String sort         = request.getParameter("sort");
         String minPriceStr  = request.getParameter("minPrice");
@@ -55,6 +56,9 @@ public class ProductListServlet extends HttpServlet {
         if (categoryIdStr != null && !categoryIdStr.trim().isEmpty()) {
             where.append(" AND p.category_id = ?");
             params.add(Integer.parseInt(categoryIdStr));
+        } else if (categoryName != null && !categoryName.trim().isEmpty()) {
+            where.append(" AND c.category_name = ?");
+            params.add(categoryName.trim());
         }
         if (tag != null && !tag.trim().isEmpty()) {
             where.append(" AND p.tags LIKE ?");
@@ -179,6 +183,7 @@ public class ProductListServlet extends HttpServlet {
         request.setAttribute("loginUser",   loginUser);
         request.setAttribute("keyword",     keyword);
         request.setAttribute("categoryId",  categoryIdStr);
+        request.setAttribute("categoryName", categoryName);
         request.setAttribute("sort",        sort);
         request.setAttribute("minPrice",    minPriceStr);
         request.setAttribute("maxPrice",    maxPriceStr);

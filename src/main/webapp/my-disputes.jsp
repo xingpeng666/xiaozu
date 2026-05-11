@@ -15,181 +15,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的纠纷 — 民大二手交易平台</title>
+    <title>我的纠纷 - 民大二手交易平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg:         #f4f3ef;
-            --surface:    #ffffff;
-            --border:     rgba(0,0,0,0.09);
-            --text:       #1a1a1a;
-            --text-muted: #737373;
-            --primary:    #0b6e63;
-            --primary-h:  #085c52;
-            --primary-hl: #d0eae7;
-            --warn:       #d97706;
-            --warn-hl:    #fef3c7;
-            --error-bg:   #fff1f0;
-            --error-bd:   #ffc5c5;
-            --error-tx:   #b91c1c;
-            --success-bg: #f0fdf4;
-            --success-bd: #bbf7d0;
-            --success-tx: #15803d;
-            --radius:     12px;
-            --font:       'Plus Jakarta Sans','PingFang SC','Microsoft YaHei',sans-serif;
-            --shadow:     0 2px 12px rgba(0,0,0,0.06);
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d' },
+                        accent: { DEFAULT: '#f97316', hover: '#ea580c' },
+                        surface: { DEFAULT: '#fafaf9', raised: '#ffffff' },
+                        ink: { primary: '#1c1917', secondary: '#44403c', muted: '#78716c', faint: '#a8a29e' }
+                    },
+                    fontFamily: {
+                        display: ['Outfit', 'sans-serif'],
+                        body: ['Noto Sans SC', 'sans-serif']
+                    }
+                }
+            }
         }
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { -webkit-font-smoothing: antialiased; }
-        body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100dvh; }
-
-        .nav {
-            height: 56px; background: var(--surface);
-            border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 28px; position: sticky; top: 0; z-index: 100;
-        }
-        .nav-brand {
-            display: flex; align-items: center; gap: 9px;
-            font-size: 16px; font-weight: 700; color: var(--primary); text-decoration: none;
-        }
-        .nav-links { display: flex; align-items: center; gap: 4px; }
-        .nav-links a {
-            font-size: 13.5px; font-weight: 500; color: var(--text-muted);
-            text-decoration: none; padding: 6px 11px; border-radius: 7px;
-            transition: background 0.15s, color 0.15s;
-        }
-        .nav-links a:hover { background: var(--primary-hl); color: var(--primary); }
-        .nav-links a.active { background: var(--primary-hl); color: var(--primary); }
-        .nav-links .btn-logout { margin-left: 6px; padding: 6px 14px; background: var(--primary); color: #fff; border-radius: 7px; }
-        .nav-links .btn-logout:hover { background: var(--primary-h); color: #fff; }
-
-        .container { max-width: 860px; margin: 36px auto; padding: 0 16px 48px; }
-        .back-link {
-            display: inline-flex; align-items: center; gap: 5px;
-            font-size: 13.5px; color: var(--text-muted); text-decoration: none;
-            margin-bottom: 18px; transition: color 0.15s;
-        }
-        .back-link:hover { color: var(--primary); }
-        .page-header h1 { font-size: 22px; font-weight: 700; margin-bottom: 22px; }
-
-        .alert { padding: 11px 14px; border-radius: 8px; font-size: 13.5px; margin-bottom: 18px; display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; }
-        .alert-error   { background: var(--error-bg);   border: 1px solid var(--error-bd);   color: var(--error-tx); }
-        .alert-success { background: var(--success-bg); border: 1px solid var(--success-bd); color: var(--success-tx); }
-
-        .dispute-card {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius); box-shadow: var(--shadow);
-            padding: 18px 22px; margin-bottom: 12px;
-        }
-        .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
-        .card-title { font-size: 15px; font-weight: 700; }
-        .badge {
-            display: inline-block; padding: 3px 11px; border-radius: 20px;
-            font-size: 12px; font-weight: 600; white-space: nowrap;
-        }
-        .badge-pending { background: var(--warn-hl);    color: var(--warn); }
-        .badge-refund  { background: var(--success-bg); color: var(--success-tx); }
-        .badge-release { background: var(--primary-hl); color: var(--primary); }
-
-        .info-row { display: flex; gap: 20px; flex-wrap: wrap; font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
-        .info-row strong { color: var(--text); font-weight: 600; }
-
-        .reason-box {
-            background: #fffbf5; border-left: 3px solid var(--warn);
-            padding: 10px 14px; border-radius: 0 8px 8px 0;
-            font-size: 13.5px; line-height: 1.6; color: var(--text);
-            margin-bottom: 8px;
-        }
-        .admin-note {
-            background: var(--primary-hl); border-left: 3px solid var(--primary);
-            padding: 10px 14px; border-radius: 0 8px 8px 0;
-            font-size: 13.5px; line-height: 1.6; color: var(--primary);
-        }
-
-        .empty {
-            text-align: center; padding: 72px 20px;
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius); box-shadow: var(--shadow);
-        }
-        .empty-icon { font-size: 48px; margin-bottom: 14px; }
-        .empty p { font-size: 14.5px; color: var(--text-muted); margin-bottom: 6px; }
-        .empty small { font-size: 13px; color: var(--text-muted); }
-    </style>
+    </script>
 </head>
-<body>
+<body class="font-body min-h-screen bg-surface-DEFAULT">
 
-<nav class="nav">
-    <a class="nav-brand" href="${pageContext.request.contextPath}/index.jsp">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-            <line x1="3" y1="6" x2="21" y2="6"/>
-            <path d="M16 10a4 4 0 0 1-8 0"/>
-        </svg>
-        民大二手交易平台
-    </a>
-    <div class="nav-links">
-        <a href="${pageContext.request.contextPath}/product-list">首页</a>
-        <a href="${pageContext.request.contextPath}/orders?type=buy">我的订单</a>
-        <a href="${pageContext.request.contextPath}/dispute?action=list" class="active">我的纠纷</a>
-        <a href="${pageContext.request.contextPath}/notifications">通知</a>
-        <a href="${pageContext.request.contextPath}/logout" class="btn-logout">退出</a>
-    </div>
-</nav>
+<jsp:include page="/common/header.jsp">
+    <jsp:param name="active" value="orders"/>
+</jsp:include>
 
-<div class="container">
-    <a class="back-link" href="${pageContext.request.contextPath}/orders?type=buy">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+<main class="max-w-3xl mx-auto px-4 py-8">
+    <a href="${pageContext.request.contextPath}/orders?type=buy" class="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-brand-600 transition-colors mb-4">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         返回我的订单
     </a>
-    <div class="page-header"><h1>我的纠纷</h1></div>
+    <h1 class="font-display text-xl font-bold text-ink-primary mb-6">我的纠纷</h1>
 
     <% if (successMsg != null) { %>
-    <div class="alert alert-success"><span>✓</span><span><%= successMsg %></span></div>
+    <div class="bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-3 text-sm mb-4 flex items-center gap-2">
+        <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <%= successMsg %>
+    </div>
     <% } %>
     <% if (errorMsg != null) { %>
-    <div class="alert alert-error"><span>✕</span><span><%= errorMsg %></span></div>
+    <div class="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm mb-4 flex items-center gap-2">
+        <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        <%= errorMsg %>
+    </div>
     <% } %>
 
     <% if (disputeList.isEmpty()) { %>
-    <div class="empty">
-        <div class="empty-icon">🎉</div>
-        <p>暂无纠纷记录</p>
-        <small>如有交易问题，可在订单页发起纠纷</small>
+    <div class="text-center py-16 bg-surface-raised border border-stone-200 rounded-xl">
+        <svg class="w-12 h-12 text-green-400 mx-auto mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <p class="text-sm text-ink-muted mb-1">暂无纠纷记录</p>
+        <p class="text-xs text-ink-faint">如有交易问题，可在订单页发起纠纷</p>
     </div>
     <% } else { %>
         <% for (Map<String, Object> d : disputeList) {
             String status = (String) d.get("status");
         %>
-        <div class="dispute-card">
-            <div class="card-top">
-                <div class="card-title"><%= d.get("productTitle") != null ? d.get("productTitle") : "商品已删除" %></div>
+        <div class="bg-surface-raised border border-stone-200 rounded-xl p-5 mb-3">
+            <div class="flex justify-between items-start gap-3 mb-3">
+                <div class="text-sm font-bold text-ink-primary"><%= d.get("productTitle") != null ? d.get("productTitle") : "商品已删除" %></div>
                 <% if ("PENDING".equals(status)) { %>
-                    <span class="badge badge-pending">待处理</span>
+                    <span class="inline-block bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap">待处理</span>
                 <% } else if ("REFUND".equals(status)) { %>
-                    <span class="badge badge-refund">已退款</span>
+                    <span class="inline-block bg-green-50 text-green-700 border border-green-200 px-2.5 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap">已退款</span>
                 <% } else { %>
-                    <span class="badge badge-release">已放行</span>
+                    <span class="inline-block bg-brand-50 text-brand-700 border border-brand-200 px-2.5 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap">已放行</span>
                 <% } %>
             </div>
-            <div class="info-row">
-                <span>纠纷编号：<strong>#<%= d.get("disputeId") %></strong></span>
-                <span>订单编号：<strong>#<%= d.get("orderId") %></strong></span>
-                <span>提交时间：<strong><%= d.get("createdAt") != null ? d.get("createdAt").toString().substring(0,16) : "-" %></strong></span>
+            <div class="flex flex-wrap gap-x-5 gap-y-1 text-xs text-ink-muted mb-3">
+                <span>纠纷编号：<strong class="text-ink-primary font-semibold">#<%= d.get("disputeId") %></strong></span>
+                <span>订单编号：<strong class="text-ink-primary font-semibold">#<%= d.get("orderId") %></strong></span>
+                <span>提交时间：<strong class="text-ink-primary font-semibold"><%= d.get("createdAt") != null ? d.get("createdAt").toString().substring(0,16) : "-" %></strong></span>
                 <% if (d.get("resolvedAt") != null) { %>
-                <span>处理时间：<strong><%= d.get("resolvedAt").toString().substring(0,16) %></strong></span>
+                <span>处理时间：<strong class="text-ink-primary font-semibold"><%= d.get("resolvedAt").toString().substring(0,16) %></strong></span>
                 <% } %>
             </div>
-            <div class="reason-box">纠纷原因：<%= d.get("reason") %></div>
+            <div class="bg-amber-50 border-l-4 border-amber-400 rounded-r-lg p-3 text-sm text-ink-primary mb-2">纠纷原因：<%= d.get("reason") %></div>
             <% if (d.get("adminNote") != null && !d.get("adminNote").toString().isEmpty()) { %>
-            <div class="admin-note">管理员备注：<%= d.get("adminNote") %></div>
+            <div class="bg-brand-50 border-l-4 border-brand-500 rounded-r-lg p-3 text-sm text-brand-700">管理员备注：<%= d.get("adminNote") %></div>
             <% } %>
         </div>
         <% } %>
     <% } %>
-</div>
+</main>
 
 </body>
 </html>

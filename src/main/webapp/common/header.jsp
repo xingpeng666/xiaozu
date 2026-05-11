@@ -4,6 +4,8 @@
     User navLoginUser = (User) session.getAttribute("loginUser");
     String activePage = request.getParameter("active");
     if (activePage == null) activePage = "";
+    String isAdminParam = request.getParameter("isAdmin");
+    boolean isNavAdmin = "true".equals(isAdminParam);
 
     int navUnreadNotifyCount = 0;
     if (navLoginUser != null) {
@@ -17,134 +19,71 @@
         } catch (Exception ignore) {}
     }
 %>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-    :root {
-        --bg:         #f4f3ef;
-        --surface:    #ffffff;
-        --border:     rgba(0,0,0,0.08);
-        --text:       #1a1a1a;
-        --text-muted: #737373;
-        --text-faint: #b0b0b0;
-        --primary:    #0b6e63;
-        --primary-h:  #085c52;
-        --primary-hl: #d0eae7;
-        --radius-sm:  8px;
-        --radius:     14px;
-        --shadow-sm:  0 2px 8px rgba(0,0,0,0.05);
-        --shadow:     0 8px 28px rgba(0,0,0,0.08);
-        --font:       'Plus Jakarta Sans','PingFang SC','Microsoft YaHei',sans-serif;
-        --nav-h:      60px;
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { -webkit-font-smoothing: antialiased; }
-    body { font-family: var(--font); background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.6; min-height: 100dvh; }
-    a { text-decoration: none; color: inherit; }
-    button { cursor: pointer; font-family: var(--font); }
-    img { display: block; max-width: 100%; }
+<nav class="sticky top-0 bg-surface-raised/80 backdrop-blur-xl border-b border-stone-200/50 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+        <a href="${pageContext.request.contextPath}/index.jsp" class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <path d="M16 10a4 4 0 0 1-8 0"/>
+                </svg>
+            </div>
+            <span class="font-display font-bold text-ink-primary"><%= isNavAdmin ? "民大二手 · 管理后台" : "民大二手平台" %></span>
+        </a>
 
-    /* NAV */
-    .nav {
-        height: var(--nav-h);
-        background: var(--surface);
-        border-bottom: 1px solid var(--border);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 28px;
-        position: sticky; top: 0; z-index: 100;
-    }
-    .nav-brand { display: flex; align-items: center; gap: 9px; }
-    .nav-logo {
-        width: 34px; height: 34px;
-        background: var(--primary);
-        border-radius: 8px;
-        display: flex; align-items: center; justify-content: center;
-        color: #fff; flex-shrink: 0;
-    }
-    .nav-brand-name { font-size: 15px; font-weight: 700; color: var(--text); }
-    .nav-links { display: flex; align-items: center; gap: 2px; list-style: none; }
-    .nav-links a {
-        font-size: 14px; font-weight: 500; color: var(--text-muted);
-        padding: 7px 12px; border-radius: 7px;
-        transition: color 0.15s, background 0.15s;
-        display: flex; align-items: center; gap: 5px; position: relative;
-    }
-    .nav-links a:hover { color: var(--text); background: var(--bg); }
-    .nav-links a.active { color: var(--primary); background: var(--primary-hl); }
-    .notif-badge {
-        position: absolute; top: 2px; right: 2px;
-        background: #ef4444; color: #fff;
-        border-radius: 10px; font-size: 9px; line-height: 1;
-        padding: 2px 4px; font-weight: 700; min-width: 14px; text-align: center;
-    }
-    .nav-right { display: flex; align-items: center; gap: 10px; }
-    .logout-link {
-        font-size: 13px; color: var(--text-muted);
-        padding: 7px 10px; border-radius: 7px;
-        transition: color 0.15s, background 0.15s;
-    }
-    .logout-link:hover { color: #ef4444; background: #fff1f1; }
-    .btn-publish-nav {
-        padding: 8px 16px;
-        background: var(--primary); color: #fff;
-        border: none; border-radius: 7px;
-        font-size: 13px; font-weight: 600;
-        font-family: var(--font);
-        transition: background 0.15s;
-        display: flex; align-items: center; gap: 5px;
-    }
-    .btn-publish-nav:hover { background: var(--primary-h); }
-
-    @media (max-width: 768px) {
-        .nav { padding: 0 14px; }
-        .nav-links { display: none; }
-    }
-</style>
-
-<nav class="nav">
-    <div class="nav-brand">
-        <div class="nav-logo" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                <line x1="3" y1="6" x2="21" y2="6"/>
-                <path d="M16 10a4 4 0 0 1-8 0"/>
-            </svg>
-        </div>
-        <span class="nav-brand-name">民大二手平台</span>
-    </div>
-    <ul class="nav-links">
-        <li><a href="${pageContext.request.contextPath}/index.jsp" class="<%= "home".equals(activePage) ? "active" : "" %>">首页</a></li>
-        <li><a href="${pageContext.request.contextPath}/pickup-locations.jsp" class="<%= "pickup".equals(activePage) ? "active" : "" %>">自提点</a></li>
-        <li><a href="${pageContext.request.contextPath}/product-list" class="<%= "products".equals(activePage) ? "active" : "" %>">浏览商品</a></li>
-        <% if (navLoginUser != null) { %>
-        <li><a href="${pageContext.request.contextPath}/my-products" class="<%= "my-products".equals(activePage) ? "active" : "" %>">我的商品</a></li>
-        <li><a href="${pageContext.request.contextPath}/orders" class="<%= "orders".equals(activePage) ? "active" : "" %>">我的订单</a></li>
-        <li><a href="${pageContext.request.contextPath}/messages" class="<%= "messages".equals(activePage) ? "active" : "" %>">私信</a></li>
-        <li><a href="${pageContext.request.contextPath}/my-favorites" class="<%= "favorites".equals(activePage) ? "active" : "" %>">收藏</a></li>
-        <li>
-            <a href="${pageContext.request.contextPath}/notifications" class="<%= "notifications".equals(activePage) ? "active" : "" %>" style="position:relative;">
+        <div class="hidden md:flex items-center gap-1">
+        <% if (isNavAdmin) { %>
+            <a href="${pageContext.request.contextPath}/admin/dashboard"
+               class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "dashboard".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">统计面板</a>
+            <a href="${pageContext.request.contextPath}/admin/user-review"
+               class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "user-review".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">用户审核</a>
+            <a href="${pageContext.request.contextPath}/admin/products"
+               class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "admin-products".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">商品审核</a>
+            <a href="${pageContext.request.contextPath}/report"
+               class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "reports".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">举报管理</a>
+            <a href="${pageContext.request.contextPath}/dispute?action=admin"
+               class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "disputes".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">纠纷管理</a>
+        <% } else { %>
+            <a href="${pageContext.request.contextPath}/index.jsp"
+               class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "home".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">首页</a>
+            <a href="${pageContext.request.contextPath}/pickup-locations.jsp"
+               class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "pickup".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">自提点</a>
+            <a href="${pageContext.request.contextPath}/product-list"
+               class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "products".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">浏览商品</a>
+            <% if (navLoginUser != null) { %>
+            <a href="${pageContext.request.contextPath}/my-products"
+               class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "my-products".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">我的商品</a>
+            <a href="${pageContext.request.contextPath}/orders"
+               class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "orders".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">我的订单</a>
+            <a href="${pageContext.request.contextPath}/messages"
+               class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "messages".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">私信</a>
+            <a href="${pageContext.request.contextPath}/my-favorites"
+               class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "favorites".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">收藏</a>
+            <a href="${pageContext.request.contextPath}/notifications"
+               class="px-3 py-2 text-sm font-medium rounded-lg transition-colors relative <%= "notifications".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">
                 通知
                 <% if (navUnreadNotifyCount > 0) { %>
-                <span class="notif-badge"><%= navUnreadNotifyCount %></span>
+                <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center"><%= navUnreadNotifyCount %></span>
                 <% } %>
             </a>
-        </li>
+            <% } %>
         <% } %>
-    </ul>
-    <div class="nav-right">
-        <% if (navLoginUser != null) { %>
-            <a href="${pageContext.request.contextPath}/publish-product">
-                <button class="btn-publish-nav">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    发布商品
-                </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+        <% if (isNavAdmin) { %>
+            <a href="${pageContext.request.contextPath}/index.jsp" class="px-3 py-2 text-sm font-medium text-ink-muted hover:text-ink-primary hover:bg-stone-100 rounded-lg transition-colors">前台首页</a>
+            <a href="${pageContext.request.contextPath}/logout" class="px-4 py-2 text-sm font-medium bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors btn-press">退出</a>
+        <% } else if (navLoginUser != null) { %>
+            <a href="${pageContext.request.contextPath}/publish-product" class="px-4 py-2 bg-brand-500 text-white text-sm font-medium rounded-lg hover:bg-brand-600 transition-colors btn-press flex items-center gap-1">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                发布商品
             </a>
-            <a href="${pageContext.request.contextPath}/logout" class="logout-link">退出</a>
+            <a href="${pageContext.request.contextPath}/logout" class="text-sm text-ink-muted hover:text-red-500 transition-colors px-2 py-1.5">退出</a>
         <% } else { %>
-            <a href="${pageContext.request.contextPath}/login" class="logout-link">登录</a>
+            <a href="${pageContext.request.contextPath}/login" class="text-sm text-ink-muted hover:text-ink-primary transition-colors px-2 py-1.5">登录</a>
         <% } %>
+        </div>
     </div>
 </nav>

@@ -12,9 +12,6 @@
     String errMsg = (String) session.getAttribute("errorMsg");
     String sucMsg = (String) session.getAttribute("successMsg");
     session.removeAttribute("errorMsg"); session.removeAttribute("successMsg");
-    String tabPending = "pending".equals(tab) ? " active" : "";
-    String tabOnSale  = "on_sale".equals(tab) ? " active" : "";
-    String tabReject  = "rejected".equals(tab) ? " active" : "";
     boolean isPending = "pending".equals(tab);
 %>
 <!DOCTYPE html>
@@ -22,141 +19,141 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>商品审核 — 民大二手交易平台</title>
+<title>商品审核 - 民大二手交易平台</title>
+<script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    brand: { 50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d' },
+                    accent: { DEFAULT: '#f97316', hover: '#ea580c' },
+                    surface: { DEFAULT: '#fafaf9', raised: '#ffffff' },
+                    ink: { primary: '#1c1917', secondary: '#44403c', muted: '#78716c', faint: '#a8a29e' }
+                },
+                fontFamily: {
+                    display: ['Outfit', 'sans-serif'],
+                    body: ['Noto Sans SC', 'sans-serif']
+                }
+            }
+        }
+    }
+</script>
 <style>
-:root{
-    --bg:#f4f3ef;--surface:#fff;--border:rgba(0,0,0,0.09);--text:#1a1a1a;--muted:#737373;
-    --primary:#0b6e63;--primary-h:#085c52;--primary-hl:#d0eae7;
-    --success-bg:#f0fdf4;--success-bd:#bbf7d0;--success-tx:#15803d;
-    --error-bg:#fff1f0;--error-bd:#ffc5c5;--error-tx:#b91c1c;
-    --warn:#d97706;--warn-hl:#fef9c3;--warn-bd:#fde68a;
-    --radius:12px;--font:'Plus Jakarta Sans','PingFang SC','Microsoft YaHei',sans-serif;
-    --shadow:0 2px 12px rgba(0,0,0,0.06);
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{-webkit-font-smoothing:antialiased}
-body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100dvh}
-.nav{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:100}
-.nav-brand{display:flex;align-items:center;gap:9px;font-size:16px;font-weight:700;color:var(--primary);text-decoration:none}
-.nav-links{display:flex;align-items:center;gap:4px}
-.nav-links a{font-size:13.5px;font-weight:500;color:var(--muted);text-decoration:none;padding:6px 11px;border-radius:7px;transition:background .15s,color .15s}
-.nav-links a:hover,.nav-links a.active{background:var(--primary-hl);color:var(--primary)}
-.nav-links .btn-logout{margin-left:6px;padding:6px 14px;background:var(--primary);color:#fff;border-radius:7px}
-.nav-links .btn-logout:hover{background:var(--primary-h);color:#fff}
-.container{max-width:1200px;margin:36px auto;padding:0 16px 48px}
-.page-header h1{font-size:22px;font-weight:700;margin-bottom:20px}
-.alert{padding:11px 14px;border-radius:8px;font-size:13.5px;margin-bottom:18px}
-.alert-success{background:var(--success-bg);border:1px solid var(--success-bd);color:var(--success-tx)}
-.alert-error{background:var(--error-bg);border:1px solid var(--error-bd);color:var(--error-tx)}
-.tab-bar{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:22px}
-.tab-bar a{padding:10px 20px;font-size:13.5px;font-weight:600;color:var(--muted);text-decoration:none;border-bottom:2px solid transparent;margin-bottom:-2px;transition:color .15s,border-color .15s}
-.tab-bar a:hover{color:var(--primary)}
-.tab-bar a.active{color:var(--primary);border-bottom-color:var(--primary)}
-.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
-table{width:100%;border-collapse:collapse}
-th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--border);font-size:13.5px;vertical-align:middle}
-th{background:#fafaf9;font-weight:600;color:var(--muted);white-space:nowrap}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:#f9f9f7}
-.prod-thumb{width:52px;height:52px;object-fit:cover;border-radius:7px;border:1px solid var(--border)}
-.btn{padding:6px 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:var(--font);border:none;cursor:pointer;transition:background .15s;text-decoration:none;display:inline-block}
-.btn-approve{background:var(--primary);color:#fff}
-.btn-approve:hover{background:var(--primary-h)}
-.btn-reject{background:var(--error-bg);color:var(--error-tx);border:1px solid var(--error-bd)}
-.btn-reject:hover{background:#ffe0de}
-.empty{text-align:center;padding:60px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
-.empty p{color:var(--muted);font-size:14.5px;margin-top:12px}
+    .btn-press { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+    .btn-press:active { transform: scale(0.97); }
 </style>
 </head>
-<body>
-<nav class="nav">
-    <a class="nav-brand" href="${pageContext.request.contextPath}/index.jsp">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-        民大二手 · 管理后台
-    </a>
-    <div class="nav-links">
-        <a href="${pageContext.request.contextPath}/admin/dashboard">统计面板</a>
-        <a href="${pageContext.request.contextPath}/admin/user-review">用户审核</a>
-        <a href="${pageContext.request.contextPath}/admin/products" class="active">商品审核</a>
-        <a href="${pageContext.request.contextPath}/index.jsp">前台首页</a>
-        <a href="${pageContext.request.contextPath}/logout" class="btn-logout">退出</a>
-    </div>
-</nav>
-<div class="container">
-    <div class="page-header"><h1>📦 商品审核</h1></div>
-    <% if (errMsg != null) { %><div class="alert alert-error">✕ <%=errMsg%></div><% } %>
-    <% if (sucMsg != null) { %><div class="alert alert-success">✓ <%=sucMsg%></div><% } %>
+<body class="font-body min-h-screen bg-surface-DEFAULT">
 
-    <div class="tab-bar">
-        <a href="?tab=pending" class="<%=tabPending%>">待审核</a>
-        <a href="?tab=on_sale" class="<%=tabOnSale%>">已通过</a>
-        <a href="?tab=rejected" class="<%=tabReject%>">已驳回</a>
+<jsp:include page="/common/header.jsp">
+    <jsp:param name="active" value="admin-products"/>
+    <jsp:param name="isAdmin" value="true"/>
+</jsp:include>
+
+<main class="max-w-6xl mx-auto px-4 py-8">
+    <h1 class="font-display text-xl font-bold text-ink-primary mb-6 flex items-center gap-2">
+        <svg class="w-5 h-5 text-brand-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+        商品审核
+    </h1>
+
+    <% if (errMsg != null) { %>
+    <div class="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm mb-4 flex items-center gap-2">
+        <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        <%=errMsg%>
+    </div>
+    <% } %>
+    <% if (sucMsg != null) { %>
+    <div class="bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-3 text-sm mb-4 flex items-center gap-2">
+        <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <%=sucMsg%>
+    </div>
+    <% } %>
+
+    <div class="flex gap-0 border-b-2 border-stone-200 mb-6">
+        <a href="?tab=pending" class="px-5 py-2.5 text-sm font-semibold border-b-2 -mb-0.5 transition-colors <%="pending".equals(tab)?"text-brand-600 border-brand-500":"text-ink-muted border-transparent hover:text-brand-600"%>">待审核</a>
+        <a href="?tab=on_sale" class="px-5 py-2.5 text-sm font-semibold border-b-2 -mb-0.5 transition-colors <%="on_sale".equals(tab)?"text-brand-600 border-brand-500":"text-ink-muted border-transparent hover:text-brand-600"%>">已通过</a>
+        <a href="?tab=rejected" class="px-5 py-2.5 text-sm font-semibold border-b-2 -mb-0.5 transition-colors <%="rejected".equals(tab)?"text-brand-600 border-brand-500":"text-ink-muted border-transparent hover:text-brand-600"%>">已驳回</a>
     </div>
 
     <% if (productList.isEmpty()) { %>
-    <div class="empty"><div style="font-size:48px">📦</div><p>暂无商品</p></div>
+    <div class="text-center py-16 bg-surface-raised border border-stone-200 rounded-xl">
+        <svg class="w-12 h-12 text-stone-300 mx-auto mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+        <p class="text-sm text-ink-muted">暂无商品</p>
+    </div>
     <% } else { %>
-    <div class="table-wrap">
-    <table>
-        <thead><tr>
-            <th>ID</th><th>封面</th><th>标题</th><th>分类</th><th>价格</th>
-            <th>新旧</th><th>发布人</th><th>学号</th><th>时间</th>
-            <% if (isPending) { %><th>操作</th><% } %>
-        </tr></thead>
-        <tbody>
-        <% for (Map<String,Object> p : productList) { %>
-        <tr>
-            <td><%=p.get("productId")%></td>
-            <td>
-                <% String img = (String) p.get("coverImageUrl"); if (img != null && !img.isEmpty()) { %>
-                <img src="<%=img%>" class="prod-thumb" alt="">
-                <% } else { %><span style="color:var(--muted)">无图</span><% } %>
-            </td>
-            <td><%=p.get("title")%></td>
-            <td><%=p.get("categoryName") != null ? p.get("categoryName") : "—"%></td>
-            <td>&yen;<%=p.get("price")%></td>
-            <td><%
-                String adminConditionText = "—";
-                Object condObj = p.get("conditionLevel");
-                if (condObj != null) {
-                    String cond = condObj.toString();
-                    switch (cond) {
-                        case "NEW": adminConditionText = "全新"; break;
-                        case "NINETY_NEW": adminConditionText = "九成新"; break;
-                        case "EIGHTY_NEW": adminConditionText = "八成新"; break;
-                        case "SEVENTY_NEW": adminConditionText = "七成新及以下"; break;
-                        default: adminConditionText = cond;
-                    }
-                }
-            %><%= adminConditionText %></td>
-            <td><%=p.get("sellerName")%></td>
-            <td><%=p.get("sellerNo")%></td>
-            <td style="white-space:nowrap;"><small><%=p.get("createdAt") != null ? p.get("createdAt").toString().substring(0,10) : "-"%></small></td>
-            <% if (isPending) { %>
-            <td style="white-space:nowrap">
-                <form method="post" action="${pageContext.request.contextPath}/admin/products" style="display:inline">
-                    <input type="hidden" name="productId" value="<%=p.get("productId")%>">
-                    <input type="hidden" name="tab" value="pending">
-                    <input type="hidden" name="action" value="approve">
-                    <button class="btn btn-approve">通过</button>
-                </form>
-                <form method="post" action="${pageContext.request.contextPath}/admin/products" style="display:inline;margin-left:6px">
-                    <input type="hidden" name="productId" value="<%=p.get("productId")%>">
-                    <input type="hidden" name="tab" value="pending">
-                    <input type="hidden" name="action" value="reject">
-                    <button class="btn btn-reject">驳回</button>
-                </form>
-            </td>
-            <% } %>
-        </tr>
-        <% } %>
-        </tbody>
-    </table>
+    <div class="bg-surface-raised border border-stone-200 rounded-xl shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full divide-y divide-stone-200">
+                <thead>
+                    <tr class="bg-stone-50">
+                        <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">ID</th>
+                        <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">封面</th>
+                        <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">标题</th>
+                        <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">分类</th>
+                        <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">价格</th>
+                        <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">新旧</th>
+                        <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">发布人</th>
+                        <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">学号</th>
+                        <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">时间</th>
+                        <% if (isPending) { %><th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">操作</th><% } %>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-stone-100">
+                <% for (Map<String,Object> p : productList) { %>
+                <tr class="hover:bg-stone-50 transition-colors">
+                    <td class="px-4 py-3 text-sm text-ink-primary"><%=p.get("productId")%></td>
+                    <td class="px-4 py-3">
+                        <% String img = (String) p.get("coverImageUrl"); if (img != null && !img.isEmpty()) { %>
+                        <img src="<%=img%>" class="w-12 h-12 object-cover rounded-lg border border-stone-200" alt="">
+                        <% } else { %><span class="text-xs text-ink-faint">无图</span><% } %>
+                    </td>
+                    <td class="px-4 py-3 text-sm text-ink-primary font-medium"><%=p.get("title")%></td>
+                    <td class="px-4 py-3 text-sm text-ink-muted"><%=p.get("categoryName") != null ? p.get("categoryName") : "—"%></td>
+                    <td class="px-4 py-3 text-sm text-ink-primary font-semibold">&yen;<%=p.get("price")%></td>
+                    <td class="px-4 py-3 text-sm text-ink-muted"><%
+                        String adminConditionText = "—";
+                        Object condObj = p.get("conditionLevel");
+                        if (condObj != null) {
+                            String cond = condObj.toString();
+                            switch (cond) {
+                                case "NEW": adminConditionText = "全新"; break;
+                                case "NINETY_NEW": adminConditionText = "九成新"; break;
+                                case "EIGHTY_NEW": adminConditionText = "八成新"; break;
+                                case "SEVENTY_NEW": adminConditionText = "七成新及以下"; break;
+                                default: adminConditionText = cond;
+                            }
+                        }
+                    %><%= adminConditionText %></td>
+                    <td class="px-4 py-3 text-sm text-ink-muted"><%=p.get("sellerName")%></td>
+                    <td class="px-4 py-3 text-sm text-ink-muted"><%=p.get("sellerNo")%></td>
+                    <td class="px-4 py-3 text-xs text-ink-muted whitespace-nowrap"><%=p.get("createdAt") != null ? p.get("createdAt").toString().substring(0,10) : "-"%></td>
+                    <% if (isPending) { %>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        <form method="post" action="${pageContext.request.contextPath}/admin/products" style="display:inline">
+                            <input type="hidden" name="productId" value="<%=p.get("productId")%>">
+                            <input type="hidden" name="tab" value="pending">
+                            <input type="hidden" name="action" value="approve">
+                            <button class="bg-brand-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-brand-600 transition-colors btn-press">通过</button>
+                        </form>
+                        <form method="post" action="${pageContext.request.contextPath}/admin/products" style="display:inline;margin-left:6px">
+                            <input type="hidden" name="productId" value="<%=p.get("productId")%>">
+                            <input type="hidden" name="tab" value="pending">
+                            <input type="hidden" name="action" value="reject">
+                            <button class="bg-red-50 text-red-600 border border-red-200 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-100 transition-colors btn-press">驳回</button>
+                        </form>
+                    </td>
+                    <% } %>
+                </tr>
+                <% } %>
+                </tbody>
+            </table>
+        </div>
     </div>
     <% } %>
-</div>
+</main>
 </body>
 </html>
