@@ -8,18 +8,19 @@
     List<Map<String,Object>> productList = (List<Map<String,Object>>) request.getAttribute("productList");
     if (productList == null) productList = new ArrayList<>();
     String tab = (String) request.getAttribute("tab");
-    if (tab == null) tab = "pending";
+    if (tab == null) tab = "on_sale";
+    String keyword = (String) request.getAttribute("keyword");
+    if (keyword == null) keyword = "";
     String errMsg = (String) session.getAttribute("errorMsg");
     String sucMsg = (String) session.getAttribute("successMsg");
     session.removeAttribute("errorMsg"); session.removeAttribute("successMsg");
-    boolean isPending = "pending".equals(tab);
 %>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>商品审核 - 民大二手交易平台</title>
+<title>商品巡查 - 民大二手交易平台</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -45,6 +46,7 @@
 <style>
     .btn-press { transition: transform 0.15s ease, box-shadow 0.15s ease; }
     .btn-press:active { transform: scale(0.97); }
+    .input-focus-ring:focus { outline: none; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15); }
 </style>
 </head>
 <body class="font-body min-h-screen bg-surface-DEFAULT">
@@ -56,8 +58,8 @@
 
 <main class="max-w-6xl mx-auto px-4 py-8">
     <h1 class="font-display text-xl font-bold text-ink-primary mb-6 flex items-center gap-2">
-        <svg class="w-5 h-5 text-brand-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-        商品审核
+        <svg class="w-5 h-5 text-brand-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        商品巡查
     </h1>
 
     <% if (errMsg != null) { %>
@@ -73,87 +75,139 @@
     </div>
     <% } %>
 
-    <div class="flex gap-0 border-b-2 border-stone-200 mb-6">
-        <a href="?tab=pending" class="px-5 py-2.5 text-sm font-semibold border-b-2 -mb-0.5 transition-colors <%="pending".equals(tab)?"text-brand-600 border-brand-500":"text-ink-muted border-transparent hover:text-brand-600"%>">待审核</a>
-        <a href="?tab=on_sale" class="px-5 py-2.5 text-sm font-semibold border-b-2 -mb-0.5 transition-colors <%="on_sale".equals(tab)?"text-brand-600 border-brand-500":"text-ink-muted border-transparent hover:text-brand-600"%>">已通过</a>
+    <div class="flex gap-0 border-b-2 border-stone-200 mb-5">
+        <a href="?tab=on_sale" class="px-5 py-2.5 text-sm font-semibold border-b-2 -mb-0.5 transition-colors <%="on_sale".equals(tab)?"text-brand-600 border-brand-500":"text-ink-muted border-transparent hover:text-brand-600"%>">在售商品</a>
+        <a href="?tab=off_shelf" class="px-5 py-2.5 text-sm font-semibold border-b-2 -mb-0.5 transition-colors <%="off_shelf".equals(tab)?"text-brand-600 border-brand-500":"text-ink-muted border-transparent hover:text-brand-600"%>">已下架</a>
         <a href="?tab=rejected" class="px-5 py-2.5 text-sm font-semibold border-b-2 -mb-0.5 transition-colors <%="rejected".equals(tab)?"text-brand-600 border-brand-500":"text-ink-muted border-transparent hover:text-brand-600"%>">已驳回</a>
     </div>
 
+    <form method="get" action="${pageContext.request.contextPath}/admin/products" class="mb-5 flex gap-2">
+        <input type="hidden" name="tab" value="<%= tab %>">
+        <input type="text" name="keyword" value="<%= keyword %>" placeholder="搜索商品标题、发布人姓名或学号..."
+            class="flex-1 px-4 py-2.5 bg-surface-raised border border-stone-200 rounded-lg text-sm text-ink-primary placeholder:text-ink-faint input-focus-ring focus:border-brand-500 transition-colors">
+        <button type="submit" class="px-5 py-2.5 bg-brand-500 text-white text-sm font-medium rounded-lg hover:bg-brand-600 transition-colors btn-press">搜索</button>
+        <% if (!keyword.isEmpty()) { %>
+        <a href="?tab=<%= tab %>" class="px-4 py-2.5 border border-stone-200 text-ink-muted text-sm font-medium rounded-lg hover:bg-stone-100 transition-colors">清除</a>
+        <% } %>
+    </form>
+
     <% if (productList.isEmpty()) { %>
     <div class="text-center py-16 bg-surface-raised border border-stone-200 rounded-xl">
-        <svg class="w-12 h-12 text-stone-300 mx-auto mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-        <p class="text-sm text-ink-muted">暂无商品</p>
+        <svg class="w-12 h-12 text-stone-300 mx-auto mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <p class="text-sm text-ink-muted"><%= keyword.isEmpty() ? "暂无商品" : "未找到匹配商品" %></p>
     </div>
     <% } else { %>
-    <div class="bg-surface-raised border border-stone-200 rounded-xl shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full divide-y divide-stone-200">
-                <thead>
-                    <tr class="bg-stone-50">
-                        <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">ID</th>
-                        <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">封面</th>
-                        <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">标题</th>
-                        <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">分类</th>
-                        <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">价格</th>
-                        <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">新旧</th>
-                        <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">发布人</th>
-                        <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">学号</th>
-                        <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">时间</th>
-                        <% if (isPending) { %><th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">操作</th><% } %>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-stone-100">
-                <% for (Map<String,Object> p : productList) { %>
-                <tr class="hover:bg-stone-50 transition-colors">
-                    <td class="px-4 py-3 text-sm text-ink-primary"><%=p.get("productId")%></td>
-                    <td class="px-4 py-3">
-                        <% String img = (String) p.get("coverImageUrl"); if (img != null && !img.isEmpty()) { %>
-                        <img src="<%=img%>" class="w-12 h-12 object-cover rounded-lg border border-stone-200" alt="">
-                        <% } else { %><span class="text-xs text-ink-faint">无图</span><% } %>
-                    </td>
-                    <td class="px-4 py-3 text-sm text-ink-primary font-medium"><%=p.get("title")%></td>
-                    <td class="px-4 py-3 text-sm text-ink-muted"><%=p.get("categoryName") != null ? p.get("categoryName") : "—"%></td>
-                    <td class="px-4 py-3 text-sm text-ink-primary font-semibold">&yen;<%=p.get("price")%></td>
-                    <td class="px-4 py-3 text-sm text-ink-muted"><%
-                        String adminConditionText = "—";
-                        Object condObj = p.get("conditionLevel");
-                        if (condObj != null) {
-                            String cond = condObj.toString();
-                            switch (cond) {
-                                case "NEW": adminConditionText = "全新"; break;
-                                case "NINETY_NEW": adminConditionText = "九成新"; break;
-                                case "EIGHTY_NEW": adminConditionText = "八成新"; break;
-                                case "SEVENTY_NEW": adminConditionText = "七成新及以下"; break;
-                                default: adminConditionText = cond;
+    <form id="batchForm" method="post" action="${pageContext.request.contextPath}/admin/products">
+        <input type="hidden" name="action" value="takedown">
+        <input type="hidden" name="tab" value="<%= tab %>">
+        <input type="hidden" name="ids" id="batchIds" value="">
+
+        <div class="bg-surface-raised border border-stone-200 rounded-xl shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full divide-y divide-stone-200">
+                    <thead>
+                        <tr class="bg-stone-50">
+                            <% if ("on_sale".equals(tab)) { %>
+                            <th class="text-left px-4 py-3 w-10">
+                                <input type="checkbox" id="selectAll" class="w-4 h-4 rounded border-stone-300 text-brand-500 focus:ring-brand-500">
+                            </th>
+                            <% } %>
+                            <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">ID</th>
+                            <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">封面</th>
+                            <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">标题</th>
+                            <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">分类</th>
+                            <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">价格</th>
+                            <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">新旧</th>
+                            <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">发布人</th>
+                            <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">学号</th>
+                            <th class="text-left text-xs font-semibold text-ink-muted uppercase tracking-wider px-4 py-3">时间</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-stone-100">
+                    <% for (Map<String,Object> p : productList) { %>
+                    <tr class="hover:bg-stone-50 transition-colors">
+                        <% if ("on_sale".equals(tab)) { %>
+                        <td class="px-4 py-3">
+                            <input type="checkbox" name="productIds" value="<%=p.get("productId")%>" class="row-check w-4 h-4 rounded border-stone-300 text-brand-500 focus:ring-brand-500">
+                        </td>
+                        <% } %>
+                        <td class="px-4 py-3 text-sm text-ink-primary"><%=p.get("productId")%></td>
+                        <td class="px-4 py-3">
+                            <% String img = (String) p.get("coverImageUrl"); if (img != null && !img.isEmpty()) { %>
+                            <img src="<%=img%>" class="w-12 h-12 object-cover rounded-lg border border-stone-200" alt="">
+                            <% } else { %><span class="text-xs text-ink-faint">无图</span><% } %>
+                        </td>
+                        <td class="px-4 py-3 text-sm text-ink-primary font-medium"><%=p.get("title")%></td>
+                        <td class="px-4 py-3 text-sm text-ink-muted"><%=p.get("categoryName") != null ? p.get("categoryName") : "—"%></td>
+                        <td class="px-4 py-3 text-sm text-ink-primary font-semibold">&yen;<%=p.get("price")%></td>
+                        <td class="px-4 py-3 text-sm text-ink-muted"><%
+                            String condText = "—";
+                            Object condObj = p.get("conditionLevel");
+                            if (condObj != null) {
+                                String cond = condObj.toString();
+                                switch (cond) {
+                                    case "NEW": condText = "全新"; break;
+                                    case "NINETY_NEW": condText = "九成新"; break;
+                                    case "EIGHTY_NEW": condText = "八成新"; break;
+                                    case "SEVENTY_NEW": condText = "七成新及以下"; break;
+                                    default: condText = cond;
+                                }
                             }
-                        }
-                    %><%= adminConditionText %></td>
-                    <td class="px-4 py-3 text-sm text-ink-muted"><%=p.get("sellerName")%></td>
-                    <td class="px-4 py-3 text-sm text-ink-muted"><%=p.get("sellerNo")%></td>
-                    <td class="px-4 py-3 text-xs text-ink-muted whitespace-nowrap"><%=p.get("createdAt") != null ? p.get("createdAt").toString().substring(0,10) : "-"%></td>
-                    <% if (isPending) { %>
-                    <td class="px-4 py-3 whitespace-nowrap">
-                        <form method="post" action="${pageContext.request.contextPath}/admin/products" style="display:inline">
-                            <input type="hidden" name="productId" value="<%=p.get("productId")%>">
-                            <input type="hidden" name="tab" value="pending">
-                            <input type="hidden" name="action" value="approve">
-                            <button class="bg-brand-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-brand-600 transition-colors btn-press">通过</button>
-                        </form>
-                        <form method="post" action="${pageContext.request.contextPath}/admin/products" style="display:inline;margin-left:6px">
-                            <input type="hidden" name="productId" value="<%=p.get("productId")%>">
-                            <input type="hidden" name="tab" value="pending">
-                            <input type="hidden" name="action" value="reject">
-                            <button class="bg-red-50 text-red-600 border border-red-200 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-100 transition-colors btn-press">驳回</button>
-                        </form>
-                    </td>
+                        %><%= condText %></td>
+                        <td class="px-4 py-3 text-sm text-ink-muted"><%=p.get("sellerName")%></td>
+                        <td class="px-4 py-3 text-sm text-ink-muted"><%=p.get("sellerNo")%></td>
+                        <td class="px-4 py-3 text-xs text-ink-muted whitespace-nowrap"><%=p.get("createdAt") != null ? p.get("createdAt").toString().substring(0,10) : "-"%></td>
+                    </tr>
                     <% } %>
-                </tr>
-                <% } %>
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
+
+        <% if ("on_sale".equals(tab)) { %>
+        <div id="batchBar" class="hidden mt-4 bg-surface-raised border border-stone-200 rounded-xl p-4 flex items-center justify-between shadow-sm">
+            <span class="text-sm text-ink-muted">已选 <span id="selectedCount" class="text-brand-600 font-semibold">0</span> 件商品</span>
+            <button type="submit" onclick="return confirm('确定要下架选中的商品吗？')" class="px-5 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors btn-press">
+                <svg class="w-4 h-4 inline-block -mt-0.5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                批量下架
+            </button>
+        </div>
+        <% } %>
+    </form>
     <% } %>
 </main>
+
+<script>
+(function() {
+    var selectAll = document.getElementById('selectAll');
+    var batchBar = document.getElementById('batchBar');
+    var batchIds = document.getElementById('batchIds');
+    var selectedCount = document.getElementById('selectedCount');
+    var checkboxes = document.querySelectorAll('.row-check');
+    if (!selectAll) return;
+
+    function updateBatch() {
+        var ids = [];
+        checkboxes.forEach(function(cb) {
+            if (cb.checked) ids.push(cb.value);
+        });
+        batchIds.value = ids.join(',');
+        selectedCount.textContent = ids.length;
+        if (ids.length > 0) {
+            batchBar.classList.remove('hidden');
+        } else {
+            batchBar.classList.add('hidden');
+        }
+    }
+
+    selectAll.addEventListener('change', function() {
+        checkboxes.forEach(function(cb) { cb.checked = selectAll.checked; });
+        updateBatch();
+    });
+    checkboxes.forEach(function(cb) {
+        cb.addEventListener('change', updateBatch);
+    });
+})();
+</script>
 </body>
 </html>

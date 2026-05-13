@@ -1,5 +1,6 @@
 package com.minzu.servlet;
 
+import com.minzu.entity.Comment;
 import com.minzu.entity.Product;
 import com.minzu.entity.User;
 import com.minzu.util.DBUtil;
@@ -10,7 +11,9 @@ import javax.servlet.http.*;
 import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @WebServlet("/product-detail")
 public class ProductDetailServlet extends HttpServlet {
@@ -111,9 +114,47 @@ public class ProductDetailServlet extends HttpServlet {
                         }
                     }
 
+                    // ④ 查询留言评论
+                    List<Comment> topLevelComments = new ArrayList<>();
+                    String commentSql = "SELECT c.comment_id, c.product_id, c.user_id, c.content, c.parent_id, c.created_at, " +
+                            "u.real_name, u.nickname FROM product_comments c " +
+                            "LEFT JOIN users u ON c.user_id = u.user_id WHERE c.product_id = ? ORDER BY c.created_at ASC";
+                    try (PreparedStatement commentPs = conn.prepareStatement(commentSql)) {
+                        commentPs.setInt(1, productId);
+                        try (ResultSet commentRs = commentPs.executeQuery()) {
+                            Map<Integer, Comment> commentMap = new HashMap<>();
+                            List<Comment> allComments = new ArrayList<>();
+                            while (commentRs.next()) {
+                                Comment c = new Comment();
+                                c.setCommentId(commentRs.getInt("comment_id"));
+                                c.setProductId(commentRs.getInt("product_id"));
+                                c.setUserId(commentRs.getInt("user_id"));
+                                c.setContent(commentRs.getString("content"));
+                                int pid = commentRs.getInt("parent_id");
+                                c.setParentId(commentRs.wasNull() ? null : pid);
+                                c.setCreatedAt(commentRs.getTimestamp("created_at"));
+                                c.setUserRealName(commentRs.getString("real_name"));
+                                c.setUserNickname(commentRs.getString("nickname"));
+                                commentMap.put(c.getCommentId(), c);
+                                allComments.add(c);
+                            }
+                            for (Comment c : allComments) {
+                                if (c.getParentId() == null) {
+                                    topLevelComments.add(c);
+                                } else {
+                                    Comment parent = commentMap.get(c.getParentId());
+                                    if (parent != null) {
+                                        parent.getReplies().add(c);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     request.setAttribute("product", p);
                     request.setAttribute("detailImages", detailImages);
                     request.setAttribute("isFavorited", isFavorited);
+                    request.setAttribute("comments", topLevelComments);
                     request.getRequestDispatcher("/product-detail.jsp").forward(request, response);
 
                 } else {

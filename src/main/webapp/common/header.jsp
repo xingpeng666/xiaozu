@@ -36,10 +36,10 @@
         <% if (isNavAdmin) { %>
             <a href="${pageContext.request.contextPath}/admin/dashboard"
                class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "dashboard".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">统计面板</a>
-            <a href="${pageContext.request.contextPath}/admin/user-review"
-               class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "user-review".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">用户审核</a>
+            <a href="${pageContext.request.contextPath}/admin/users"
+               class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "users".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">用户管理</a>
             <a href="${pageContext.request.contextPath}/admin/products"
-               class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "admin-products".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">商品审核</a>
+               class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "admin-products".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">商品巡查</a>
             <a href="${pageContext.request.contextPath}/report"
                class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "reports".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">举报管理</a>
             <a href="${pageContext.request.contextPath}/dispute?action=admin"
@@ -51,6 +51,8 @@
                class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "pickup".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">自提点</a>
             <a href="${pageContext.request.contextPath}/product-list"
                class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "products".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">浏览商品</a>
+            <a href="${pageContext.request.contextPath}/zone?type=graduation"
+               class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "zone".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">专区</a>
             <% if (navLoginUser != null) { %>
             <a href="${pageContext.request.contextPath}/my-products"
                class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "my-products".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">我的商品</a>
@@ -60,6 +62,8 @@
                class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "messages".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">私信</a>
             <a href="${pageContext.request.contextPath}/my-favorites"
                class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "favorites".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">收藏</a>
+            <a href="${pageContext.request.contextPath}/offer"
+               class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "offers".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">出价</a>
             <a href="${pageContext.request.contextPath}/notifications"
                class="px-3 py-2 text-sm font-medium rounded-lg transition-colors relative <%= "notifications".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">
                 通知

@@ -61,12 +61,12 @@ public class AdminDashboardServlet extends HttpServlet {
                 if (rs.next()) onSaleProducts = rs.getLong(1);
             }
 
-            // 待审核商品数
-            long pendingProducts = 0;
+            // 注册用户数（已激活）
+            long totalActiveUsers = 0;
             try (PreparedStatement ps = conn.prepareStatement(
-                    "SELECT COUNT(*) FROM products WHERE publish_status = 'PENDING_REVIEW' AND IFNULL(is_deleted, 0) = 0");
+                    "SELECT COUNT(*) FROM users WHERE account_status = 'ACTIVE' AND IFNULL(is_deleted, 0) = 0 AND role_code != 'ADMIN'");
                  ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) pendingProducts = rs.getLong(1);
+                if (rs.next()) totalActiveUsers = rs.getLong(1);
             }
 
             // 总订单数
@@ -114,7 +114,7 @@ public class AdminDashboardServlet extends HttpServlet {
             req.setAttribute("totalUsers", totalUsers);
             req.setAttribute("todayNewUsers", todayNewUsers);
             req.setAttribute("onSaleProducts", onSaleProducts);
-            req.setAttribute("pendingProducts", pendingProducts);
+            req.setAttribute("totalActiveUsers", totalActiveUsers);
             req.setAttribute("totalOrders", totalOrders);
             req.setAttribute("completedOrders", completedOrders);
             req.setAttribute("totalAmount", totalAmount);

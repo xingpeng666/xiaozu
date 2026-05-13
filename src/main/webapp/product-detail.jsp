@@ -2,9 +2,11 @@
 <%@ page import="com.minzu.entity.Product" %>
 <%@ page import="java.util.List" %>
 <%@ page import="com.minzu.entity.User" %>
+<%@ page import="com.minzu.entity.Comment" %>
 <%
     Product product = (Product) request.getAttribute("product");
     List<String> detailImages = (List<String>) request.getAttribute("detailImages");
+    List<Comment> comments = (List<Comment>) request.getAttribute("comments");
     User loginUser = (User) session.getAttribute("loginUser");
 
     int unreadNotifyCount = 0;
@@ -327,6 +329,10 @@
                                         发起交易
                                     </button>
                                 </form>
+                                <button type="button" class="btn-press inline-flex items-center gap-2 px-5 py-3 bg-surface-raised text-amber-600 font-semibold rounded-soft border border-amber-300 cursor-pointer hover:bg-amber-50 hover:border-amber-400" onclick="document.getElementById('offerModal').classList.remove('hidden');document.getElementById('offerModal').classList.add('flex');">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                                    出价
+                                </button>
                             <% } %>
 
                             <%-- Contact seller / Edit product --%>
@@ -471,16 +477,160 @@
             </div>
         </section>
 
+        <%-- Comments Section --%>
+        <section class="animate-fade" style="animation-delay: 0.25s;">
+            <div class="bg-surface-raised rounded-card border border-stroke shadow-soft p-6">
+                <h2 class="font-display text-lg font-bold text-ink-primary mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-brand-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    留言区 (<%= comments != null ? comments.size() : 0 %>)
+                </h2>
+
+                <% if (comments != null && !comments.isEmpty()) { %>
+                    <% for (Comment comment : comments) {
+                        String displayName = comment.getDisplayName();
+                        String initial = displayName.substring(0, Math.min(1, displayName.length()));
+                        boolean isSellerComment = comment.getUserId() == product.getSellerId();
+                    %>
+                    <div class="bg-surface-muted border border-stone-200 rounded-xl p-4 mb-3">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-8 h-8 bg-brand-100 rounded-full flex items-center justify-center text-brand-600 text-sm font-bold"><%= initial %></div>
+                            <span class="text-sm font-semibold text-ink-primary"><%= displayName %></span>
+                            <% if (isSellerComment) { %><span class="text-xs bg-brand-50 text-brand-600 px-2 py-0.5 rounded-full">卖家</span><% } %>
+                            <span class="text-xs text-ink-muted"><%= comment.getCreatedAt() != null ? new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm").format(comment.getCreatedAt()) : "" %></span>
+                        </div>
+                        <p class="text-sm text-ink-primary"><%= comment.getContent() %></p>
+
+                        <%-- Replies --%>
+                        <% if (comment.getReplies() != null && !comment.getReplies().isEmpty()) { %>
+                            <% for (Comment reply : comment.getReplies()) {
+                                String replyName = reply.getDisplayName();
+                                String replyInitial = replyName.substring(0, Math.min(1, replyName.length()));
+                                boolean isSellerReply = reply.getUserId() == product.getSellerId();
+                            %>
+                            <div class="ml-8 mt-2 bg-stone-50 rounded-lg p-3">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <div class="w-6 h-6 bg-brand-100 rounded-full flex items-center justify-center text-brand-600 text-xs font-bold"><%= replyInitial %></div>
+                                    <span class="text-sm font-semibold text-ink-primary"><%= replyName %></span>
+                                    <% if (isSellerReply) { %><span class="text-xs bg-brand-50 text-brand-600 px-2 py-0.5 rounded-full">卖家</span><% } %>
+                                    <span class="text-xs text-ink-muted"><%= reply.getCreatedAt() != null ? new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm").format(reply.getCreatedAt()) : "" %></span>
+                                </div>
+                                <p class="text-sm text-ink-primary"><%= reply.getContent() %></p>
+                            </div>
+                            <% } %>
+                        <% } %>
+
+                        <%-- Reply button + form --%>
+                        <% if (loginUser != null) { %>
+                        <button onclick="toggleReply(<%= comment.getCommentId() %>)" class="text-xs text-brand-600 mt-2 hover:text-brand-700 cursor-pointer">回复</button>
+                        <form method="post" action="${pageContext.request.contextPath}/comment" class="hidden mt-2" id="reply-form-<%= comment.getCommentId() %>">
+                            <input type="hidden" name="productId" value="<%= product.getProductId() %>">
+                            <input type="hidden" name="parentId" value="<%= comment.getCommentId() %>">
+                            <textarea name="content" class="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm input-focus-ring focus:border-brand-500 transition-colors" rows="2" placeholder="回复 <%= displayName %>..." maxlength="500"></textarea>
+                            <button type="submit" class="mt-1 px-3 py-1.5 bg-brand-500 text-white text-xs rounded-lg hover:bg-brand-600 transition-colors btn-press">发送</button>
+                        </form>
+                        <% } %>
+                    </div>
+                    <% } %>
+                <% } else { %>
+                <p class="text-sm text-ink-muted py-4 text-center">暂无留言，快来抢沙发吧~</p>
+                <% } %>
+
+                <%-- New comment form --%>
+                <% if (loginUser != null) { %>
+                <form method="post" action="${pageContext.request.contextPath}/comment" class="mt-4">
+                    <input type="hidden" name="productId" value="<%= product.getProductId() %>">
+                    <textarea name="content" maxlength="500" placeholder="写下你的留言..." rows="3"
+                        class="w-full px-4 py-3 bg-surface-muted border border-stone-200 rounded-lg text-sm input-focus-ring focus:border-brand-500 transition-colors"></textarea>
+                    <div class="flex justify-between items-center mt-2">
+                        <span class="text-xs text-ink-faint">最多500字</span>
+                        <button type="submit" class="px-5 py-2 bg-brand-500 text-white text-sm font-medium rounded-lg hover:bg-brand-600 transition-colors btn-press">发表留言</button>
+                    </div>
+                </form>
+                <% } else { %>
+                <p class="text-sm text-ink-muted mt-4 text-center">
+                    <a href="${pageContext.request.contextPath}/login" class="text-brand-600 hover:text-brand-700">登录</a>后即可留言
+                </p>
+                <% } %>
+            </div>
+        </section>
+
         <% } %>
 
     </div>
 </main>
 
-<!-- Image preview modal -->
-<div id="imageModal" class="fixed inset-0 bg-black/80 z-50 items-center justify-center hidden">
-    <button class="absolute top-6 right-6 text-white text-3xl cursor-pointer hover:text-rose-300" onclick="closeModal()">&times;</button>
-    <img id="modalImage" src="" class="max-w-[92vw] max-h-[88vh] rounded-card shadow-raised">
+<!-- Image Lightbox -->
+<div id="imageModal" class="fixed inset-0 bg-black/80 z-50 items-center justify-center hidden" onclick="if(event.target===this)closeLightbox()">
+    <button class="absolute top-6 right-6 text-white/80 hover:text-white cursor-pointer z-10" onclick="closeLightbox()">
+        <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="absolute top-6 left-1/2 -translate-x-1/2 text-white/80 text-sm font-medium" id="lightboxCounter">1 / 1</div>
+    <button class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center cursor-pointer transition-colors" onclick="lightboxPrev()">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <button class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center cursor-pointer transition-colors" onclick="lightboxNext()">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <img id="modalImage" src="" class="max-w-4xl max-h-[85vh] object-contain rounded-card shadow-raised">
 </div>
+
+<!-- Offer Modal -->
+<% if (loginUser != null && !isOwner && !isSold) { %>
+<div id="offerModal" class="fixed inset-0 bg-black/50 z-50 items-center justify-center hidden" onclick="if(event.target===this)closeOfferModal()">
+    <div class="bg-surface-raised rounded-hero shadow-raised w-full max-w-md mx-4 p-6 relative">
+        <button type="button" class="absolute top-4 right-4 text-ink-muted hover:text-ink-primary cursor-pointer" onclick="closeOfferModal()">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <h3 class="font-display font-bold text-lg text-ink-primary mb-4">向卖家出价</h3>
+        <form action="${pageContext.request.contextPath}/offer" method="post" onsubmit="return validateOfferForm()">
+            <input type="hidden" name="action" value="create">
+            <input type="hidden" name="productId" value="<%= product.getProductId() %>">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-ink-secondary mb-1.5">出价金额 <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted font-medium">¥</span>
+                        <input type="number" name="offerPrice" id="offerPriceInput" min="0.01" step="0.01" required
+                               class="w-full pl-8 pr-4 py-2.5 bg-surface border border-stone-200 rounded-soft text-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+                               placeholder="输入你的出价">
+                    </div>
+                    <p class="text-xs text-ink-muted mt-1">商品标价：¥<%= product.getPrice() %></p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-ink-secondary mb-1.5">留言 <span class="text-ink-faint">(可选)</span></label>
+                    <textarea name="message" rows="3" maxlength="200"
+                              class="w-full px-4 py-2.5 bg-surface border border-stone-200 rounded-soft text-sm resize-none focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+                              placeholder="给卖家留言，说明你的出价理由..."></textarea>
+                    <p class="text-xs text-ink-muted mt-1">最多200字</p>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button type="button" onclick="closeOfferModal()" class="flex-1 px-4 py-2.5 bg-surface border border-stone-200 text-ink-muted font-medium rounded-soft text-sm hover:border-stone-300 hover:text-ink-primary transition-colors cursor-pointer">取消</button>
+                <button type="submit" class="flex-1 px-4 py-2.5 bg-amber-500 text-white font-medium rounded-soft text-sm hover:bg-amber-600 transition-colors btn-press cursor-pointer">提交出价</button>
+            </div>
+        </form>
+    </div>
+</div>
+<% } %>
+
+<script>
+function closeOfferModal() {
+    var modal = document.getElementById('offerModal');
+    if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+}
+function validateOfferForm() {
+    var price = document.getElementById('offerPriceInput').value;
+    if (!price || parseFloat(price) <= 0) {
+        alert('请输入有效的出价金额');
+        return false;
+    }
+    return true;
+}
+document.addEventListener('keydown', function(e) {
+    var modal = document.getElementById('offerModal');
+    if (modal && !modal.classList.contains('hidden') && e.key === 'Escape') closeOfferModal();
+});
+</script>
 
 <script>
 /* ====================================================
@@ -559,18 +709,67 @@ function updateCarousel() {
     });
 }
 
-/* Image preview modal */
+/* Image Lightbox */
+var lightboxImages = [];
+var lightboxIndex = 0;
+<% if (product != null) { %>
+<%     String lbCover = product.getCoverImageUrl(); %>
+<%     if (lbCover != null && !lbCover.isEmpty()) { %>
+lightboxImages.push('<%= lbCover %>');
+<%     } %>
+<%     String lbUrls = product.getImageUrls(); %>
+<%     if (lbUrls != null && !lbUrls.trim().isEmpty()) { %>
+<%         for (String u : lbUrls.split(",")) { %>
+<%             String t = u.trim(); %>
+<%             if (!t.isEmpty()) { %>
+lightboxImages.push('<%= t %>');
+<%             } %>
+<%         } %>
+<%     } %>
+<% } %>
+
 function openImagePreview(src) {
-    document.getElementById('modalImage').src = src;
-    document.getElementById('imageModal').classList.remove('hidden');
-    document.getElementById('imageModal').classList.add('flex');
+    if (lightboxImages.length === 0) lightboxImages = [src];
+    var idx = lightboxImages.indexOf(src);
+    if (idx === -1) { lightboxImages.push(src); idx = lightboxImages.length - 1; }
+    lightboxIndex = idx;
+    updateLightbox();
+    var modal = document.getElementById('imageModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
 }
-function closeModal() {
-    document.getElementById('imageModal').classList.add('hidden');
-    document.getElementById('imageModal').classList.remove('flex');
+function closeLightbox() {
+    var modal = document.getElementById('imageModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
     document.getElementById('modalImage').src = '';
 }
-document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeModal(); });
+function lightboxPrev() {
+    if (lightboxImages.length <= 1) return;
+    lightboxIndex = (lightboxIndex - 1 + lightboxImages.length) % lightboxImages.length;
+    updateLightbox();
+}
+function lightboxNext() {
+    if (lightboxImages.length <= 1) return;
+    lightboxIndex = (lightboxIndex + 1) % lightboxImages.length;
+    updateLightbox();
+}
+function updateLightbox() {
+    document.getElementById('modalImage').src = lightboxImages[lightboxIndex];
+    document.getElementById('lightboxCounter').textContent = (lightboxIndex + 1) + ' / ' + lightboxImages.length;
+}
+document.addEventListener('keydown', function(e) {
+    var modal = document.getElementById('imageModal');
+    if (modal.classList.contains('hidden')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') lightboxPrev();
+    if (e.key === 'ArrowRight') lightboxNext();
+});
+
+function toggleReply(commentId) {
+    var form = document.getElementById('reply-form-' + commentId);
+    if (form) form.classList.toggle('hidden');
+}
 </script>
 
 </body>

@@ -154,7 +154,7 @@ public class PublishProductServlet extends HttpServlet {
                             "(seller_id, category_id, title, product_desc, price, original_price, " +
                             "condition_level, cover_image_url, image_urls, tags, publish_status, " +
                             "is_textbook_zone, is_graduation_zone, view_count, favorite_count, is_deleted, created_at, updated_at) " +
-                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING_REVIEW', 0, 0, 0, 0, 0, NOW(), NOW())";
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ON_SALE', 0, 0, 0, 0, 0, NOW(), NOW())";
 
             psProduct = conn.prepareStatement(insertProductSql, Statement.RETURN_GENERATED_KEYS);
             psProduct.setInt(1, loginUser.getUserId());
@@ -201,7 +201,7 @@ public class PublishProductServlet extends HttpServlet {
 
             psImage.executeBatch();
             conn.commit();
-            request.getSession().setAttribute("successMsg", "商品已提交审核，请等待管理员处理");
+            request.getSession().setAttribute("successMsg", "商品发布成功，已上架展示");
             response.sendRedirect(request.getContextPath() + "/my-products");
 
         } catch (Exception e) {

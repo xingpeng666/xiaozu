@@ -115,18 +115,19 @@
             <div class="font-display text-3xl font-bold text-emerald-600"><%= onSaleProducts %></div>
         </div>
 
-        <!-- 待审核 -->
+        <!-- 注册用户 -->
         <div class="bg-surface-raised border border-stone-200 rounded-2xl p-5 hover-lift">
             <div class="flex items-center gap-3 mb-3">
                 <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
                     <svg class="w-5 h-5 text-orange-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"/>
-                        <polyline points="12 6 12 12 16 14"/>
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
                     </svg>
                 </div>
-                <span class="text-sm text-ink-muted">待审核商品</span>
+                <span class="text-sm text-ink-muted">注册用户</span>
             </div>
-            <div class="font-display text-3xl font-bold text-orange-600"><%= pendingProducts %></div>
+            <div class="font-display text-3xl font-bold text-orange-600"><%= totalActiveUsers %></div>
         </div>
 
         <!-- 交易金额 -->

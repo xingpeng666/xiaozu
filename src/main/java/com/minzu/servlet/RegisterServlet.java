@@ -71,8 +71,8 @@ public class RegisterServlet extends HttpServlet {
             String passwordHash = PasswordUtil.hash(password.trim());
 
             String insertSql = "INSERT INTO users " +
-                    "(student_or_staff_no, real_name, nickname, password_hash, role_code, created_at, updated_at) " +
-                    "VALUES (?, ?, ?, ?, 'STUDENT', NOW(), NOW())";
+                    "(student_or_staff_no, real_name, nickname, password_hash, role_code, account_status, created_at, updated_at) " +
+                    "VALUES (?, ?, ?, ?, 'STUDENT', 'ACTIVE', NOW(), NOW())";
 
             psInsert = conn.prepareStatement(insertSql);
             psInsert.setString(1, studentOrStaffNo.trim());
@@ -82,7 +82,7 @@ public class RegisterServlet extends HttpServlet {
 
             int rows = psInsert.executeUpdate();
             if (rows > 0) {
-                request.getSession().setAttribute("successMsg", "注册成功，请等待审核后登录");
+                request.getSession().setAttribute("successMsg", "注册成功，请登录");
                 response.sendRedirect(request.getContextPath() + "/login");
             } else {
                 request.setAttribute("errorMsg", "注册失败，请稍后重试");

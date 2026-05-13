@@ -10,11 +10,6 @@ import java.io.IOException;
 import java.sql.*;
 import java.util.*;
 
-/**
- * /admin/products
- *   GET  -> 待审核商品列表 (admin-product-review.jsp)
- *   POST action=approve|reject  productId=xx
- */
 @WebServlet("/admin/products")
 public class AdminProductReviewServlet extends HttpServlet {
 
@@ -26,13 +21,15 @@ public class AdminProductReviewServlet extends HttpServlet {
         if (loginUser == null) return;
 
         String tab = req.getParameter("tab");
-        if (tab == null) tab = "pending";
+        if (tab == null) tab = "on_sale";
+        String keyword = req.getParameter("keyword");
+        if (keyword == null) keyword = "";
 
         String statusFilter;
         switch (tab) {
-            case "on_sale":  statusFilter = "ON_SALE";       break;
-            case "rejected": statusFilter = "REJECTED";      break;
-            default:         statusFilter = "PENDING_REVIEW"; tab = "pending"; break;
+            case "off_shelf": statusFilter = "OFF_SHELF"; break;
+            case "rejected":  statusFilter = "REJECTED";  break;
+            default:          statusFilter = "ON_SALE";    tab = "on_sale"; break;
         }
 
         String sql =
@@ -42,26 +39,37 @@ public class AdminProductReviewServlet extends HttpServlet {
             "FROM products p " +
             "LEFT JOIN users u ON p.seller_id=u.user_id " +
             "LEFT JOIN categories c ON p.category_id=c.category_id " +
-            "WHERE p.publish_status=? AND IFNULL(p.is_deleted,0)=0 " +
-            "ORDER BY p.created_at DESC";
+            "WHERE p.publish_status=? AND IFNULL(p.is_deleted,0)=0 ";
+
+        if (!keyword.trim().isEmpty()) {
+            sql += "AND (p.title LIKE ? OR u.real_name LIKE ? OR u.student_or_staff_no LIKE ?) ";
+        }
+        sql += "ORDER BY p.created_at DESC";
 
         List<Map<String, Object>> list = new ArrayList<>();
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, statusFilter);
+            int idx = 1;
+            ps.setString(idx++, statusFilter);
+            if (!keyword.trim().isEmpty()) {
+                String like = "%" + keyword.trim() + "%";
+                ps.setString(idx++, like);
+                ps.setString(idx++, like);
+                ps.setString(idx++, like);
+            }
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Map<String, Object> row = new LinkedHashMap<>();
-                    row.put("productId",    rs.getInt("product_id"));
-                    row.put("title",        rs.getString("title"));
-                    row.put("price",        rs.getBigDecimal("price"));
-                    row.put("publishStatus",rs.getString("publish_status"));
-                    row.put("createdAt",    rs.getTimestamp("created_at"));
-                    row.put("coverImageUrl",rs.getString("cover_image_url"));
+                    row.put("productId",     rs.getInt("product_id"));
+                    row.put("title",         rs.getString("title"));
+                    row.put("price",         rs.getBigDecimal("price"));
+                    row.put("publishStatus", rs.getString("publish_status"));
+                    row.put("createdAt",     rs.getTimestamp("created_at"));
+                    row.put("coverImageUrl", rs.getString("cover_image_url"));
                     row.put("conditionLevel",rs.getString("condition_level"));
-                    row.put("categoryName", rs.getString("category_name"));
-                    row.put("sellerName",   rs.getString("seller_name"));
-                    row.put("sellerNo",     rs.getString("student_or_staff_no"));
+                    row.put("categoryName",  rs.getString("category_name"));
+                    row.put("sellerName",    rs.getString("seller_name"));
+                    row.put("sellerNo",      rs.getString("student_or_staff_no"));
                     list.add(row);
                 }
             }
@@ -72,6 +80,7 @@ public class AdminProductReviewServlet extends HttpServlet {
 
         req.setAttribute("productList", list);
         req.setAttribute("tab", tab);
+        req.setAttribute("keyword", keyword);
         req.getRequestDispatcher("/admin-product-review.jsp").forward(req, resp);
     }
 
@@ -82,64 +91,71 @@ public class AdminProductReviewServlet extends HttpServlet {
         User loginUser = getAdminUser(req, resp);
         if (loginUser == null) return;
 
-        String action      = req.getParameter("action");
-        String productIdStr = req.getParameter("productId");
-        String tab         = req.getParameter("tab");
-        if (tab == null) tab = "pending";
+        String action = req.getParameter("action");
+        String tab    = req.getParameter("tab");
+        if (tab == null) tab = "on_sale";
 
-        if (productIdStr == null || (! "approve".equals(action) && !"reject".equals(action))) {
-            resp.sendRedirect(req.getContextPath() + "/admin/products");
+        if ("takedown".equals(action)) {
+            handleBatchTakedown(req, resp, tab);
             return;
         }
 
-        int productId;
-        try { productId = Integer.parseInt(productIdStr.trim()); }
-        catch (NumberFormatException e) {
-            resp.sendRedirect(req.getContextPath() + "/admin/products");
+        resp.sendRedirect(req.getContextPath() + "/admin/products?tab=" + tab);
+    }
+
+    private void handleBatchTakedown(HttpServletRequest req, HttpServletResponse resp, String tab)
+            throws IOException {
+        String idsParam = req.getParameter("ids");
+        if (idsParam == null || idsParam.trim().isEmpty()) {
+            req.getSession().setAttribute("errorMsg", "请选择要下架的商品");
+            resp.sendRedirect(req.getContextPath() + "/admin/products?tab=" + tab);
             return;
         }
 
-        String newStatus = "approve".equals(action) ? "ON_SALE" : "REJECTED";
-
-        // 先查询商品信息（卖家ID和标题），用于发送通知
-        String infoSql = "SELECT seller_id, title FROM products WHERE product_id = ?";
-        String updateSql = "UPDATE products SET publish_status=? WHERE product_id=? AND publish_status='PENDING_REVIEW'";
+        String[] idArr = idsParam.split(",");
+        int successCount = 0;
 
         try (Connection conn = DBUtil.getConnection()) {
+            String infoSql = "SELECT seller_id, title FROM products WHERE product_id = ?";
+            String updateSql = "UPDATE products SET publish_status = 'OFF_SHELF', updated_at = NOW() WHERE product_id = ? AND publish_status = 'ON_SALE'";
 
-            int sellerId = 0;
-            String productTitle = "未知商品";
-            try (PreparedStatement infoPs = conn.prepareStatement(infoSql)) {
-                infoPs.setInt(1, productId);
-                try (ResultSet rs = infoPs.executeQuery()) {
-                    if (rs.next()) {
-                        sellerId = rs.getInt("seller_id");
-                        productTitle = rs.getString("title");
+            for (String idStr : idArr) {
+                int productId;
+                try { productId = Integer.parseInt(idStr.trim()); }
+                catch (NumberFormatException e) { continue; }
+
+                int sellerId = 0;
+                String productTitle = "未知商品";
+                try (PreparedStatement infoPs = conn.prepareStatement(infoSql)) {
+                    infoPs.setInt(1, productId);
+                    try (ResultSet rs = infoPs.executeQuery()) {
+                        if (rs.next()) {
+                            sellerId = rs.getInt("seller_id");
+                            productTitle = rs.getString("title");
+                        }
+                    }
+                }
+
+                try (PreparedStatement ps = conn.prepareStatement(updateSql)) {
+                    ps.setInt(1, productId);
+                    int rows = ps.executeUpdate();
+                    if (rows > 0) {
+                        successCount++;
+                        sendNotification(sellerId, "您的商品「" + productTitle + "」已被管理员下架");
                     }
                 }
             }
 
-            try (PreparedStatement ps = conn.prepareStatement(updateSql)) {
-                ps.setString(1, newStatus);
-                ps.setInt(2, productId);
-                int rows = ps.executeUpdate();
-                if (rows > 0) {
-                    // 发送通知给卖家
-                    String notifyContent = "approve".equals(action)
-                        ? "您的商品「" + productTitle + "」已通过审核，已上架展示"
-                        : "您的商品「" + productTitle + "」未通过审核，请修改后重新发布";
-                    sendNotification(sellerId, notifyContent);
-
-                    req.getSession().setAttribute("successMsg",
-                        "approve".equals(action) ? "商品已审核通过" : "商品已驳回");
-                } else {
-                    req.getSession().setAttribute("errorMsg", "操作失败，商品状态可能已变更");
-                }
+            if (successCount > 0) {
+                req.getSession().setAttribute("successMsg", "已成功下架 " + successCount + " 件商品");
+            } else {
+                req.getSession().setAttribute("errorMsg", "操作失败，商品状态可能已变更");
             }
         } catch (Exception e) {
             e.printStackTrace();
             req.getSession().setAttribute("errorMsg", "操作失败：" + e.getMessage());
         }
+
         resp.sendRedirect(req.getContextPath() + "/admin/products?tab=" + tab);
     }
 
@@ -157,9 +173,6 @@ public class AdminProductReviewServlet extends HttpServlet {
         return u;
     }
 
-    /**
-     * 发送通知给指定用户
-     */
     private void sendNotification(int userId, String content) {
         String sql = "INSERT INTO notifications (user_id, content) VALUES (?, ?)";
         try (Connection conn = DBUtil.getConnection();
