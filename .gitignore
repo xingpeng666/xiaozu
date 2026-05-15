@@ -34,20 +34,5 @@ build/
 ### Mac OS ###
 .DS_Store
 
-echo "" >> .gitignore
-echo "# IDE" >> .gitignore
-echo ".idea/" >> .gitignore
-echo "*.iml" >> .gitignore
-echo ".smarttomcat/" >> .gitignore
-
-git add .gitignore
-git commit -m "chore: 更新 .gitignore，忽略 IDE 配置目录"
-git push origin main
-
-.idea/
-*.iml
-.smarttomcat/
-target/
-
 ### Smart Tomcat Plugin ###
 .smarttomcat/
