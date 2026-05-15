@@ -37,7 +37,7 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
-        String sql = "SELECT user_id, student_or_staff_no, real_name, nickname, role_code, account_status, password_hash " +
+        String sql = "SELECT user_id, student_or_staff_no, real_name, nickname, role_code, account_status, password_hash, avatar_url " +
                      "FROM users " +
                      "WHERE student_or_staff_no = ? AND IFNULL(is_deleted, 0) = 0";
 
@@ -88,6 +88,7 @@ public class LoginServlet extends HttpServlet {
                 user.setNickname(rs.getString("nickname"));
                 user.setRoleCode(rs.getString("role_code"));
                 user.setAccountStatus(accountStatus);
+                user.setAvatarUrl(rs.getString("avatar_url"));
 
                 HttpSession session = request.getSession();
                 session.setAttribute("loginUser", user);

@@ -2,13 +2,20 @@ package com.minzu.servlet;
 
 import com.minzu.entity.User;
 import com.minzu.util.DBUtil;
+import com.minzu.util.UploadUtil;
 import org.mindrot.jbcrypt.BCrypt;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.sql.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * /profile
@@ -16,6 +23,11 @@ import java.sql.*;
  *   POST -> 保存昵称 / 联系方式 / 密码修改
  */
 @WebServlet("/profile")
+@MultipartConfig(
+        fileSizeThreshold = 1024 * 1024,   // 1MB
+        maxFileSize = 5 * 1024 * 1024,     // 5MB per file
+        maxRequestSize = 10 * 1024 * 1024  // 10MB total
+)
 public class ProfileServlet extends HttpServlet {
 
     @Override
@@ -27,7 +39,7 @@ public class ProfileServlet extends HttpServlet {
 
         // 从数据库重新读取最新信息（含 phone / email 等字段）
         String sql = "SELECT user_id, student_or_staff_no, real_name, nickname, role_code, " +
-                     "account_status, phone, email FROM users WHERE user_id=?";
+                     "account_status, phone, email, avatar_url FROM users WHERE user_id=?";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, loginUser.getUserId());
@@ -40,6 +52,7 @@ public class ProfileServlet extends HttpServlet {
                     req.setAttribute("u_phone",    rs.getString("phone"));
                     req.setAttribute("u_email",    rs.getString("email"));
                     req.setAttribute("u_role",     rs.getString("role_code"));
+                    req.setAttribute("u_avatarUrl", rs.getString("avatar_url"));
                 }
             }
         } catch (Exception e) {
@@ -55,6 +68,50 @@ public class ProfileServlet extends HttpServlet {
         req.setCharacterEncoding("UTF-8");
         User loginUser = getLoginUser(req, resp);
         if (loginUser == null) return;
+
+        // --- Avatar upload (if present in a multipart request) ---
+        try {
+            Part avatarPart = req.getPart("avatar");
+            if (avatarPart != null && avatarPart.getSize() > 0) {
+                // Validate file extension
+                String submittedFileName = Paths.get(avatarPart.getSubmittedFileName()).getFileName().toString();
+                String ext = "";
+                int dot = submittedFileName.lastIndexOf(".");
+                if (dot != -1) ext = submittedFileName.substring(dot).toLowerCase();
+
+                Set<String> allowedExts = new HashSet<>(Arrays.asList(".jpg", ".jpeg", ".png", ".gif", ".webp"));
+                if (!allowedExts.contains(ext)) {
+                    req.getSession().setAttribute("errorMsg", "仅支持 JPG、PNG、GIF、WebP 格式的头像");
+                    resp.sendRedirect(req.getContextPath() + "/profile");
+                    return;
+                }
+
+                String uploadDir = UploadUtil.getUploadDir();
+                File uploadDirFile = new File(uploadDir);
+                if (!uploadDirFile.exists()) {
+                    uploadDirFile.mkdirs();
+                }
+
+                String avatarUrl = UploadUtil.saveFile(avatarPart, uploadDir, req);
+
+                String updateAvatarSql = "UPDATE users SET avatar_url=? WHERE user_id=?";
+                try (Connection conn = DBUtil.getConnection();
+                     PreparedStatement ps = conn.prepareStatement(updateAvatarSql)) {
+                    ps.setString(1, avatarUrl);
+                    ps.setInt(2, loginUser.getUserId());
+                    ps.executeUpdate();
+                }
+
+                // Update session User object so header reflects change immediately
+                loginUser.setAvatarUrl(avatarUrl);
+
+                req.getSession().setAttribute("successMsg", "头像已更新");
+                resp.sendRedirect(req.getContextPath() + "/profile");
+                return;
+            }
+        } catch (Exception e) {
+            // Not a multipart request, or other error -- fall through to existing logic
+        }
 
         String nickname    = req.getParameter("nickname");
         String phone       = req.getParameter("phone");

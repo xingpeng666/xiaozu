@@ -245,6 +245,29 @@
                                 <span class="px-3 py-1 bg-slate-200 text-slate-600 text-sm font-semibold rounded-lg">已售出</span>
                                 <% } %>
                             </div>
+                            <%-- Tags --%>
+                            <%
+                                String detailTags = product.getTags();
+                                if (detailTags != null && !detailTags.trim().isEmpty()) {
+                                    String[] tagArr = detailTags.split(",");
+                                    String[] tagBgs = {"#dbeafe","#fce7f3","#d1fae5","#fef3c7","#ede9fe","#ffedd5"};
+                                    String[] tagTexts = {"#1d4ed8","#be185d","#065f46","#92400e","#5b21b6","#9a3412"};
+                                    String[] tagBorders = {"#93c5fd","#f9a8d4","#6ee7b7","#fcd34d","#c4b5fd","#fdba74"};
+                            %>
+                            <div class="flex flex-wrap gap-2 mt-2">
+                                <% for (int ti = 0; ti < tagArr.length; ti++) {
+                                    String tagName = tagArr[ti].trim();
+                                    if (tagName.isEmpty()) continue;
+                                    int ci = Math.abs(tagName.hashCode()) % 6;
+                                %>
+                                <a href="${pageContext.request.contextPath}/product-list?tag=<%= java.net.URLEncoder.encode(tagName, "UTF-8") %>"
+                                   class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium hover:shadow-md transition-all"
+                                   style="background:<%= tagBgs[ci] %>;color:<%= tagTexts[ci] %>;border:1px solid <%= tagBorders[ci] %>">
+                                    <%= tagName %>
+                                </a>
+                                <% } %>
+                            </div>
+                            <% } %>
                         </div>
 
                         <!-- Price -->
@@ -273,7 +296,15 @@
                             <div class="flex items-center py-4 px-5">
                                 <span class="w-24 text-sm text-ink-muted">卖家</span>
                                 <div class="flex items-center gap-2">
-                                    <div class="w-6 h-6 bg-brand-100 rounded-full flex items-center justify-center text-brand-600 font-bold text-xs"><%= product.getSellerName() != null ? product.getSellerName().substring(0, Math.min(1, product.getSellerName().length())) : "?" %></div>
+                                    <%
+                                        String prodSellerAvatarUrl = product.getSellerAvatarUrl();
+                                        if (prodSellerAvatarUrl != null && !prodSellerAvatarUrl.isEmpty()) {
+                                    %>
+                                        <img src="<%= prodSellerAvatarUrl %>" alt="<%= product.getSellerName() %>"
+                                             class="w-6 h-6 rounded-full object-cover">
+                                    <% } else { %>
+                                        <div class="w-6 h-6 bg-brand-100 rounded-full flex items-center justify-center text-brand-600 font-bold text-xs"><%= product.getSellerName() != null ? product.getSellerName().substring(0, Math.min(1, product.getSellerName().length())) : "?" %></div>
+                                    <% } %>
                                     <span class="text-sm font-semibold text-ink-primary"><%= product.getSellerName() != null ? product.getSellerName() : "未知卖家" %></span>
                                 </div>
                             </div>

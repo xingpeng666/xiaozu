@@ -110,6 +110,58 @@ public class AdminDashboardServlet extends HttpServlet {
                 }
             }
 
+            // 近7天每日新增用户数
+            List<Map<String, Object>> dailyUsers = new ArrayList<>();
+            String dailyUsersSql =
+                "SELECT DATE(created_at) AS reg_date, COUNT(*) AS reg_count " +
+                "FROM users " +
+                "WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY) " +
+                "GROUP BY DATE(created_at) " +
+                "ORDER BY reg_date ASC";
+            try (PreparedStatement ps = conn.prepareStatement(dailyUsersSql);
+                 ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> row = new LinkedHashMap<>();
+                    row.put("regDate", rs.getDate("reg_date"));
+                    row.put("regCount", rs.getInt("reg_count"));
+                    dailyUsers.add(row);
+                }
+            }
+
+            // 各分类商品数量
+            List<Map<String, Object>> categoryStats = new ArrayList<>();
+            String catStatsSql =
+                "SELECT c.category_name, COUNT(p.product_id) AS product_count " +
+                "FROM products p LEFT JOIN categories c ON p.category_id = c.category_id " +
+                "WHERE p.is_deleted = 0 " +
+                "GROUP BY c.category_name ORDER BY product_count DESC";
+            try (PreparedStatement ps = conn.prepareStatement(catStatsSql);
+                 ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> row = new LinkedHashMap<>();
+                    row.put("categoryName", rs.getString("category_name"));
+                    row.put("productCount", rs.getInt("product_count"));
+                    categoryStats.add(row);
+                }
+            }
+
+            // 近7天每日完成交易金额
+            List<Map<String, Object>> dailyAmount = new ArrayList<>();
+            String dailyAmountSql =
+                "SELECT DATE(created_at) AS order_date, IFNULL(SUM(deal_price),0) AS daily_amount " +
+                "FROM orders WHERE order_status='COMPLETED' " +
+                "AND created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY) " +
+                "GROUP BY DATE(created_at) ORDER BY order_date ASC";
+            try (PreparedStatement ps = conn.prepareStatement(dailyAmountSql);
+                 ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> row = new LinkedHashMap<>();
+                    row.put("orderDate", rs.getDate("order_date"));
+                    row.put("dailyAmount", rs.getBigDecimal("daily_amount"));
+                    dailyAmount.add(row);
+                }
+            }
+
             // 设置属性
             req.setAttribute("totalUsers", totalUsers);
             req.setAttribute("todayNewUsers", todayNewUsers);
@@ -119,6 +171,9 @@ public class AdminDashboardServlet extends HttpServlet {
             req.setAttribute("completedOrders", completedOrders);
             req.setAttribute("totalAmount", totalAmount);
             req.setAttribute("dailyOrders", dailyOrders);
+            req.setAttribute("dailyUsers", dailyUsers);
+            req.setAttribute("categoryStats", categoryStats);
+            req.setAttribute("dailyAmount", dailyAmount);
 
         } catch (Exception e) {
             e.printStackTrace();

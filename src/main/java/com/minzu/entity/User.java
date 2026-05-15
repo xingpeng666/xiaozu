@@ -7,6 +7,7 @@ public class User {
     private String nickname;
     private String roleCode;
     private String accountStatus;
+    private String avatarUrl;
 
     public int getUserId() {
         return userId;
@@ -54,5 +55,13 @@ public class User {
 
     public void setAccountStatus(String accountStatus) {
         this.accountStatus = accountStatus;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
 }

@@ -135,6 +135,17 @@
                 </div>
             </div>
 
+            <!-- 商品标签 -->
+            <div>
+                <label class="text-sm font-medium text-ink-primary mb-2 block">商品标签</label>
+                <div id="tagInputWrap" class="flex flex-wrap gap-2 px-3 py-2.5 bg-surface-raised border border-stone-200 rounded-lg min-h-[46px] items-center cursor-text transition-colors focus-within:border-brand-500 focus-within:shadow-[0_0_0_3px_rgba(34,197,94,0.15)]">
+                    <span id="tagChips"></span>
+                    <input type="text" id="tagText" maxlength="20" placeholder="输入标签..." class="flex-1 min-w-[80px] outline-none text-sm text-ink-primary bg-transparent placeholder:text-ink-faint">
+                </div>
+                <input type="hidden" name="tags" id="tagsHidden">
+                <p class="mt-2 text-xs text-ink-faint">最多添加 8 个标签，按 Enter 或逗号添加</p>
+            </div>
+
             <div>
                 <label for="description" class="text-sm font-medium text-ink-primary mb-2 block">商品描述</label>
                 <textarea id="description" name="description" placeholder="请填写商品使用情况、是否有瑕疵、交易方式等信息"
@@ -187,6 +198,93 @@
         </form>
     </div>
 </main>
+
+<script>
+(function() {
+    var TAG_COLORS = [
+        { bg: '#dbeafe', text: '#1d4ed8', border: '#93c5fd' },
+        { bg: '#fce7f3', text: '#be185d', border: '#f9a8d4' },
+        { bg: '#d1fae5', text: '#065f46', border: '#6ee7b7' },
+        { bg: '#fef3c7', text: '#92400e', border: '#fcd34d' },
+        { bg: '#ede9fe', text: '#5b21b6', border: '#c4b5fd' },
+        { bg: '#ffedd5', text: '#9a3412', border: '#fdba74' }
+    ];
+    var MAX_TAGS = 8;
+    var tags = [];
+    var chipsEl = document.getElementById('tagChips');
+    var hiddenEl = document.getElementById('tagsHidden');
+    var textEl = document.getElementById('tagText');
+    var wrapEl = document.getElementById('tagInputWrap');
+
+    // 初始化已有标签（排除 graduation，它由 checkbox 独立控制）
+    var existingTags = '<%= product.getTags() != null ? product.getTags().replace("'", "\\'") : "" %>';
+    if (existingTags) {
+        existingTags.split(',').forEach(function(t) {
+            var trimmed = t.trim();
+            if (trimmed && trimmed !== 'graduation') tags.push(trimmed);
+        });
+    }
+
+    function render() {
+        chipsEl.innerHTML = '';
+        tags.forEach(function(t, i) {
+            var c = TAG_COLORS[i % TAG_COLORS.length];
+            var chip = document.createElement('span');
+            chip.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium';
+            chip.style.background = c.bg;
+            chip.style.color = c.text;
+            chip.style.border = '1px solid ' + c.border;
+            chip.textContent = t;
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.innerHTML = '&times;';
+            btn.className = 'ml-0.5 hover:opacity-70';
+            btn.style.color = c.text;
+            btn.onclick = function() { removeTag(i); };
+            chip.appendChild(btn);
+            chipsEl.appendChild(chip);
+        });
+        hiddenEl.value = tags.join(',');
+        textEl.disabled = tags.length >= MAX_TAGS;
+        textEl.placeholder = tags.length >= MAX_TAGS ? '已达上限' : '输入标签...';
+    }
+
+    function addTag(val) {
+        var t = val.trim();
+        if (!t || tags.indexOf(t) >= 0 || tags.length >= MAX_TAGS) return;
+        tags.push(t);
+        render();
+    }
+
+    function removeTag(idx) {
+        tags.splice(idx, 1);
+        render();
+    }
+
+    textEl.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            addTag(textEl.value.replace(/,/g, ''));
+            textEl.value = '';
+        }
+        if (e.key === 'Backspace' && textEl.value === '' && tags.length > 0) {
+            removeTag(tags.length - 1);
+        }
+    });
+
+    textEl.addEventListener('input', function() {
+        var v = textEl.value;
+        if (v.indexOf(',') >= 0) {
+            addTag(v.replace(/,/g, ''));
+            textEl.value = '';
+        }
+    });
+
+    wrapEl.addEventListener('click', function() { textEl.focus(); });
+
+    render();
+})();
+</script>
 
 </body>
 </html>

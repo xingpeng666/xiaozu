@@ -10,6 +10,7 @@
     String uNickname = (String) request.getAttribute("u_nickname"); if(uNickname==null) uNickname="";
     String uPhone    = (String) request.getAttribute("u_phone");    if(uPhone==null) uPhone="";
     String uEmail    = (String) request.getAttribute("u_email");    if(uEmail==null) uEmail="";
+    String uAvatarUrl = (String) request.getAttribute("u_avatarUrl");
 
     String firstNameChar = uRealName.isEmpty() ? "?" : uRealName.substring(0, 1);
 %>
@@ -134,10 +135,21 @@
         <div class="absolute right-20 bottom-0 w-20 h-20 bg-white/5 rounded-full translate-y-1/2"></div>
 
         <div class="flex items-center gap-4 relative z-10">
-            <!-- 头像 -->
-            <div class="relative">
-                <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-2xl font-display font-bold border-2 border-white/30">
-                    <%= firstNameChar %>
+            <!-- 头像 (clickable for upload) -->
+            <div class="relative cursor-pointer group" onclick="document.getElementById('avatarInput').click()">
+                <% if (uAvatarUrl != null && !uAvatarUrl.isEmpty()) { %>
+                    <img src="<%= uAvatarUrl %>" alt="头像" class="w-20 h-20 rounded-full object-cover border-2 border-white/30">
+                <% } else { %>
+                    <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-2xl font-display font-bold border-2 border-white/30">
+                        <%= firstNameChar %>
+                    </div>
+                <% } %>
+                <!-- Hover overlay: camera icon -->
+                <div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                        <circle cx="12" cy="13" r="4"/>
+                    </svg>
                 </div>
                 <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-accent rounded-full flex items-center justify-center border-2 border-white">
                     <svg class="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -145,6 +157,10 @@
                     </svg>
                 </div>
             </div>
+            <!-- Hidden form for avatar upload -->
+            <form method="post" action="<%= request.getContextPath() %>/profile" enctype="multipart/form-data" id="avatarForm">
+                <input type="file" name="avatar" id="avatarInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none" onchange="document.getElementById('avatarForm').submit();">
+            </form>
             <div>
                 <h2 class="font-display text-xl font-bold"><%= uRealName %></h2>
                 <p class="text-white/80 text-sm">学号/工号: <%= uNo %></p>

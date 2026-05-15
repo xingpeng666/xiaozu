@@ -2,6 +2,7 @@ package com.minzu.servlet;
 
 import com.minzu.entity.User;
 import com.minzu.util.DBUtil;
+import com.minzu.util.UploadUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -10,11 +11,9 @@ import javax.servlet.http.*;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.nio.file.Paths;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @WebServlet("/publish-product")
 @MultipartConfig(
@@ -23,16 +22,6 @@ import java.util.UUID;
         maxRequestSize = 50 * 1024 * 1024
 )
 public class PublishProductServlet extends HttpServlet {
-
-    // Bug Fix: 图片路径从硬编码D盘改为动态读取，优先读取系统属性 upload.dir，
-    // 默认使用 user.home 下的 minzu-secondhand-uploads 目录，兼容任何部署环境
-    private static String getUploadDir() {
-        String dir = System.getProperty("upload.dir");
-        if (dir != null && !dir.trim().isEmpty()) {
-            return dir.trim();
-        }
-        return System.getProperty("user.home") + File.separator + "minzu-secondhand-uploads";
-    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -117,7 +106,7 @@ public class PublishProductServlet extends HttpServlet {
             return;
         }
 
-        String uploadDir = getUploadDir();
+        String uploadDir = UploadUtil.getUploadDir();
         File uploadDirFile = new File(uploadDir);
         if (!uploadDirFile.exists()) {
             uploadDirFile.mkdirs();
@@ -129,7 +118,7 @@ public class PublishProductServlet extends HttpServlet {
         ResultSet generatedKeys = null;
 
         try {
-            String coverImageUrl = saveFile(coverPart, uploadDir, request);
+            String coverImageUrl = UploadUtil.saveFile(coverPart, uploadDir, request);
 
             conn = DBUtil.getConnection();
             conn.setAutoCommit(false);
@@ -145,9 +134,14 @@ public class PublishProductServlet extends HttpServlet {
             }
             String imageUrls = imageUrlsBuilder.length() > 0 ? imageUrlsBuilder.toString() : null;
 
-            // 毕业季标签
+            // 标签处理：从表单 tags 参数获取，清洗后写入
+            String rawTags = request.getParameter("tags");
+            String tags = cleanTags(rawTags);
+            // 毕业季 checkbox 也追加 graduation 标签
             String isGraduation = request.getParameter("isGraduation");
-            String tags = "1".equals(isGraduation) ? "graduation" : null;
+            if ("1".equals(isGraduation)) {
+                tags = (tags == null || tags.isEmpty()) ? "graduation" : tags + ",graduation";
+            }
 
             String insertProductSql =
                     "INSERT INTO products " +
@@ -192,7 +186,7 @@ public class PublishProductServlet extends HttpServlet {
 
             int sortOrder = 1;
             for (Part part : detailImageParts) {
-                String imageUrl = saveFile(part, uploadDir, request);
+                String imageUrl = UploadUtil.saveFile(part, uploadDir, request);
                 psImage.setLong(1, productId);
                 psImage.setString(2, imageUrl);
                 psImage.setInt(3, sortOrder++);
@@ -226,14 +220,17 @@ public class PublishProductServlet extends HttpServlet {
         }
     }
 
-    private String saveFile(Part part, String uploadPath, HttpServletRequest request) throws Exception {
-        String submittedFileName = Paths.get(part.getSubmittedFileName()).getFileName().toString();
-        if (submittedFileName == null || submittedFileName.trim().isEmpty()) return null;
-        String ext = "";
-        int dotIndex = submittedFileName.lastIndexOf(".");
-        if (dotIndex != -1) ext = submittedFileName.substring(dotIndex);
-        String newFileName = UUID.randomUUID().toString().replace("-", "") + ext;
-        part.write(uploadPath + File.separator + newFileName);
-        return request.getContextPath() + "/uploads/" + newFileName;
+    /**
+     * 清洗标签：trim、去空、去重、最多保留8个，逗号分隔
+     */
+    private String cleanTags(String raw) {
+        if (raw == null || raw.trim().isEmpty()) return null;
+        String[] parts = raw.split(",");
+        java.util.LinkedHashSet<String> set = new java.util.LinkedHashSet<>();
+        for (String part : parts) {
+            String t = part.trim();
+            if (!t.isEmpty() && set.size() < 8) set.add(t);
+        }
+        return set.isEmpty() ? null : String.join(",", set);
     }
 }

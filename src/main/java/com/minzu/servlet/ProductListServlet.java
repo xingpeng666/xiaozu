@@ -179,6 +179,39 @@ public class ProductListServlet extends HttpServlet {
         } catch (Exception e) { e.printStackTrace(); }
         request.setAttribute("categories", categories);
 
+        // 热门标签统计：从在售商品的 tags 列拆分统计频次，取 TOP 15
+        List<Map<String, Object>> hotTags = new ArrayList<>();
+        try (
+            Connection conn = DBUtil.getConnection();
+            PreparedStatement ps = conn.prepareStatement(
+                "SELECT tags FROM products WHERE publish_status = 'ON_SALE' AND IFNULL(is_deleted,0) = 0 AND tags IS NOT NULL AND tags != ''"
+            )
+        ) {
+            Map<String, Integer> tagCount = new HashMap<>();
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    String tagsStr = rs.getString("tags");
+                    for (String t : tagsStr.split(",")) {
+                        String trimmed = t.trim();
+                        if (!trimmed.isEmpty()) {
+                            tagCount.put(trimmed, tagCount.getOrDefault(trimmed, 0) + 1);
+                        }
+                    }
+                }
+            }
+            // 按频次降序，取 TOP 15
+            tagCount.entrySet().stream()
+                .sorted((a, b) -> b.getValue() - a.getValue())
+                .limit(15)
+                .forEach(e -> {
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("tagName", e.getKey());
+                    m.put("count", e.getValue());
+                    hotTags.add(m);
+                });
+        } catch (Exception e) { e.printStackTrace(); }
+        request.setAttribute("hotTags", hotTags);
+
         request.setAttribute("products",    products);
         request.setAttribute("loginUser",   loginUser);
         request.setAttribute("keyword",     keyword);
@@ -190,6 +223,7 @@ public class ProductListServlet extends HttpServlet {
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages",  totalPages);
         request.setAttribute("totalCount",  totalCount);
+        request.setAttribute("tag",         tag);
         request.getRequestDispatcher("/product-list.jsp").forward(request, response);
     }
 }

@@ -51,7 +51,7 @@ public class SellerProfileServlet extends HttpServlet {
         try (Connection conn = DBUtil.getConnection()) {
 
             // 查询卖家基本信息
-            String sellerSql = "SELECT user_id, real_name, nickname FROM users WHERE user_id = ?";
+            String sellerSql = "SELECT user_id, real_name, nickname, avatar_url FROM users WHERE user_id = ?";
             try (PreparedStatement ps = conn.prepareStatement(sellerSql)) {
                 ps.setInt(1, sellerId);
                 try (ResultSet rs = ps.executeQuery()) {
@@ -60,6 +60,7 @@ public class SellerProfileServlet extends HttpServlet {
                         seller.put("userId", rs.getInt("user_id"));
                         seller.put("realName", rs.getString("real_name"));
                         seller.put("nickname", rs.getString("nickname"));
+                        seller.put("avatarUrl", rs.getString("avatar_url"));
                     }
                 }
             }

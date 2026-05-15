@@ -47,6 +47,7 @@ public class ProductDetailServlet extends HttpServlet {
 
         String sql =
                 "SELECT p.product_id, p.seller_id, u.real_name AS seller_name, " +
+                "u.avatar_url AS seller_avatar_url, " +
                 "p.category_id, c.category_name, p.title, p.product_desc, " +
                 "p.price, p.original_price, p.condition_level, p.cover_image_url, " +
                 "p.image_urls, p.publish_status, p.view_count, p.favorite_count, p.created_at " +
@@ -67,6 +68,7 @@ public class ProductDetailServlet extends HttpServlet {
                     p.setProductId(rs.getInt("product_id"));
                     p.setSellerId(rs.getInt("seller_id"));
                     p.setSellerName(rs.getString("seller_name"));
+                    p.setSellerAvatarUrl(rs.getString("seller_avatar_url"));
                     p.setCategoryId(rs.getInt("category_id"));
                     p.setCategoryName(rs.getString("category_name"));
                     p.setTitle(rs.getString("title"));

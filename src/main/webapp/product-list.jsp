@@ -11,6 +11,9 @@
     String catName  = request.getAttribute("categoryName") != null ? (String) request.getAttribute("categoryName") : "";
     List<Map<String, Object>> categories = (List<Map<String, Object>>) request.getAttribute("categories");
     if (categories == null) categories = new java.util.ArrayList<>();
+    List<Map<String, Object>> hotTags = (List<Map<String, Object>>) request.getAttribute("hotTags");
+    if (hotTags == null) hotTags = new java.util.ArrayList<>();
+    String currentTag = request.getAttribute("tag") != null ? (String) request.getAttribute("tag") : "";
     int currentPage = request.getAttribute("currentPage") != null ? (int) request.getAttribute("currentPage") : 1;
     int totalPages  = request.getAttribute("totalPages")  != null ? (int) request.getAttribute("totalPages")  : 1;
     int totalCount  = request.getAttribute("totalCount")  != null ? (int) request.getAttribute("totalCount")  : 0;
@@ -198,7 +201,7 @@
                 搜索
             </button>
             <!-- Clear filter -->
-            <% if ((keyword != null && !keyword.isEmpty()) || (request.getAttribute("minPrice") != null && !request.getAttribute("minPrice").toString().isEmpty()) || (request.getAttribute("maxPrice") != null && !request.getAttribute("maxPrice").toString().isEmpty())) { %>
+            <% if ((keyword != null && !keyword.isEmpty()) || (request.getAttribute("minPrice") != null && !request.getAttribute("minPrice").toString().isEmpty()) || (request.getAttribute("maxPrice") != null && !request.getAttribute("maxPrice").toString().isEmpty()) || !currentTag.isEmpty()) { %>
             <a href="${pageContext.request.contextPath}/product-list" class="px-6 py-3.5 bg-surface-DEFAULT border border-stone-200 rounded-xl text-ink-muted font-medium hover:border-brand-300 hover:text-brand-600 transition-all flex items-center gap-1 btn-press">
                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 清除
@@ -212,7 +215,7 @@
         <!-- Category tags -->
         <div class="flex flex-wrap gap-2">
             <a href="${pageContext.request.contextPath}/product-list"
-               class="category-tag <%= (catId == null || catId.isEmpty()) && (catName == null || catName.isEmpty()) && request.getParameter("tag") == null ? "active" : "" %> px-4 py-2 bg-surface-DEFAULT border border-stone-200 text-sm font-medium rounded-full hover:border-brand-300 hover:text-brand-600 transition-all">
+               class="category-tag <%= (catId == null || catId.isEmpty()) && (catName == null || catName.isEmpty()) && currentTag.isEmpty() ? "active" : "" %> px-4 py-2 bg-surface-DEFAULT border border-stone-200 text-sm font-medium rounded-full hover:border-brand-300 hover:text-brand-600 transition-all">
                 全部
             </a>
             <% for (Map<String, Object> cat : categories) { %>
@@ -222,7 +225,7 @@
             </a>
             <% } %>
             <a href="${pageContext.request.contextPath}/product-list?tag=graduation"
-               class="category-tag <%= "graduation".equals(request.getParameter("tag")) ? "active" : "" %> px-4 py-2 bg-surface-DEFAULT border border-stone-200 text-sm font-medium rounded-full hover:border-brand-300 hover:text-brand-600 transition-all">
+               class="category-tag <%= "graduation".equals(currentTag) ? "active" : "" %> px-4 py-2 bg-surface-DEFAULT border border-stone-200 text-sm font-medium rounded-full hover:border-brand-300 hover:text-brand-600 transition-all">
                 毕业季专区
             </a>
         </div>
@@ -243,13 +246,41 @@
                 <span class="text-ink-primary font-semibold"><%= currentCatName %>专区</span> · 共 <span class="text-ink-primary font-semibold"><%= totalCount %></span> 件
             <% } else if (catName != null && !catName.isEmpty()) { %>
                 <span class="text-ink-primary font-semibold"><%= catName %>专区</span> · 共 <span class="text-ink-primary font-semibold"><%= totalCount %></span> 件
-            <% } else if ("graduation".equals(request.getParameter("tag"))) { %>
-                毕业季专区 · 共 <span class="text-ink-primary font-semibold"><%= totalCount %></span> 件
+            <% } else if (!currentTag.isEmpty()) { %>
+                标签：<span class="text-ink-primary font-semibold"><%= currentTag %></span> · 共 <span class="text-ink-primary font-semibold"><%= totalCount %></span> 件
             <% } else { %>
                 全部商品 · 共 <span class="text-ink-primary font-semibold"><%= totalCount %></span> 件
             <% } %>
         </span>
     </div>
+
+    <!-- Hot Tags -->
+    <% if (!hotTags.isEmpty()) { %>
+    <div class="mb-6">
+        <div class="flex items-center gap-2 mb-3">
+            <svg class="w-4 h-4 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <span class="text-sm font-medium text-ink-secondary">热门标签</span>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <% for (Map<String, Object> ht : hotTags) {
+                String tagName = (String) ht.get("tagName");
+                int tagCount = (int) ht.get("count");
+                boolean isActive = tagName.equals(currentTag);
+                int colorIdx = Math.abs(tagName.hashCode()) % 6;
+                String[] tagBgs = {"#dbeafe","#fce7f3","#d1fae5","#fef3c7","#ede9fe","#ffedd5"};
+                String[] tagTexts = {"#1d4ed8","#be185d","#065f46","#92400e","#5b21b6","#9a3412"};
+                String[] tagBorders = {"#93c5fd","#f9a8d4","#6ee7b7","#fcd34d","#c4b5fd","#fdba74"};
+            %>
+            <a href="${pageContext.request.contextPath}/product-list?tag=<%= java.net.URLEncoder.encode(tagName, "UTF-8") %>"
+               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:shadow-md"
+               style='background:<%= isActive ? tagTexts[colorIdx] : tagBgs[colorIdx] %>;color:<%= isActive ? "#fff" : tagTexts[colorIdx] %>;border:1px solid <%= tagBorders[colorIdx] %>'>
+                <%= tagName %>
+                <span class="opacity-60"><%= tagCount %></span>
+            </a>
+            <% } %>
+        </div>
+    </div>
+    <% } %>
 
     <!-- Product Grid -->
     <% if (productList != null && !productList.isEmpty()) { %>
@@ -329,9 +360,10 @@
     <% if (totalPages > 1) {
            String kw = (keyword != null && !keyword.isEmpty()) ? "&keyword=" + java.net.URLEncoder.encode(keyword, "UTF-8") : "";
            String ci = (catId != null && !catId.isEmpty()) ? "&categoryId=" + catId : "";
+           String tg = (!currentTag.isEmpty()) ? "&tag=" + java.net.URLEncoder.encode(currentTag, "UTF-8") : "";
     %>
     <nav class="flex justify-center items-center gap-2 mt-10 flex-wrap">
-        <a href="<%= request.getContextPath() %>/product-list?page=<%= currentPage - 1 %><%= kw %><%= ci %>">
+        <a href="<%= request.getContextPath() %>/product-list?page=<%= currentPage - 1 %><%= kw %><%= ci %><%= tg %>">
             <span class="w-10 h-10 flex items-center justify-center border border-stone-200 rounded-xl text-ink-muted hover:border-brand-300 hover:text-brand-600 transition-all btn-press <%= currentPage == 1 ? "opacity-35 pointer-events-none" : "" %>">
                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             </span>
@@ -340,24 +372,24 @@
         <% int startP = Math.max(1, currentPage - 2);
            int endP   = Math.min(totalPages, currentPage + 2);
            if (startP > 1) { %>
-            <a href="<%= request.getContextPath() %>/product-list?page=1<%= kw %><%= ci %>">
+            <a href="<%= request.getContextPath() %>/product-list?page=1<%= kw %><%= ci %><%= tg %>">
                 <span class="w-10 h-10 flex items-center justify-center border border-stone-200 rounded-xl text-ink-muted hover:border-brand-300 hover:text-brand-600 transition-all btn-press">1</span>
             </a>
             <% if (startP > 2) { %><span class="text-ink-faint px-1">...</span><% } %>
         <% }
            for (int pp = startP; pp <= endP; pp++) { %>
-            <a href="<%= request.getContextPath() %>/product-list?page=<%= pp %><%= kw %><%= ci %>">
+            <a href="<%= request.getContextPath() %>/product-list?page=<%= pp %><%= kw %><%= ci %><%= tg %>">
                 <span class="w-10 h-10 flex items-center justify-center rounded-xl font-semibold transition-all btn-press <%= pp == currentPage ? "bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-lg shadow-brand-500/20" : "border border-stone-200 text-ink-muted hover:border-brand-300 hover:text-brand-600" %>"><%= pp %></span>
             </a>
         <% }
            if (endP < totalPages) { %>
             <% if (endP < totalPages - 1) { %><span class="text-ink-faint px-1">...</span><% } %>
-            <a href="<%= request.getContextPath() %>/product-list?page=<%= totalPages %><%= kw %><%= ci %>">
+            <a href="<%= request.getContextPath() %>/product-list?page=<%= totalPages %><%= kw %><%= ci %><%= tg %>">
                 <span class="w-10 h-10 flex items-center justify-center border border-stone-200 rounded-xl text-ink-muted hover:border-brand-300 hover:text-brand-600 transition-all btn-press"><%= totalPages %></span>
             </a>
         <% } %>
 
-        <a href="<%= request.getContextPath() %>/product-list?page=<%= currentPage + 1 %><%= kw %><%= ci %>">
+        <a href="<%= request.getContextPath() %>/product-list?page=<%= currentPage + 1 %><%= kw %><%= ci %><%= tg %>">
             <span class="w-10 h-10 flex items-center justify-center border border-stone-200 rounded-xl text-ink-muted hover:border-brand-300 hover:text-brand-600 transition-all btn-press <%= currentPage == totalPages ? "opacity-35 pointer-events-none" : "" %>">
                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </span>

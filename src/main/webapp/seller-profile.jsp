@@ -20,6 +20,7 @@
     String sellerName = (String) seller.get("realName");
     String nickname = (String) seller.get("nickname");
     int sellerId = (int) seller.get("userId");
+    String sellerAvatarUrl = (String) seller.get("avatarUrl");
 
     if (avgRating == null) avgRating = 0.0;
     if (reviewCount == null) reviewCount = 0;
@@ -77,9 +78,14 @@
     <!-- 卖家信息卡片 -->
     <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-8 mb-8">
         <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-            <div class="w-20 h-20 rounded-full bg-brand-500 text-white flex items-center justify-center text-3xl font-display font-bold flex-shrink-0">
-                <%= avatarChar %>
-            </div>
+            <% if (sellerAvatarUrl != null && !sellerAvatarUrl.isEmpty()) { %>
+                <img src="<%= sellerAvatarUrl %>" alt="<%= displayName %>"
+                     class="w-20 h-20 rounded-full object-cover border-2 border-stone-200 flex-shrink-0">
+            <% } else { %>
+                <div class="w-20 h-20 rounded-full bg-brand-500 text-white flex items-center justify-center text-3xl font-display font-bold flex-shrink-0">
+                    <%= avatarChar %>
+                </div>
+            <% } %>
             <div class="text-center sm:text-left flex-1">
                 <h1 class="text-2xl font-display font-bold text-ink-primary"><%= displayName %></h1>
                 <p class="text-ink-muted mt-1"><%= sellerName %></p>

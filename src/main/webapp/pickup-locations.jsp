@@ -50,7 +50,7 @@
         <svg class="w-5 h-5 inline-block text-brand-500 -mt-0.5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         校园自提点位
     </h1>
-    <p class="text-sm text-ink-muted mb-7">以下是中央民族大学校内推荐的自提交易地点，方便买卖双方线下安全交易</p>
+    <p class="text-sm text-ink-muted mb-7">以下是西南民族大学校内推荐的自提交易地点，方便买卖双方线下安全交易</p>
 
     <% if (errorMsg != null) { %>
     <div class="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm mb-5 flex items-center gap-2">

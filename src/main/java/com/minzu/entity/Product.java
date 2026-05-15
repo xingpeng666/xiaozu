@@ -8,6 +8,7 @@ public class Product {
     private int productId;
     private int sellerId;
     private String sellerName;
+    private String sellerAvatarUrl;
     private int categoryId;
     private String categoryName;
     private String title;
@@ -48,6 +49,14 @@ public class Product {
 
     public void setSellerName(String sellerName) {
         this.sellerName = sellerName;
+    }
+
+    public String getSellerAvatarUrl() {
+        return sellerAvatarUrl;
+    }
+
+    public void setSellerAvatarUrl(String sellerAvatarUrl) {
+        this.sellerAvatarUrl = sellerAvatarUrl;
     }
 
     public int getCategoryId() {

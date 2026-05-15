@@ -80,6 +80,20 @@
             <a href="${pageContext.request.contextPath}/index.jsp" class="px-3 py-2 text-sm font-medium text-ink-muted hover:text-ink-primary hover:bg-stone-100 rounded-lg transition-colors">前台首页</a>
             <a href="${pageContext.request.contextPath}/logout" class="px-4 py-2 text-sm font-medium bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors btn-press">退出</a>
         <% } else if (navLoginUser != null) { %>
+            <a href="${pageContext.request.contextPath}/profile" class="flex items-center gap-2 mr-1" title="个人信息">
+                <%
+                    String navAvatarUrl = navLoginUser.getAvatarUrl();
+                    String navInitial = (navLoginUser.getRealName() != null && !navLoginUser.getRealName().isEmpty())
+                                        ? navLoginUser.getRealName().substring(0, 1) : "?";
+                %>
+                <% if (navAvatarUrl != null && !navAvatarUrl.isEmpty()) { %>
+                    <img src="<%= navAvatarUrl %>" alt="头像" class="w-8 h-8 rounded-full object-cover border-2 border-stone-200">
+                <% } else { %>
+                    <div class="w-8 h-8 bg-brand-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                        <%= navInitial %>
+                    </div>
+                <% } %>
+            </a>
             <a href="${pageContext.request.contextPath}/publish-product" class="px-4 py-2 bg-brand-500 text-white text-sm font-medium rounded-lg hover:bg-brand-600 transition-colors btn-press flex items-center gap-1">
                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 发布商品
