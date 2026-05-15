@@ -189,6 +189,10 @@
                 <p class="font-display text-2xl font-bold"><%= request.getAttribute("likeCount") != null ? request.getAttribute("likeCount") : "0" %></p>
                 <p class="text-white/70 text-xs">获赞数</p>
             </div>
+            <div class="text-center">
+                <p class="font-display text-2xl font-bold"><%= request.getAttribute("favoriteCount") != null ? request.getAttribute("favoriteCount") : "0" %></p>
+                <p class="text-white/70 text-xs">收藏商品</p>
+            </div>
         </div>
     </div>
 

@@ -59,6 +59,36 @@ public class ProfileServlet extends HttpServlet {
             e.printStackTrace();
             req.setAttribute("errorMsg", "读取用户信息失败：" + e.getMessage());
         }
+
+        // 统计当前用户在售商品数、已售数、收藏数、获赞数
+        try (Connection conn = DBUtil.getConnection()) {
+            int uid = loginUser.getUserId();
+
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT COUNT(*) FROM products WHERE seller_id=? AND publish_status='ON_SALE' AND IFNULL(is_deleted,0)=0")) {
+                ps.setInt(1, uid);
+                try (ResultSet rs = ps.executeQuery()) { if (rs.next()) req.setAttribute("productCount", rs.getInt(1)); }
+            }
+
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT COUNT(*) FROM products WHERE seller_id=? AND publish_status='SOLD' AND IFNULL(is_deleted,0)=0")) {
+                ps.setInt(1, uid);
+                try (ResultSet rs = ps.executeQuery()) { if (rs.next()) req.setAttribute("soldCount", rs.getInt(1)); }
+            }
+
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT COUNT(*) FROM favorites WHERE user_id=?")) {
+                ps.setInt(1, uid);
+                try (ResultSet rs = ps.executeQuery()) { if (rs.next()) req.setAttribute("favoriteCount", rs.getInt(1)); }
+            }
+
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT COALESCE(SUM(p.favorite_count),0) FROM products p WHERE p.seller_id=? AND IFNULL(p.is_deleted,0)=0")) {
+                ps.setInt(1, uid);
+                try (ResultSet rs = ps.executeQuery()) { if (rs.next()) req.setAttribute("likeCount", rs.getInt(1)); }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+
         req.getRequestDispatcher("/profile.jsp").forward(req, resp);
     }
 

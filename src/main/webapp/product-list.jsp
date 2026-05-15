@@ -13,6 +13,8 @@
     if (categories == null) categories = new java.util.ArrayList<>();
     List<Map<String, Object>> hotTags = (List<Map<String, Object>>) request.getAttribute("hotTags");
     if (hotTags == null) hotTags = new java.util.ArrayList<>();
+    java.util.Set<Integer> favoriteProductIds = (java.util.Set<Integer>) request.getAttribute("favoriteProductIds");
+    if (favoriteProductIds == null) favoriteProductIds = new java.util.HashSet<>();
     String currentTag = request.getAttribute("tag") != null ? (String) request.getAttribute("tag") : "";
     int currentPage = request.getAttribute("currentPage") != null ? (int) request.getAttribute("currentPage") : 1;
     int totalPages  = request.getAttribute("totalPages")  != null ? (int) request.getAttribute("totalPages")  : 1;
@@ -316,11 +318,12 @@
                     </div>
                 <% } %>
                 <!-- Heart button -->
-                <a href="${pageContext.request.contextPath}/product-detail?id=<%= p.getProductId() %>" class="heart-btn absolute top-3 right-3 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100">
-                    <svg class="w-5 h-5 text-ink-muted hover:text-red-500 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <% boolean isFav = favoriteProductIds.contains(p.getProductId()); %>
+                <button onclick="toggleFavorite(<%= p.getProductId() %>, this)" class="heart-btn absolute top-3 right-3 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100 cursor-pointer">
+                    <svg class="w-5 h-5 transition-colors <%= isFav ? "text-red-500" : "text-ink-muted hover:text-red-500" %>" viewBox="0 0 24 24" fill="<%= isFav ? "currentColor" : "none" %>" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                     </svg>
-                </a>
+                </button>
                 <!-- Category badge -->
                 <div class="absolute bottom-3 left-3">
                     <span class="px-2.5 py-1 bg-brand-500/90 backdrop-blur-sm text-white text-xs font-medium rounded-full"><%= p.getCategoryName() != null ? p.getCategoryName() : "未分类" %></span>
@@ -423,6 +426,45 @@
     <% } %>
 
 </main>
+
+<script>
+function toggleFavorite(productId, btn) {
+    if (!btn) return;
+    btn.disabled = true;
+
+    fetch('${pageContext.request.contextPath}/favorite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'productId=' + encodeURIComponent(productId)
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+        if (data.needLogin) {
+            window.location.href = '${pageContext.request.contextPath}/login';
+            return;
+        }
+        if (data.success) {
+            var svg = btn.querySelector('svg');
+            if (data.favorited) {
+                svg.setAttribute('fill', 'currentColor');
+                svg.classList.remove('text-ink-muted');
+                svg.classList.add('text-red-500');
+            } else {
+                svg.setAttribute('fill', 'none');
+                svg.classList.remove('text-red-500');
+                svg.classList.add('text-ink-muted');
+            }
+        } else {
+            alert(data.msg || '操作失败');
+        }
+        btn.disabled = false;
+    })
+    .catch(function(){
+        alert('网络错误，请重试');
+        btn.disabled = false;
+    });
+}
+</script>
 
 </body>
 </html>

@@ -11,8 +11,10 @@ import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @WebServlet("/product-list")
 public class ProductListServlet extends HttpServlet {
@@ -211,6 +213,25 @@ public class ProductListServlet extends HttpServlet {
                 });
         } catch (Exception e) { e.printStackTrace(); }
         request.setAttribute("hotTags", hotTags);
+
+        // 查询当前用户已收藏的 product_id 集合
+        Set<Integer> favoriteProductIds = new HashSet<>();
+        if (loginUser != null) {
+            try (
+                Connection conn = DBUtil.getConnection();
+                PreparedStatement ps = conn.prepareStatement(
+                    "SELECT product_id FROM favorites WHERE user_id = ?"
+                )
+            ) {
+                ps.setInt(1, loginUser.getUserId());
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        favoriteProductIds.add(rs.getInt("product_id"));
+                    }
+                }
+            } catch (Exception e) { e.printStackTrace(); }
+        }
+        request.setAttribute("favoriteProductIds", favoriteProductIds);
 
         request.setAttribute("products",    products);
         request.setAttribute("loginUser",   loginUser);
