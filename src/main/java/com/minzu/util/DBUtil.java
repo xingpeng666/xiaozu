@@ -10,6 +10,13 @@ public class DBUtil {
     private static final String USERNAME = "root";
     private static final String PASSWORD = "13579gdp";
 
+    @FunctionalInterface
+    public interface ConnectionSupplier {
+        Connection get() throws SQLException;
+    }
+
+    private static ConnectionSupplier connectionSupplier = null;
+
     static {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -18,7 +25,18 @@ public class DBUtil {
         }
     }
 
+    public static void setConnectionSupplier(ConnectionSupplier supplier) {
+        connectionSupplier = supplier;
+    }
+
+    public static ConnectionSupplier getConnectionSupplier() {
+        return connectionSupplier;
+    }
+
     public static Connection getConnection() throws SQLException {
+        if (connectionSupplier != null) {
+            return connectionSupplier.get();
+        }
         return DriverManager.getConnection(URL, USERNAME, PASSWORD);
     }
 }
