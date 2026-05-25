@@ -226,10 +226,9 @@
                                 </form>
                             <% } %>
                             <% if ("CREATED".equals(status) || "PAID_OFFLINE".equals(status)) { %>
-                                <form id="disputeForm_<%= o.get("orderId") %>" action="${pageContext.request.contextPath}/orders" method="post" style="margin:0;" class="inline-flex">
-                                    <input type="hidden" name="action" value="dispute">
+                                <form id="disputeForm_<%= o.get("orderId") %>" action="${pageContext.request.contextPath}/dispute" method="post" style="margin:0;" class="inline-flex">
+                                    <input type="hidden" name="action" value="submit">
                                     <input type="hidden" name="orderId" value="<%= o.get("orderId") %>">
-                                    <input type="hidden" name="type" value="<%= type %>">
                                     <input type="hidden" name="reason" id="disputeReason_<%= o.get("orderId") %>" value="">
                                     <button class="inline-flex items-center gap-1.5 px-3 py-2 bg-orange-50 border border-orange-200 text-orange-600 text-sm font-medium rounded-lg hover:bg-orange-100 transition-colors btn-press" type="button" onclick="submitDispute('<%= o.get("orderId") %>')">
                                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

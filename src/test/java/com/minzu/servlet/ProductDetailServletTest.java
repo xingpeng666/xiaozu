@@ -13,10 +13,25 @@ class ProductDetailServletTest extends BaseServletTest {
     private final ProductDetailServlet servlet = new ProductDetailServlet();
 
     @Test
-    void doGet_notLoggedIn_redirectsToLogin() throws Exception {
+    void doGet_notLoggedIn_withoutProductId_showsError() throws Exception {
         servlet.doGet(request, response);
-        assertNotNull(getRedirectUrl());
-        assertTrue(getRedirectUrl().contains("login"));
+        assertEquals("商品ID不能为空", request.getAttribute("errorMsg"));
+        assertNull(getRedirectUrl());
+    }
+
+    @Test
+    void doGet_notLoggedIn_validProduct_showsDetail() throws Exception {
+        insertUser(1, "2024001", "张三", "zhangsan", "hash", "STUDENT", "ACTIVE");
+        insertCategory(1, "电子数码");
+        insertProduct(1, 1, 1, "iPhone 15", "5999.00", "ON_SALE");
+
+        request.setParameter("id", "1");
+        servlet.doGet(request, response);
+
+        Product product = (Product) request.getAttribute("product");
+        assertNotNull(product);
+        assertEquals("iPhone 15", product.getTitle());
+        assertEquals(Boolean.FALSE, request.getAttribute("isFavorited"));
     }
 
     @Test

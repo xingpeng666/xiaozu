@@ -4,10 +4,15 @@
 <%@ page import="java.util.List" %>
 <%
     User loginUser = (User) session.getAttribute("loginUser");
-    if (loginUser == null) {
-        response.sendRedirect(request.getContextPath() + "/login");
-        return;
-    }
+    boolean isLoggedIn = loginUser != null;
+    boolean isAdmin = isLoggedIn && "ADMIN".equals(loginUser.getRoleCode());
+    String displayInitial = isLoggedIn && loginUser.getRealName() != null && !loginUser.getRealName().isEmpty()
+            ? loginUser.getRealName().substring(0,1) : "U";
+    String displayName = isLoggedIn && loginUser.getRealName() != null && !loginUser.getRealName().isEmpty()
+            ? loginUser.getRealName() : "游客";
+    String displaySubtitle = isLoggedIn
+            ? "学号: " + loginUser.getStudentOrStaffNo()
+            : "登录后可发布商品、收藏和交易";
 %>
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -243,7 +248,7 @@
 <div id="miniPanel" class="mini-panel hidden lg:block">
     <div class="py-4 px-2 flex flex-col items-center gap-3">
         <div class="w-11 h-11 bg-gradient-to-br from-brand-400 to-brand-600 rounded-full flex items-center justify-center text-white font-display font-bold text-lg shadow-lg shadow-brand-500/30">
-            <%= loginUser.getRealName() != null && !loginUser.getRealName().isEmpty() ? loginUser.getRealName().substring(0,1) : "U" %>
+            <%= displayInitial %>
         </div>
         <div class="w-8 h-px bg-stone-200"></div>
         <a href="${pageContext.request.contextPath}/orders" class="quick-icon bg-brand-100 group" title="订单">
@@ -294,20 +299,20 @@
         <div class="user-info-enter p-6 bg-gradient-to-br from-brand-500 to-brand-600 text-white">
             <div class="flex items-center gap-4">
                 <div class="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-2xl font-display font-bold shadow-lg">
-                    <%= loginUser.getRealName() != null && !loginUser.getRealName().isEmpty() ? loginUser.getRealName().substring(0,1) : "U" %>
+                    <%= displayInitial %>
                 </div>
                 <div>
-                    <h3 class="font-display font-semibold text-lg"><%= loginUser.getRealName() %></h3>
-                    <p class="text-white/80 text-sm">学号: <%= loginUser.getStudentOrStaffNo() %></p>
+                    <h3 class="font-display font-semibold text-lg"><%= displayName %></h3>
+                    <p class="text-white/80 text-sm"><%= displaySubtitle %></p>
                 </div>
             </div>
             <div class="flex gap-4 mt-4">
                 <div class="text-center">
-                    <p class="text-2xl font-display font-bold"><%= "ADMIN".equals(loginUser.getRoleCode()) ? "—" : "—" %></p>
+                    <p class="text-2xl font-display font-bold"><%= isLoggedIn ? "—" : "0" %></p>
                     <p class="text-xs text-white/70">在售</p>
                 </div>
                 <div class="text-center">
-                    <p class="text-2xl font-display font-bold"><%= "ADMIN".equals(loginUser.getRoleCode()) ? "管理员" : "用户" %></p>
+                    <p class="text-2xl font-display font-bold"><%= isAdmin ? "管理员" : (isLoggedIn ? "用户" : "游客") %></p>
                     <p class="text-xs text-white/70">角色</p>
                 </div>
             </div>
@@ -375,7 +380,7 @@
         </nav>
 
         <div class="p-4 border-t border-stone-100">
-            <% if ("ADMIN".equals(loginUser.getRoleCode())) { %>
+            <% if (isAdmin) { %>
             <a href="${pageContext.request.contextPath}/admin/dashboard" class="drawer-menu-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-ink-muted hover:bg-stone-100 transition-colors" style="transition-delay: 0.6s">
                 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 <span class="text-sm">管理员后台</span>
@@ -513,7 +518,7 @@
     </div>
 
     <!-- 管理员入口 -->
-    <% if ("ADMIN".equals(loginUser.getRoleCode())) { %>
+    <% if (isAdmin) { %>
     <div class="bg-purple-50 border border-purple-200 rounded-2xl p-5 mb-6 flex items-center gap-4 flex-wrap">
         <div class="w-10 h-10 bg-purple-500 rounded-xl flex items-center justify-center flex-shrink-0">
             <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>

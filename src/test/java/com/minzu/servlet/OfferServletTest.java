@@ -1,8 +1,12 @@
 package com.minzu.servlet;
 
 import com.minzu.entity.User;
+import com.minzu.util.DBUtil;
 import org.junit.jupiter.api.Test;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
 
@@ -101,6 +105,36 @@ class OfferServletTest extends BaseServletTest {
         servlet.doPost(request, response);
 
         assertNotNull(getRedirectUrl());
+        try (Connection conn = DBUtil.getConnection();
+             Statement stmt = conn.createStatement()) {
+            try (ResultSet orderRs = stmt.executeQuery("SELECT COUNT(*) FROM orders WHERE product_id = 1")) {
+                assertTrue(orderRs.next());
+                assertEquals(1, orderRs.getInt(1));
+            }
+            try (ResultSet productRs = stmt.executeQuery(
+                    "SELECT publish_status FROM products WHERE product_id = 1")) {
+                assertTrue(productRs.next());
+                assertEquals("OFF_SHELF", productRs.getString(1));
+            }
+        }
+    }
+
+    @Test
+    void doPost_acceptOffer_withActiveOrder_fails() throws Exception {
+        insertUser(1, "2024001", "张三", "zhangsan", "hash", "STUDENT", "ACTIVE");
+        insertUser(2, "2024002", "李四", "lisi", "hash", "STUDENT", "ACTIVE");
+        insertCategory(1, "电子数码");
+        insertProduct(1, 1, 1, "iPhone 15", "5999.00", "ON_SALE");
+        insertOffer(1, 1, 2, 1, "5000.00", "PENDING");
+        insertOrder(1, "ORD001", 1, 2, 1, "5999.00", "CREATED");
+
+        User seller = createTestUser(1, "2024001", "张三", "zhangsan", "STUDENT", "ACTIVE");
+        loginUser(seller);
+        request.setParameter("action", "accept");
+        request.setParameter("offerId", "1");
+        servlet.doPost(request, response);
+
+        assertEquals("该商品已有进行中的订单，无法再接受出价", session.getAttribute("errorMsg"));
     }
 
     @Test

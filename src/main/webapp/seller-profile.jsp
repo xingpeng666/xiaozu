@@ -155,7 +155,7 @@
                         }
                     }
                 %>
-                    <a href="<%= request.getContextPath() %>/product-detail?productId=<%= pid %>"
+                    <a href="<%= request.getContextPath() %>/product-detail?id=<%= pid %>"
                        class="bg-white rounded-xl shadow-sm border border-stone-100 overflow-hidden hover-lift block">
                         <div class="aspect-[4/3] bg-stone-100 overflow-hidden">
                             <% if (cover != null && !cover.isEmpty()) { %>

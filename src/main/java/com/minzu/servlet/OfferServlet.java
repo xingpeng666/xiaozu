@@ -241,7 +241,7 @@ public class OfferServlet extends HttpServlet {
             conn.setAutoCommit(false);
 
             String lockSql = "SELECT o.offer_id, o.product_id, o.buyer_id, o.seller_id, o.offer_price, o.status, " +
-                             "p.title, p.seller_id AS p_seller_id " +
+                             "p.title, p.publish_status, IFNULL(p.is_deleted, 0) AS is_deleted " +
                              "FROM offers o " +
                              "LEFT JOIN products p ON o.product_id = p.product_id " +
                              "WHERE o.offer_id = ? FOR UPDATE";
@@ -252,6 +252,8 @@ public class OfferServlet extends HttpServlet {
             String offerStatus = "";
             String productTitle = "";
             int offerSellerId = 0;
+            String publishStatus = "";
+            boolean deletedProduct = false;
 
             try (PreparedStatement ps = conn.prepareStatement(lockSql)) {
                 ps.setInt(1, offerId);
@@ -268,6 +270,8 @@ public class OfferServlet extends HttpServlet {
                     offerPrice = rs.getBigDecimal("offer_price");
                     offerStatus = rs.getString("status");
                     productTitle = rs.getString("title");
+                    publishStatus = rs.getString("publish_status");
+                    deletedProduct = rs.getInt("is_deleted") == 1;
                 }
             }
 
@@ -283,6 +287,34 @@ public class OfferServlet extends HttpServlet {
                 setSessionMsg(request, "errorMsg", "无权操作该出价");
                 response.sendRedirect(request.getContextPath() + "/offer?tab=received");
                 return;
+            }
+
+            if (deletedProduct || publishStatus == null) {
+                conn.rollback();
+                setSessionMsg(request, "errorMsg", "商品已不存在，无法接受该出价");
+                response.sendRedirect(request.getContextPath() + "/offer?tab=received");
+                return;
+            }
+
+            if (!"ON_SALE".equalsIgnoreCase(publishStatus)) {
+                conn.rollback();
+                setSessionMsg(request, "errorMsg", "商品当前不可交易，无法接受该出价");
+                response.sendRedirect(request.getContextPath() + "/offer?tab=received");
+                return;
+            }
+
+            String activeOrderSql = "SELECT 1 FROM orders " +
+                                    "WHERE product_id = ? AND order_status IN ('CREATED','PAID_OFFLINE','DISPUTED') LIMIT 1";
+            try (PreparedStatement ps = conn.prepareStatement(activeOrderSql)) {
+                ps.setInt(1, productId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        conn.rollback();
+                        setSessionMsg(request, "errorMsg", "该商品已有进行中的订单，无法再接受出价");
+                        response.sendRedirect(request.getContextPath() + "/offer?tab=received");
+                        return;
+                    }
+                }
             }
 
             String updateSql = "UPDATE offers SET status = 'ACCEPTED' WHERE offer_id = ? AND status = 'PENDING'";
@@ -309,10 +341,17 @@ public class OfferServlet extends HttpServlet {
                 ps.executeUpdate();
             }
 
-            String markSoldSql = "UPDATE products SET publish_status = 'SOLD' WHERE product_id = ? AND publish_status IN ('ON_SALE', 'OFF_SHELF')";
-            try (PreparedStatement ps = conn.prepareStatement(markSoldSql)) {
+            String reserveProductSql = "UPDATE products SET publish_status = 'OFF_SHELF', updated_at = NOW() " +
+                                       "WHERE product_id = ? AND publish_status = 'ON_SALE' AND IFNULL(is_deleted, 0) = 0";
+            try (PreparedStatement ps = conn.prepareStatement(reserveProductSql)) {
                 ps.setInt(1, productId);
-                ps.executeUpdate();
+                int rows = ps.executeUpdate();
+                if (rows <= 0) {
+                    conn.rollback();
+                    setSessionMsg(request, "errorMsg", "商品状态已变化，无法接受该出价");
+                    response.sendRedirect(request.getContextPath() + "/offer?tab=received");
+                    return;
+                }
             }
 
             String rejectSql = "UPDATE offers SET status = 'REJECTED' WHERE product_id = ? AND status = 'PENDING' AND offer_id != ?";

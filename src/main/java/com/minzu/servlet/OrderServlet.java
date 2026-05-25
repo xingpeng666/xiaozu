@@ -397,6 +397,10 @@ public class OrderServlet extends HttpServlet {
                 return;
             }
 
+            if (STATUS_CANCELLED.equals(targetStatus) && !hasOtherActiveOrders(conn, order.productId, order.orderId)) {
+                restoreReservedProduct(conn, order.productId);
+            }
+
             if (STATUS_COMPLETED.equals(targetStatus)) {
                 markProductSold(conn, order.productId);
             }
@@ -526,6 +530,15 @@ public class OrderServlet extends HttpServlet {
     private void markProductSold(Connection conn, int productId) throws SQLException {
         String sql = "UPDATE products SET publish_status='SOLD' " +
                 "WHERE product_id=? AND publish_status IN ('ON_SALE','OFF_SHELF')";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, productId);
+            ps.executeUpdate();
+        }
+    }
+
+    private void restoreReservedProduct(Connection conn, int productId) throws SQLException {
+        String sql = "UPDATE products SET publish_status='ON_SALE' " +
+                "WHERE product_id=? AND publish_status='OFF_SHELF'";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, productId);
             ps.executeUpdate();

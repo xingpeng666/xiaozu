@@ -2,10 +2,8 @@ package com.minzu.servlet;
 
 import com.minzu.entity.User;
 import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockHttpSession;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -59,6 +57,36 @@ class ProductListServletTest extends BaseServletTest {
         servlet.doGet(request, response);
         List<?> products = (List<?>) request.getAttribute("products");
         assertEquals(1, products.size());
+    }
+
+    @Test
+    void doGet_withCategoryNameFilter_filtersProducts() throws Exception {
+        insertUser(1, "2024001", "张三", "zhangsan", "hash", "STUDENT", "ACTIVE");
+        insertCategory(1, "电子数码");
+        insertCategory(2, "书籍教材");
+        insertProduct(1, 1, 1, "iPhone 15", "5999.00", "ON_SALE");
+        insertProduct(2, 1, 2, "数据结构", "35.00", "ON_SALE");
+
+        request.setParameter("category", "书籍教材");
+        servlet.doGet(request, response);
+
+        List<?> products = (List<?>) request.getAttribute("products");
+        assertEquals(1, products.size());
+        assertEquals(1, request.getAttribute("totalCount"));
+    }
+
+    @Test
+    void doGet_withInvalidCategoryId_ignoresBadFilter() throws Exception {
+        insertUser(1, "2024001", "张三", "zhangsan", "hash", "STUDENT", "ACTIVE");
+        insertCategory(1, "电子数码");
+        insertProduct(1, 1, 1, "iPhone 15", "5999.00", "ON_SALE");
+
+        request.setParameter("categoryId", "abc");
+        servlet.doGet(request, response);
+
+        List<?> products = (List<?>) request.getAttribute("products");
+        assertEquals(1, products.size());
+        assertNull(request.getAttribute("categoryId"));
     }
 
     @Test

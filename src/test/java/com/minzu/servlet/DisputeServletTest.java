@@ -1,7 +1,12 @@
 package com.minzu.servlet;
 
 import com.minzu.entity.User;
+import com.minzu.util.DBUtil;
 import org.junit.jupiter.api.Test;
+
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -89,5 +94,12 @@ class DisputeServletTest extends BaseServletTest {
         servlet.doPost(request, response);
 
         assertNotNull(getRedirectUrl());
+        try (Connection conn = DBUtil.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(
+                     "SELECT publish_status FROM products WHERE product_id = 1")) {
+            assertTrue(rs.next());
+            assertEquals("ON_SALE", rs.getString(1));
+        }
     }
 }

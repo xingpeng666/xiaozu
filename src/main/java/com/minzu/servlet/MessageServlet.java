@@ -82,12 +82,27 @@ public class MessageServlet extends HttpServlet {
         String sql = "INSERT INTO messages (conversation_id, sender_id, message_type, message_content, is_read, created_at) " +
                      "VALUES (?, ?, 'TEXT', ?, 0, NOW())";
 
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBUtil.getConnection()) {
+            String checkSql = "SELECT 1 FROM conversations WHERE conversation_id = ? AND (buyer_id = ? OR seller_id = ?)";
+            try (PreparedStatement checkPs = conn.prepareStatement(checkSql)) {
+                checkPs.setLong(1, conversationId);
+                checkPs.setInt(2, loginUser.getUserId());
+                checkPs.setInt(3, loginUser.getUserId());
+                try (ResultSet rs = checkPs.executeQuery()) {
+                    if (!rs.next()) {
+                        request.getSession().setAttribute("errorMsg", "无权向该会话发送消息");
+                        response.sendRedirect(request.getContextPath() + "/messages");
+                        return;
+                    }
+                }
+            }
+
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, conversationId);
             ps.setInt(2, loginUser.getUserId());
             ps.setString(3, content.trim());
             ps.executeUpdate();
+            }
 
             // 更新会话最后消息时间
             String updateConv = "UPDATE conversations SET last_message_at = NOW() WHERE conversation_id = ?";

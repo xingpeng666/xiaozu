@@ -22,11 +22,8 @@ public class ProductDetailServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        User loginUser = (User) request.getSession().getAttribute("loginUser");
-        if (loginUser == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
+        HttpSession session = request.getSession(false);
+        User loginUser = session == null ? null : (User) session.getAttribute("loginUser");
 
         String productIdStr = request.getParameter("id");
 
@@ -107,12 +104,14 @@ public class ProductDetailServlet extends HttpServlet {
 
                     // ③ 查询当前登录用户是否已收藏该商品
                     boolean isFavorited = false;
-                    String favSql = "SELECT 1 FROM favorites WHERE user_id = ? AND product_id = ?";
-                    try (PreparedStatement favPs = conn.prepareStatement(favSql)) {
-                        favPs.setInt(1, loginUser.getUserId());
-                        favPs.setInt(2, productId);
-                        try (ResultSet favRs = favPs.executeQuery()) {
-                            isFavorited = favRs.next();
+                    if (loginUser != null) {
+                        String favSql = "SELECT 1 FROM favorites WHERE user_id = ? AND product_id = ?";
+                        try (PreparedStatement favPs = conn.prepareStatement(favSql)) {
+                            favPs.setInt(1, loginUser.getUserId());
+                            favPs.setInt(2, productId);
+                            try (ResultSet favRs = favPs.executeQuery()) {
+                                isFavorited = favRs.next();
+                            }
                         }
                     }
 

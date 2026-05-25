@@ -1,9 +1,13 @@
 package com.minzu.servlet;
 
 import com.minzu.entity.User;
+import com.minzu.util.DBUtil;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -86,6 +90,38 @@ class ReportServletTest extends BaseServletTest {
         servlet.doPost(request, response);
 
         assertNotNull(getRedirectUrl());
+    }
+
+    @Test
+    void doPost_takedown_nonAdminDoesNotProcessAction() throws Exception {
+        insertUser(1, "2024001", "普通用户", "user", "hash", "STUDENT", "ACTIVE");
+        insertUser(2, "2024002", "卖家", "seller", "hash", "STUDENT", "ACTIVE");
+        insertCategory(1, "电子数码");
+        insertProduct(1, 2, 1, "iPhone 15", "5999.00", "ON_SALE");
+        insertReport(1, 1, 1, "违规商品", "PENDING");
+
+        User user = createTestUser(1, "2024001", "普通用户", "user", "STUDENT", "ACTIVE");
+        loginUser(user);
+        request.setParameter("action", "takedown");
+        request.setParameter("productId", "1");
+        request.setParameter("reportId", "1");
+
+        servlet.doPost(request, response);
+
+        assertEquals("/index.jsp", getRedirectUrl());
+        try (Connection conn = DBUtil.getConnection();
+             Statement stmt = conn.createStatement()) {
+            try (ResultSet productRs = stmt.executeQuery(
+                    "SELECT publish_status FROM products WHERE product_id = 1")) {
+                assertTrue(productRs.next());
+                assertEquals("ON_SALE", productRs.getString(1));
+            }
+            try (ResultSet reportRs = stmt.executeQuery(
+                    "SELECT report_status FROM reports WHERE report_id = 1")) {
+                assertTrue(reportRs.next());
+                assertEquals("PENDING", reportRs.getString(1));
+            }
+        }
     }
 
     @Test

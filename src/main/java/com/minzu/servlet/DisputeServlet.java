@@ -221,7 +221,7 @@ public class DisputeServlet extends HttpServlet {
 
                 // 如果是退款，商品重新上架
                 if ("REFUND".equals(result)) {
-                    String reshelf = "UPDATE products SET publish_status = 'ON_SHELF' " +
+                    String reshelf = "UPDATE products SET publish_status = 'ON_SALE' " +
                             "WHERE product_id = (SELECT product_id FROM orders WHERE order_id = ?)";
                     try (PreparedStatement ps = conn.prepareStatement(reshelf)) {
                         ps.setInt(1, orderId);

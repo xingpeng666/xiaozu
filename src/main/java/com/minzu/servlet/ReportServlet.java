@@ -90,10 +90,14 @@ public class ReportServlet extends HttpServlet {
         if ("submit".equals(action)) {
             submitReport(req, resp, loginUser);
         } else if ("takedown".equals(action)) {
-            requireAdmin(loginUser, req, resp);
+            if (!requireAdmin(loginUser, req, resp)) {
+                return;
+            }
             takedownProduct(req, resp, loginUser);
         } else if ("dismiss".equals(action)) {
-            requireAdmin(loginUser, req, resp);
+            if (!requireAdmin(loginUser, req, resp)) {
+                return;
+            }
             dismissReport(req, resp);
         } else {
             resp.sendRedirect(req.getContextPath() + "/product-list");
@@ -284,11 +288,13 @@ public class ReportServlet extends HttpServlet {
         resp.sendRedirect(req.getContextPath() + "/report");
     }
 
-    private void requireAdmin(User user, HttpServletRequest req, HttpServletResponse resp)
+    private boolean requireAdmin(User user, HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
         if (!"ADMIN".equals(user.getRoleCode())) {
             resp.sendRedirect(req.getContextPath() + "/index.jsp");
+            return false;
         }
+        return true;
     }
 
     private User getLoginUser(HttpServletRequest req, HttpServletResponse resp) throws IOException {

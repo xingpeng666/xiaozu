@@ -56,8 +56,12 @@ public class ProductListServlet extends HttpServlet {
             params.add("%" + keyword.trim() + "%");
         }
         if (categoryIdStr != null && !categoryIdStr.trim().isEmpty()) {
-            where.append(" AND p.category_id = ?");
-            params.add(Integer.parseInt(categoryIdStr));
+            try {
+                where.append(" AND p.category_id = ?");
+                params.add(Integer.parseInt(categoryIdStr.trim()));
+            } catch (NumberFormatException ignored) {
+                categoryIdStr = null;
+            }
         } else if (categoryName != null && !categoryName.trim().isEmpty()) {
             where.append(" AND c.category_name = ?");
             params.add(categoryName.trim());
@@ -103,7 +107,8 @@ public class ProductListServlet extends HttpServlet {
         }
 
         // 总数查询
-        String countSql = "SELECT COUNT(*) FROM products p " + where;
+        String countSql = "SELECT COUNT(*) FROM products p " +
+                "LEFT JOIN categories c ON p.category_id = c.category_id " + where;
         int totalCount = 0;
         try (
             Connection conn = DBUtil.getConnection();

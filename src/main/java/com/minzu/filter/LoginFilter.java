@@ -23,7 +23,8 @@ public class LoginFilter implements Filter {
             "/login",
             "/register",
             "/index.jsp",   // 首页游客可见
-            "/product-list" // 商品列表游客可见
+            "/product-list", // 商品列表游客可见
+            "/product-detail" // 商品详情游客可见
     ));
 
     /** 白名单前缀：这些前缀开头的路径无论是否登录都放行。 */

@@ -25,11 +25,6 @@ public class IndexServlet extends HttpServlet {
             loginUser = (User) session.getAttribute("loginUser");
         }
 
-        if (loginUser == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
-
         // 查询最新上架商品（8个）
         List<Product> latestProducts = new ArrayList<>();
         String sql = "SELECT p.product_id, p.title, p.price, p.cover_image_url, p.condition_level, " +
