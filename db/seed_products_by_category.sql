@@ -1,5 +1,5 @@
 -- Batch seed products by category.
--- Run after db/init_schema.sql. It is safe to run repeatedly; rows tagged seed-batch are replaced.
+-- Run after db/database.sql. It is safe to run repeatedly; rows tagged seed-batch are replaced.
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;

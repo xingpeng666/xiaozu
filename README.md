@@ -63,7 +63,8 @@
 ```
 Seconde-hand-trading-platform/
 ├── db/
-│   └── init_schema.sql               # 数据库建表 & 初始化 SQL
+│   ├── database.sql                  # 数据库建表脚本
+│   └── seed_products_by_category.sql # 分类商品示例数据
 ├── src/
 │   └── main/
 │       ├── java/
@@ -119,6 +120,7 @@ Seconde-hand-trading-platform/
 │           ├── admin-product-review.jsp
 │           ├── admin-reports.jsp / admin-disputes.jsp
 │           └── WEB-INF/
+├── src/test/                         # Servlet 集成测试与 H2 测试库脚本
 ├── pom.xml
 └── README.md
 ```
@@ -150,7 +152,8 @@ cd Seconde-hand-trading-platform
 ```sql
 CREATE DATABASE minzu_secondhand DEFAULT CHARACTER SET utf8mb4;
 USE minzu_secondhand;
-SOURCE db/init_schema.sql;
+SOURCE db/database.sql;
+SOURCE db/seed_products_by_category.sql;
 ```
 
 **3. 配置数据库连接**
