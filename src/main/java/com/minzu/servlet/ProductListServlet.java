@@ -57,8 +57,9 @@ public class ProductListServlet extends HttpServlet {
         }
         if (categoryIdStr != null && !categoryIdStr.trim().isEmpty()) {
             try {
+                int categoryId = Integer.parseInt(categoryIdStr.trim());
                 where.append(" AND p.category_id = ?");
-                params.add(Integer.parseInt(categoryIdStr.trim()));
+                params.add(categoryId);
             } catch (NumberFormatException ignored) {
                 categoryIdStr = null;
             }
