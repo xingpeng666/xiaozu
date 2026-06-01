@@ -98,6 +98,26 @@ public class ProductDetailServlet extends HttpServlet {
                         p.setViewCount(p.getViewCount() + 1);
                     }
 
+                    // ①-b 记录浏览历史（仅登录用户）
+                    if (loginUser != null) {
+                        try (PreparedStatement bhPs = conn.prepareStatement(
+                                "INSERT INTO browse_history (user_id, product_id, browse_time) " +
+                                "VALUES (?, ?, NOW()) ON DUPLICATE KEY UPDATE browse_time = NOW()")) {
+                            bhPs.setLong(1, loginUser.getUserId());
+                            bhPs.setLong(2, productId);
+                            bhPs.executeUpdate();
+                        }
+                        // 清理超出50条的旧记录
+                        try (PreparedStatement cleanPs = conn.prepareStatement(
+                                "DELETE FROM browse_history WHERE user_id = ? " +
+                                "AND id NOT IN (SELECT id FROM (SELECT id FROM browse_history " +
+                                "WHERE user_id = ? ORDER BY browse_time DESC LIMIT 50) tmp)")) {
+                            cleanPs.setLong(1, loginUser.getUserId());
+                            cleanPs.setLong(2, loginUser.getUserId());
+                            cleanPs.executeUpdate();
+                        }
+                    }
+
                     // ② 查询详情图列表
                     List<String> detailImages = new ArrayList<>();
                     String imageSql = "SELECT image_url FROM product_images " +
