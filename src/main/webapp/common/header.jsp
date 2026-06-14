@@ -62,6 +62,8 @@
                class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "messages".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">私信</a>
             <a href="${pageContext.request.contextPath}/my-favorites"
                class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "favorites".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">收藏</a>
+            <a href="${pageContext.request.contextPath}/browse-history"
+               class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "browse-history".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">浏览历史</a>
             <a href="${pageContext.request.contextPath}/offer"
                class="px-3 py-2 text-sm font-medium rounded-lg transition-colors <%= "offers".equals(activePage) ? "text-brand-600 bg-brand-50" : "text-ink-muted hover:text-ink-primary hover:bg-stone-100" %>">出价</a>
             <a href="${pageContext.request.contextPath}/notifications"
